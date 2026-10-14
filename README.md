@@ -30,3 +30,7 @@ Ne jamais committer de secrets, clés API, coordonnées bancaires ou données r�
 - Ne pas exécuter de migration en production avant revue et validation.
 
 **Attention :** les comptes et les sessions ne sont pas encore utilisables. Les fichiers Prisma et les règles d'autorisation sont uniquement des fondations.
+
+## Authentification
+
+La vérification de session côté serveur est en cours de construction. Aucun formulaire de connexion ou inscription n'est actif. Ne pas considérer les comptes comme prêts pour la production.
