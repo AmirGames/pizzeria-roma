@@ -13,6 +13,12 @@ enum UserRole {
   KITCHEN
 }
 
+enum FulfillmentCategory {
+  PIZZA
+  PASTA
+  OTHER
+}
+
 enum OrderStatus {
   PENDING
   ACCEPTED
@@ -57,9 +63,10 @@ model Session {
 model MenuCategory {
   id        String    @id @default(cuid())
   nameFr    String
-  nameEn    String
-  position  Int       @default(0)
-  products  Product[]
+  nameEn              String
+  fulfillmentCategory FulfillmentCategory @default(OTHER)
+  position            Int       @default(0)
+  products            Product[]
 }
 
 model Product {
