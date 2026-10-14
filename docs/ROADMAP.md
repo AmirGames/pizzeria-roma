@@ -1,52 +1,30 @@
 # Roadmap GitHub
 
-Les lignes initiales décrivent les jalons produit ; les sections « numérotation GitHub » suivent les PR réellement ouvertes dans le dépôt.
+## État des pull requests
 
-- [x] PR-01 : squelette Next.js, CI, page temporaire et documentation initiale (en attente de validation de la PR).
-- [ ] PR-02 : schéma DB et règles d'autorisation initiales ; authentification réelle encore à implémenter (PR en cours).
-- [ ] PR-02b : vérification des sessions et permissions côté serveur (PR en cours, connexion réelle à faire).
-- [ ] PR-03 : modèles tailles/suppléments et moteur de calcul (en cours ; interface et API à venir).
-- [ ] PR-04 : panier et validation serveur.
-- [ ] PR-05 : zones, horaires et précommandes.
-- [ ] PR-06 : PSP, webhooks et remboursements.
-- [ ] PR-07 : gestion des commandes, cuisine et tickets.
-- [ ] PR-08 : PWA, comptes, e-mails FR/EN.
-- [ ] PR-09 : déploiement, sauvegardes et surveillance.
-- [ ] PR-10 : recette, tests réels et pilote.
+Les PR GitHub **#1 à #12 sont fusionnées**. Les jalons produit ci-dessous sont des travaux restant à réaliser ; leur numéro ne correspond pas nécessairement au numéro des PR GitHub.
 
-À chaque PR : tests, mise à jour du README et du CHANGELOG, documentation fonctionnelle concernée.
+- [x] PR #1–#8 : fondations, catalogue, personnalisation, panier de démonstration et règles de livraison/retrait.
+- [x] PR #9 : connecter le panier de démonstration aux règles de livraison et de retrait.
+- [x] PR #10 : aperçu serveur des sélections depuis le catalogue Prisma.
+- [x] PR #11 : publier en lecture seule le catalogue actif.
+- [x] PR #12 : ajouter les sélections du catalogue au panier et recalculer côté serveur les prix et règles.
 
-- [ ] PR-04b : interface de présentation du menu sans prix réels (en cours).
+## Prochain jalon — préparer le catalogue commercial
 
-- [ ] PR-06 : validation des options pizza, devis et page de présentation (en cours ; interface transactionnelle à venir).
+- [ ] Obtenir de la pizzeria la carte, les tailles, prix, suppléments, allergènes et disponibilités approuvés.
+- [ ] Saisir et vérifier ces données dans le catalogue Prisma avant publication.
+- [ ] Confirmer les zones et leurs limites géographiques avant toute activation de livraison.
+- [ ] Garder les catégories de fulfillment fiables côté serveur ; les catégories non classées restent `OTHER`. Ne pas modifier la règle concernant les desserts sans confirmation.
 
-- [ ] PR-07 (numérotation GitHub) : panier de démonstration responsive, logique locale testée ; connexion au catalogue et validation serveur à venir.
+Tant que ces informations ne sont pas validées, ne pas inventer de produits ou de prix et ne pas activer les commandes réelles ou les paiements.
 
-- [ ] PR-08 (numérotation GitHub) : interface livraison/retrait et règles de zones/horaires testées ; adresse, créneaux et commande réels à faire.
+## Étapes suivantes après validation commerciale
 
-## PR-09 — Panier et aperçu livraison/retrait
-- [x] Partager le panier de démonstration entre `/panier` et `/commande` dans le stockage local du navigateur.
-- [x] Calculer les plats admissibles depuis les lignes du panier selon les règles de livraison existantes.
-- [x] Conserver le retrait sans minimum, les zones et minima actuels ; aucun changement aux règles de catégories.
-- [ ] Remplacer les données fictives par un catalogue fiable et recalculer les règles côté serveur avant activation.
+- [ ] Vérifier une adresse à partir d'une source de couverture approuvée, sans faire confiance à la zone saisie par le client.
+- [ ] Définir les horaires, créneaux, capacités et précommandes avec le restaurant.
+- [ ] Concevoir la création et le suivi des commandes avec autorisation serveur et processus de cuisine.
+- [ ] Étudier les paiements et remboursements après validation juridique, contractuelle et opérationnelle.
+- [ ] Préparer le pilote, la surveillance et les sauvegardes avant toute mise en production.
 
-
-## PR-10 (numérotation GitHub) — Aperçu serveur du panier, empilée sur PR-09
-- [x] Accepter uniquement des identifiants d'articles/options et des quantités.
-- [x] Recharger prix, catégories, tailles et suppléments depuis Prisma pour établir l'aperçu.
-- [x] Garder les catégories non classées dans `OTHER` par défaut ; ne pas reclasser les desserts.
-- [ ] Charger les produits/prix réellement approuvés et relier l'interface à l'API avant d'envisager toute commande.
-
-
-## PR-11 (numérotation GitHub) — Catalogue public en lecture seule, empilée sur PR-10
-- [x] Publier uniquement produits, tailles et suppléments actifs depuis Prisma.
-- [x] Afficher les éléments configurés dans `/menu` et prévoir un état vide/indisponible.
-- [x] Garder la règle par défaut `OTHER` et la règle dessert inchangées ; n'ajouter aucun produit réel.
-- [ ] Relier le panier aux sélections du catalogue et à l'aperçu serveur après validation des données commerciales.
-
-
-## PR-12 (numérotation GitHub) — Panier depuis le catalogue, aperçu côté serveur
-- [x] Ajouter des produits catalogue avec taille et suppléments sans stocker de prix/catégorie côté navigateur.
-- [x] Recalculer le récapitulatif et les règles de livraison/retrait via l'API serveur.
-- [x] Garder le panier fictif disponible et ne créer ni commande ni paiement.
-- [ ] Charger les données commerciales approuvées ; les écrans de commande réelle restent hors périmètre.
+À chaque PR : ajouter les tests appropriés, exécuter le typecheck et le build, et mettre à jour le README, le changelog et la documentation fonctionnelle concernée.
