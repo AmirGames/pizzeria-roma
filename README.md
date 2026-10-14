@@ -38,3 +38,7 @@ La vérification de session côté serveur est en cours de construction. Aucun f
 ## Catalogue (en cours)
 
 Un modèle de tailles et suppléments ainsi qu'un calculateur de prix testable ont été ajoutés. Les prix réels et les allergènes doivent être validés par la pizzeria. Aucune commande n'est encore possible.
+
+## Aperçu du menu
+
+Démarrer avec `npm run dev` puis ouvrir `http://localhost:3000/menu`. La page présente uniquement les catégories : aucun produit, prix, allergène ou moyen de paiement réel n'y est affiché.
