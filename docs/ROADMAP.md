@@ -2,6 +2,7 @@
 
 - [x] PR-01 : squelette Next.js, CI, page temporaire et documentation initiale (en attente de validation de la PR).
 - [ ] PR-02 : schéma DB et règles d'autorisation initiales ; authentification réelle encore à implémenter (PR en cours).
+- [ ] PR-02b : vérification des sessions et permissions côté serveur (PR en cours, connexion réelle à faire).
 - [ ] PR-03 : catalogue et personnalisation.
 - [ ] PR-04 : panier et validation serveur.
 - [ ] PR-05 : zones, horaires et précommandes.
