@@ -46,6 +46,8 @@ export async function POST(request: Request) {
         nameFr: true,
         active: true,
         baseCents: true,
+        choiceLabel: true,
+        extraSelectionMode: true,
         category: { select: { fulfillmentCategory: true } },
         sizes: { select: { id: true, label: true, priceCents: true, active: true } },
         extras: { select: { id: true, priceCents: true, active: true } },
