@@ -28,7 +28,7 @@ test('restaurant opening windows', () => {
 
 test('counts only pizzas and pasta, including quantities', () => {
   const dishes = countEligibleDishes([
-    { category: 'pizza', quantity: 1 },
+    { category: 'pizza', sizeCm: '33', quantity: 1 },
     { category: 'pasta', quantity: 1 },
     { category: 'other', quantity: 5 },
   ]);
@@ -36,4 +36,18 @@ test('counts only pizzas and pasta, including quantities', () => {
   assert.equal(evaluateDelivery({ mode: 'delivery', zoneId: 'erpent', mainDishCount: dishes }).eligible, true);
   assert.equal(countEligibleDishes([{ category: 'other', quantity: 3 }]), 0);
   assert.throws(() => countEligibleDishes([{ category: 'unknown', quantity: 1 }]), /INVALID_CATEGORY/);
+});
+
+test('a 50 cm maxi pizza counts as two dishes regardless of price', () => {
+  assert.equal(countEligibleDishes([{ category: 'pizza', sizeCm: '50', quantity: 1 }]), 2);
+  assert.equal(countEligibleDishes([{ category: 'pizza', sizeCm: '50', quantity: 2 }]), 4);
+  assert.equal(countEligibleDishes([{ category: 'pizza', sizeCm: '33', quantity: 1 }]), 1);
+  assert.equal(countEligibleDishes([
+    { category: 'pizza', sizeCm: '50', quantity: 1 },
+    { category: 'pasta', quantity: 1 },
+    { category: 'other', quantity: 3 },
+  ]), 3);
+  assert.equal(evaluateDelivery({ mode: 'delivery', zoneId: 'erpent', mainDishCount: 2 }).eligible, true);
+  assert.throws(() => countEligibleDishes([{ category: 'pizza', sizeCm: '20', quantity: 1 }]), /INVALID_SIZE/);
+  assert.throws(() => countEligibleDishes([{ category: 'pizza', quantity: 1 }]), /INVALID_SIZE/);
 });
