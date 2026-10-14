@@ -6,7 +6,7 @@ import { addCatalogCartItem } from '../../lib/catalog-cart.mjs';
 import type { CatalogCartLine } from '../../lib/catalog-cart.mjs';
 import { useCatalogCart } from '../../lib/use-catalog-cart';
 
-type CatalogProduct = { id: string; nameFr: string; baseCents: number; sizes: Array<{ id: string; label: string; priceCents: number }>; extras: Array<{ id: string; nameFr: string; priceCents: number }> };
+type CatalogProduct = { id: string; nameFr: string; baseCents: number; choiceLabel: string | null; extraSelectionMode: 'SINGLE' | 'MULTIPLE'; sizes: Array<{ id: string; label: string; priceCents: number }>; extras: Array<{ id: string; nameFr: string; priceCents: number }> };
 type CatalogCategory = { id: string; nameFr: string; products: CatalogProduct[] };
 function euros(cents: number) { return new Intl.NumberFormat('fr-BE', { style: 'currency', currency: 'EUR' }).format(cents / 100); }
 
@@ -20,13 +20,18 @@ function ProductCard({ product, onAdd }: { product: CatalogProduct; onAdd: (line
   return <article className="catalog-product" key={product.id}>
     <h4>{product.nameFr}</h4>
     {product.sizes.length > 0 ? <>
-      <label className="catalog-option">Format<select value={sizeId} onChange={event => setSizeId(event.target.value)}>
+      <label className="catalog-option">{product.choiceLabel ?? 'Format'}<select value={sizeId} onChange={event => setSizeId(event.target.value)}>
         {product.sizes.map(size => <option key={size.id} value={size.id}>{size.label} · {euros(size.priceCents)}</option>)}
       </select></label>
     </> : <p>{euros(product.baseCents)}</p>}
-    {product.extras.length > 0 && <fieldset className="catalog-extra-options"><legend>Suppléments</legend>{product.extras.map(extra =>
-      <label key={extra.id}><input type="checkbox" checked={extraIds.includes(extra.id)} onChange={() => toggleExtra(extra.id)} /> {extra.nameFr} (+{euros(extra.priceCents)})</label>
-    )}</fieldset>}
+    {product.extras.length > 0 && <fieldset className="catalog-extra-options"><legend>{product.extraSelectionMode === 'SINGLE' ? 'Supplément (au choix)' : 'Suppléments'}</legend>
+      {product.extraSelectionMode === 'SINGLE' ? <>
+        <label><input type="radio" name={`extras-${product.id}`} checked={extraIds.length === 0} onChange={() => setExtraIds([])} /> Aucun</label>
+        {product.extras.map(extra => <label key={extra.id}><input type="radio" name={`extras-${product.id}`} checked={extraIds[0] === extra.id} onChange={() => setExtraIds([extra.id])} /> {extra.nameFr} (+{euros(extra.priceCents)})</label>)}
+      </> : product.extras.map(extra =>
+        <label key={extra.id}><input type="checkbox" checked={extraIds.includes(extra.id)} onChange={() => toggleExtra(extra.id)} /> {extra.nameFr} (+{euros(extra.priceCents)})</label>
+      )}
+    </fieldset>}
     <button className="catalog-add" type="button" disabled={product.sizes.length > 0 && !sizeId} onClick={() => { onAdd({ productId: product.id, ...(sizeId ? { sizeId } : {}), extraIds }); setAdded(true); }}>
       {added ? 'Ajouté au panier ✓' : 'Ajouter au panier'}
     </button>
