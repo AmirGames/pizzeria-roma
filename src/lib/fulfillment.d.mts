@@ -6,4 +6,4 @@ export function evaluateDelivery(input: { mode: 'delivery' | 'pickup'; zoneId?: 
 export function serviceWindows(weekday: number): Array<{ start: string; end: string }>;
 export function isWithinService(weekday: number, time: string): boolean;
 
-export function countEligibleDishes(items: Array<{ category: 'pizza' | 'pasta' | 'other'; quantity: number }>): number;
+export function countEligibleDishes(items: Array<{ category: 'pizza' | 'pasta' | 'other'; quantity: number; sizeCm?: '33' | '50' }>): number;
