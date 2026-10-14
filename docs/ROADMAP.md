@@ -24,6 +24,10 @@ La carte est transcrite dans [RESTAURANT_MENU_SOURCE.md](RESTAURANT_MENU_SOURCE.
 
 Les règles de livraison et retrait restent inchangées. Aucune commande réelle ni aucun paiement n'est activé.
 
+## Horaires hebdomadaires — aperçu
+
+La page `/commande` affiche un statut informatif calculé dans le fuseau `Europe/Brussels` à partir des horaires hebdomadaires confirmés. L’indicateur ne tient pas compte des jours fériés et ne conditionne pas le checkout. Les créneaux et exceptions restent à valider avec le restaurant.
+
 ## Prochain jalon — couverture d’adresse et disponibilité
 
 L’interface de zones actuelle est un aperçu : choisir une zone ne prouve pas qu’une adresse est desservie. Avant toute validation d’adresse, le restaurant doit approuver une source de couverture et des frontières précises. Ne pas déduire ces frontières depuis les noms de zones ou les saisies du client.

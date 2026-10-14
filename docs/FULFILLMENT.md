@@ -4,7 +4,7 @@
 - Livraison gratuite pour les quatre zones envisagées : Namur centre (1 plat principal), Belgrade (2), Erpent (2), Saint-Servais (2).
 - Retrait sans minimum de livraison ; préparation estimée 30–40 minutes.
 - Horaires : lundi à vendredi 11h30–14h00 et 18h00–22h00, samedi 18h00–22h00, dimanche fermé.
-- Moteur de règles pur testé : `evaluateDelivery`, `serviceWindows`, `isWithinService`.
+- Moteur de règles pur testé : `evaluateDelivery`, `serviceWindows`, `isWithinService` et `isWithinRestaurantService`.
 - Page `/commande` responsive avec choix livraison/retrait et zone. Le panier de démonstration garde son aperçu local ; les sélections catalogue passent par l'API de prévisualisation serveur.
 
 ## Définition confirmée par le restaurateur
@@ -13,9 +13,14 @@ Le minimum de livraison porte sur les **pizzas et les plats de pâtes uniquement
 La liste manuscrite comporte d'autres localités qui attendent une relecture des noms et une définition géographique avant activation.
 
 ## Limites critiques
-La sélection de zone ne prouve pas qu'une adresse est desservie. Aucun géocodage, aucune validation d'adresse, aucun créneau réel ni commande active. Le panier de démonstration reste local et non fiable. Pour les sélections catalogue, la route de prévisualisation relit prix, tailles et catégories depuis Prisma. Les horaires sont les horaires locaux du restaurant ; les fonctions prennent explicitement le jour de semaine et l'heure locale, sans conversion de fuseau. Les sélections catalogue sont stockées localement sous forme d'identifiants uniquement ; le calcul des prix et des règles associées est effectué par le serveur. L'adresse et les créneaux restent des démonstrations.
+La sélection de zone ne prouve pas qu'une adresse est desservie. Aucun géocodage, aucune validation d'adresse, aucun créneau réel ni commande active. Le panier de démonstration reste local et non fiable. Pour les sélections catalogue, la route de prévisualisation relit prix, tailles et catégories depuis Prisma. Les horaires sont ceux du restaurant en `Europe/Brussels`. `isWithinService` accepte un jour et une heure locale explicites ; `isWithinRestaurantService` convertit un instant réel avec ce fuseau et vérifie les horaires hebdomadaires. L’indicateur affiché sur `/commande` est informatif : il ne connaît pas les jours fériés, ne réserve pas de créneau et ne conditionne pas une commande. Les horaires spéciaux des jours fériés doivent être confirmés et gérés séparément. Les sélections catalogue sont stockées localement sous forme d'identifiants uniquement ; le calcul des prix et des règles associées est effectué par le serveur. L'adresse et les créneaux restent des démonstrations.
 
 **Avant activation du checkout :** associer les produits aux plats principaux, recalculer le panier côté serveur, vérifier l'adresse/zone avec une source fiable et des règles approuvées, appliquer les horaires et les capacités de production, réserver des créneaux, gérer les précommandes et le fuseau Europe/Brussels. Ne pas utiliser la sélection client comme preuve d'éligibilité.
+
+
+## PR-17 — Statut des horaires habituels
+
+La page `/commande` affiche si l’établissement est ouvert selon les horaires hebdomadaires, calculés dans le fuseau `Europe/Brussels` et rafraîchis chaque minute. Le statut ne tient pas compte des exceptions des jours fériés ; l’interface l’indique et il n’active pas le checkout.
 
 
 ## PR-12 — Aperçu serveur du panier catalogue

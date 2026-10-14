@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { DELIVERY_ZONES, evaluateCartFulfillment } from '../../lib/fulfillment.mjs';
+import { DELIVERY_ZONES, evaluateCartFulfillment, isWithinRestaurantService } from '../../lib/fulfillment.mjs';
 import { useCart } from '../../lib/use-cart';
 import { useCatalogCart } from '../../lib/use-catalog-cart';
 
@@ -17,9 +17,17 @@ export default function FulfillmentPage() {
   const [address, setAddress] = useState('');
   const [catalogPreview, setCatalogPreview] = useState<CatalogPreview | null>(null);
   const [previewStatus, setPreviewStatus] = useState<'idle' | 'loading' | 'ready' | 'unavailable'>('idle');
+  const [serviceOpen, setServiceOpen] = useState<boolean | null>(null);
   const isCatalogCart = catalogCart.items.length > 0;
   const demoPolicy = evaluateCartFulfillment({ mode, zoneId: zone, items });
   const policy = isCatalogCart && catalogPreview ? catalogPreview.fulfillment : demoPolicy;
+
+  useEffect(() => {
+    const updateServiceStatus = () => setServiceOpen(isWithinRestaurantService(new Date()));
+    updateServiceStatus();
+    const timer = window.setInterval(updateServiceStatus, 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     if (!catalogCart.ready || !isCatalogCart) {
@@ -72,6 +80,8 @@ export default function FulfillmentPage() {
           </section>
           <aside className="roma-fulfillment-card">
             <h2>Horaires prévus</h2>
+            <p role="status" className={serviceOpen ? 'roma-policy-ok' : 'roma-policy-warning'}>{serviceOpen === null ? 'Vérification des horaires…' : serviceOpen ? 'Ouvert selon les horaires hebdomadaires' : 'Fermé selon les horaires hebdomadaires'}</p>
+            <p className="roma-policy-caveat">Calcul informatif selon le fuseau Europe/Brussels, hors jours fériés. Aucun créneau n’est réservé.</p>
             <div className="roma-hours-row"><span>Lundi – vendredi</span><strong>11h30–14h00<br/>18h00–22h00</strong></div>
             <div className="roma-hours-row"><span>Samedi</span><strong>18h00–22h00</strong></div>
             <div className="roma-hours-row"><span>Dimanche</span><strong>Fermé</strong></div>

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDelivery, isWithinService, minimumMainDishes, serviceWindows, countEligibleDishes } from '../src/lib/fulfillment.mjs';
+import { evaluateDelivery, isWithinService, isWithinRestaurantService, minimumMainDishes, serviceWindows, countEligibleDishes } from '../src/lib/fulfillment.mjs';
 
 test('delivery is free and requires main dishes by zone', () => {
   assert.deepEqual(evaluateDelivery({ mode: 'delivery', zoneId: 'erpent', mainDishCount: 2 }), { eligible: true, minimum: 2, deliveryFeeCents: 0 });
@@ -24,6 +24,17 @@ test('restaurant opening windows', () => {
   assert.equal(isWithinService(6, '13:00'), false);
   assert.equal(isWithinService(6, '18:00'), true);
   assert.equal(isWithinService(0, '19:00'), false);
+});
+
+test('restaurant status uses Europe/Brussels across standard and daylight time', () => {
+  assert.equal(isWithinRestaurantService(new Date('2026-10-14T09:30:00Z')), true, '11:30 CEST opens');
+  assert.equal(isWithinRestaurantService(new Date('2026-10-14T12:00:00Z')), false, '14:00 CEST closes');
+  assert.equal(isWithinRestaurantService(new Date('2026-10-14T16:00:00Z')), true, '18:00 CEST opens');
+  assert.equal(isWithinRestaurantService(new Date('2026-01-14T10:30:00Z')), true, '11:30 CET opens');
+  assert.equal(isWithinRestaurantService(new Date('2026-10-17T16:00:00Z')), true, 'Saturday opens at 18:00 local time');
+  assert.equal(isWithinRestaurantService(new Date('2026-10-18T17:00:00Z')), false, 'Sunday remains closed');
+  assert.equal(isWithinRestaurantService(new Date('invalid')), false);
+  assert.equal(isWithinRestaurantService('2026-10-14T09:30:00Z'), false);
 });
 
 test('counts only pizzas and pasta, including quantities', () => {

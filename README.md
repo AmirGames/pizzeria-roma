@@ -55,7 +55,7 @@ Ouvrir `/panier` pour tester le panier de démonstration, avec son article et so
 
 ## Livraison et retrait (aperçu)
 
-La page `/commande` présente les règles selon le mode livraison/retrait et la zone choisie. Avec une sélection catalogue, les prix et l'éligibilité sont recalculés côté serveur. Le panier de démonstration reste une simulation locale. La route `POST /api/cart/preview` relit les produits et prix depuis Prisma ; `GET /api/catalog` ne retourne que les données actives.
+La page `/commande` présente les règles selon le mode livraison/retrait et la zone choisie. Avec une sélection catalogue, les prix et l'éligibilité sont recalculés côté serveur. Le panier de démonstration reste une simulation locale. La route `POST /api/cart/preview` relit les produits et prix depuis Prisma ; `GET /api/catalog` ne retourne que les données actives. Un indicateur informatif d'ouverture suit les horaires hebdomadaires dans le fuseau `Europe/Brussels`, hors jours fériés ; il ne réserve aucun créneau et ne rend pas les commandes disponibles.
 
 **Règle confirmée :** seules les pizzas et les pâtes comptent dans le minimum de plats par zone. Namur centre = 1 plat ; Belgrade, Erpent et Saint-Servais = 2 plats. La livraison est gratuite. Une pizza maxi 50 cm compte pour 2 plats ; une pizza 33 cm compte pour 2 à partir de 18 € par pizza, suppléments inclus ; les pâtes comptent pour 1. Salades, boissons et desserts restent exclus. La règle concernant les desserts est inchangée.
 
