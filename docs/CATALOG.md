@@ -18,3 +18,6 @@ Le module `menu-pricing.mjs` calcule uniquement des centimes entiers. Il ne doit
 
 ## État
 Schéma des options et calculateur isolé ajoutés ; pas encore de catalogue interactif, d'API ou de commandes réelles.
+
+## Interface PR-04b
+Page `/menu` responsive : catégories uniquement, sans fiches produits ni tarifs inventés. Aucun panier ou paiement. Les photographies et les informations de menu seront fournies/validées par le restaurant.
