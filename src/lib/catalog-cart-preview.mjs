@@ -93,6 +93,7 @@ export function previewCatalogCart(products, rawSelections, fulfillment) {
         sizeLabel = option.label;
       } else {
         if (selection.sizeId !== undefined) throw new Error('INVALID_SIZE');
+        if (Array.isArray(product.sizes) && product.sizes.some(option => option && option.active)) throw new Error('CATALOG_INVALID');
         quoted = priceItem({
           baseCents: product.baseCents,
           extras: extras.map(extra => extra.priceCents),
