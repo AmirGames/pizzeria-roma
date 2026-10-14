@@ -48,10 +48,10 @@ Suppléments pizzas : « à partir de 1,50 € » pour 33 cm et « à partir de 
 ## Zones de livraison manuscrites — lecture à confirmer
 La liste semble indiquer : Belgrade 2, Dave 3, Erpent 2, Emines 3, Loyers 3, La Bruyère 3, Saint-Marc 2, Vedrin 2, Wépion 3. **Certains noms sont difficiles à lire ; ne pas activer automatiquement ces zones.**
 
-**Écart avec les règles actuellement codées** : l'ancienne règle supposait Erpent = 3 plats et Namur centre = 1, Saint-Servais = 2. La photo manuscrite semble indiquer Erpent = 2 et ne confirme pas toutes les zones précédentes. Il faut une validation explicite du restaurant pour trancher.
+**Écart avec les règles actuellement codées** : l'ancienne règle supposait Erpent = 3 plats et Namur centre = 1, Saint-Servais = 2. La photo manuscrite semble indiquer Erpent = 2 et ne confirme pas toutes les zones précédentes. Le restaurateur a confirmé que les chiffres sont des minima de **pizzas et/ou plats de pâtes**. Erpent est corrigé à 2. La lecture des autres noms de localités et leurs frontières reste à vérifier.
 
 ## Actions avant publication
 1. Confirmer prix, descriptions, disponibilité des formats 50 cm, recettes et ingrédients exacts.
 2. Confirmer suppléments, retraits possibles, allergènes et options moitié-moitié.
-3. Confirmer toutes les zones, les minima et la définition du « plat principal ».
+3. Confirmer l'orthographe et la couverture exacte des zones manuscrites. Définition du plat admissible confirmée : pizza ou pâtes.
 4. Ne pas publier ni activer le paiement tant que le catalogue n'est pas vérifié.
