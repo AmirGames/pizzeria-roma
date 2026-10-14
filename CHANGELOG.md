@@ -2,6 +2,8 @@
 
 ## 2026-10-14
 
+- Transcription du menu photographié daté du 14/10/2026 : pizzas, pâtes, accompagnements, salades, viande, boissons et desserts. Les options incomplètes restent signalées comme telles ; aucun produit n'est encore publié dans Prisma.
+
 - PR #12 : panier relié aux sélections du catalogue ; prix, sous-total et règles de livraison/retrait relus côté serveur.
 - PR #11 : catalogue actif publié en lecture seule sur le menu.
 - PR #10 : aperçu serveur du panier fondé sur les données Prisma et classification de fulfillment explicite.
