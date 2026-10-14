@@ -60,6 +60,26 @@ export function isWithinService(weekday, time) {
   return serviceWindows(weekday).some(({ start, end }) => time >= start && time < end);
 }
 
+/**
+ * Informational check against regular weekly hours using the restaurant's timezone.
+ * Belgian public-holiday overrides are intentionally not inferred here.
+ */
+export function isWithinRestaurantService(instant) {
+  if (!(instant instanceof Date) || !Number.isFinite(instant.getTime())) return false;
+
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Brussels',
+    weekday: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(instant);
+  const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
+  const weekday = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 }[values.weekday];
+  if (weekday === undefined || !values.hour || !values.minute) return false;
+  return isWithinService(weekday, `${values.hour}:${values.minute}`);
+}
+
 /** Preview fulfillment rules from cart lines. Call only with trusted catalog data on a server. */
 export function evaluateCartFulfillment({ mode, zoneId, items }) {
   const dishCount = countEligibleDishes(items);
