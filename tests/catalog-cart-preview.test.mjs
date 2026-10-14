@@ -62,3 +62,55 @@ test('rejects invalid selections, unavailable products, prices and delivery inpu
   assert.throws(() => previewCatalogCart(catalog, [{ productId: 'pasta-roma', quantity: 100 }], { mode: 'pickup' }), /INVALID_CART/);
   assert.throws(() => previewCatalogCart([{ ...catalog[1], baseCents: -2 }], [{ productId: 'pasta-roma', quantity: 1 }], { mode: 'pickup' }), /Invalid price/);
 });
+
+test('prices exclusive pasta variants and cheese from trusted catalog options', () => {
+  const pasta = {
+    id: 'pasta-choice', nameFr: 'Bolognese', active: true, baseCents: 1200,
+    choiceLabel: 'Type de pâtes', extraSelectionMode: 'SINGLE',
+    category: { fulfillmentCategory: 'PASTA' },
+    sizes: [
+      { id: 'spaghetti', label: 'Spaghetti', priceCents: 1200, active: true },
+      { id: 'macaroni', label: 'Macaroni', priceCents: 1200, active: true },
+      { id: 'tagliatelle', label: 'Tagliatelle', priceCents: 1300, active: true },
+    ],
+    extras: [
+      { id: 'parmesan', nameFr: 'Parmesan', priceCents: 250, active: true },
+      { id: 'gruyere', nameFr: 'Gruyère', priceCents: 250, active: true },
+    ],
+  };
+  const result = previewCatalogCart([pasta], [
+    { productId: 'pasta-choice', sizeId: 'tagliatelle', extraIds: ['parmesan'], quantity: 2 },
+  ], { mode: 'delivery', zoneId: 'belgrade' });
+  assert.equal(result.items[0].sizeLabel, 'Tagliatelle');
+  assert.deepEqual(result.items[0].extraLabels, ['Parmesan']);
+  assert.equal(result.items[0].unitCents, 1550);
+  assert.equal(result.subtotalCents, 3100);
+  assert.equal(result.fulfillment.eligible, true);
+  assert.equal(result.fulfillment.dishCount, 2);
+
+  assert.throws(() => previewCatalogCart([pasta], [
+    { productId: 'pasta-choice', sizeId: 'spaghetti', extraIds: ['parmesan', 'gruyere'], quantity: 1 },
+  ], { mode: 'pickup' }), /INVALID_EXTRAS/);
+  assert.throws(() => previewCatalogCart([pasta], [
+    { productId: 'pasta-choice', quantity: 1 },
+  ], { mode: 'pickup' }), /INVALID_SIZE/);
+  assert.throws(() => previewCatalogCart([pasta], [
+    { productId: 'pasta-choice', sizeId: 'unknown', quantity: 1 },
+  ], { mode: 'pickup' }), /INVALID_SIZE/);
+});
+
+test('exclusive dessert choice remains OTHER for delivery counting', () => {
+  const dessert = {
+    id: 'dessert-choice', nameFr: 'Tiramisù ou profiteroles', active: true, baseCents: 500,
+    choiceLabel: 'Choix', category: { fulfillmentCategory: 'OTHER' },
+    sizes: [{ id: 'profiteroles', label: 'Profiteroles', priceCents: 500, active: true }],
+    extras: [],
+  };
+  const result = previewCatalogCart([dessert], [
+    { productId: 'dessert-choice', sizeId: 'profiteroles', quantity: 1 },
+  ], { mode: 'delivery', zoneId: 'namur-centre' });
+  assert.equal(result.items[0].unitCents, 500);
+  assert.equal(result.items[0].sizeLabel, 'Profiteroles');
+  assert.equal(result.fulfillment.dishCount, 0);
+  assert.equal(result.fulfillment.eligible, false);
+});
