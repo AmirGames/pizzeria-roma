@@ -7,3 +7,5 @@
 - PR-02 (en cours) : modèle Prisma PostgreSQL, politique de permissions, générateur de jetons de session, tests et documentation sécurité.
 
 - PR-02b (en cours) : lecture sécurisée des sessions côté serveur et tests de révocation, expiration et cookies.
+
+- PR-03 (en cours) : modèles tailles/suppléments, calcul de prix en centimes et tests unitaires.
