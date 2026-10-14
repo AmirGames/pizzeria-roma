@@ -47,7 +47,7 @@ export default function CartPage() {
             {error && <p role="alert" className="roma-error">{error}</p>}
             <label className="roma-comment">Un commentaire pour votre commande ?<textarea value={comment} onChange={event => setComment(event.target.value.slice(0, 500))} maxLength={500} placeholder="Ex. : bien cuite, sans oignons…" rows={4}/><small>{comment.length}/500 caractères · Démonstration uniquement</small></label>
           </section>
-          <aside className="roma-summary" aria-label="Récapitulatif du panier"><h2>Récapitulatif</h2><div><span>Sous-total</span><strong>{money(total)}</strong></div><div><span>Livraison</span><span>À déterminer</span></div><div className="roma-summary-total"><span>Total de démonstration</span><strong>{money(total)}</strong></div><button type="button" disabled className="roma-checkout">Commande bientôt disponible →</button><p>Les prix affichés sont fictifs. Aucun paiement ni envoi de commande n'est possible.</p></aside>
+          <aside className="roma-summary" aria-label="Récapitulatif du panier"><h2>Récapitulatif</h2><div><span>Sous-total</span><strong>{money(total)}</strong></div><div><span>Livraison</span><span>À déterminer</span></div><div className="roma-summary-total"><span>Total de démonstration</span><strong>{money(total)}</strong></div><button type="button" disabled className="roma-checkout">Commande bientôt disponible →</button><p>Les prix affichés sont fictifs. Aucun paiement ni envoi de commande n'est possible.</p><Link href="/commande" className="roma-fulfillment-back">Découvrir livraison et retrait →</Link></aside>
         </div>
       </div>
     </main>
