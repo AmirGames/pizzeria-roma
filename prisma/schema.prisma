@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CUSTOMER
+  MANAGER
+  KITCHEN
+}
+
+enum OrderStatus {
+  PENDING
+  ACCEPTED
+  PREPARING
+  READY
+  OUT_FOR_DELIVERY
+  COMPLETED
+  REJECTED
+  CANCELLED
+}
+
+enum FulfillmentType {
+  DELIVERY
+  PICKUP
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique @db.VarChar(320)
+  name          String?   @db.VarChar(160)
+  phone         String?   @db.VarChar(40)
+  emailVerified DateTime?
+  role          UserRole  @default(CUSTOMER)
+  disabledAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  orders        Order[]
+  sessions      Session[]
+}
+
+model Session {
+  id         String   @id @default(cuid())
+  tokenHash  String   @unique @db.Char(64)
+  userId     String
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId, expiresAt])
+}
+
+model MenuCategory {
+  id        String    @id @default(cuid())
+  nameFr    String
+  nameEn    String
+  position  Int       @default(0)
+  products  Product[]
+}
+
+model Product {
+  id         String       @id @default(cuid())
+  categoryId String
+  nameFr     String
+  nameEn     String
+  active     Boolean      @default(true)
+  baseCents  Int
+  category   MenuCategory @relation(fields: [categoryId], references: [id])
+  orderItems OrderItem[]
+  @@index([categoryId, active])
+}
+
+model Order {
+  id               String          @id @default(cuid())
+  publicReference  String          @unique
+  userId           String?
+  guestEmail       String?         @db.VarChar(320)
+  fulfillment      FulfillmentType
+  status           OrderStatus     @default(PENDING)
+  totalCents       Int
+  currency         String          @default("EUR") @db.Char(3)
+  placedAt         DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  user             User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  items            OrderItem[]
+  @@index([status, placedAt])
+  @@index([userId, placedAt])
+}
+
+model OrderItem {
+  id             String  @id @default(cuid())
+  orderId        String
+  productId      String?
+  nameSnapshot   String
+  quantity       Int
+  unitPriceCents Int
+  order          Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product        Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  @@index([orderId])
+}
