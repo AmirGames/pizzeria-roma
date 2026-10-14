@@ -2,7 +2,7 @@
 
 ## État des pull requests
 
-Les PR GitHub **#1 à #17 sont fusionnées**. Les jalons produit ci-dessous décrivent le travail restant et ne reprennent pas nécessairement la numérotation des PR.
+Les PR GitHub **#1 à #18 sont fusionnées**. Les jalons produit ci-dessous décrivent le travail restant et ne reprennent pas nécessairement la numérotation des PR.
 
 - [x] PR #1–#8 : fondations, catalogue, personnalisation, panier de démonstration et règles de livraison/retrait.
 - [x] PR #9 : connecter le panier de démonstration aux règles de livraison et de retrait.
@@ -14,6 +14,7 @@ Les PR GitHub **#1 à #17 sont fusionnées**. Les jalons produit ci-dessous déc
 - [x] PR #15 : charger explicitement les 88 produits, tarifs et choix confirmés du menu 2026 dans le catalogue.
 - [x] PR #16 : synchroniser la documentation du projet.
 - [x] PR #17 : afficher l’état informatif des horaires hebdomadaires.
+- [x] PR #18 : appliquer 18h–22h aux jours fériés légaux belges, dimanche fermé.
 
 ## Catalogue du menu actuel — PR #15 fusionnée
 
