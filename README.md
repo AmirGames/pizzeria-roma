@@ -56,3 +56,5 @@ Ouvrir `/panier` pour tester une interface responsive avec produit et tarif **fi
 La page `/commande` permet de visualiser les modes livraison/retrait et les minima indicatifs par zone. Aucune adresse n'est validée ni commande enregistrée. Voir `docs/FULFILLMENT.md`.
 
 **Règle de livraison confirmée :** seules les pizzas et les pâtes comptent dans le minimum de plats par zone. Erpent = 2 plats. Les autres zones manuscrites restent à valider géographiquement avant activation.
+
+**Pizza maxi 50 cm :** compte pour 2 plats dans les minima de livraison, indépendamment de son prix. Pizza 33 cm et pâtes : 1 plat. Le serveur devra identifier la taille depuis le catalogue fiable, pas depuis une déclaration du client.
