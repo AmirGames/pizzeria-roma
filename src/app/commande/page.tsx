@@ -80,8 +80,8 @@ export default function FulfillmentPage() {
           </section>
           <aside className="roma-fulfillment-card">
             <h2>Horaires prévus</h2>
-            <p role="status" className={serviceOpen ? 'roma-policy-ok' : 'roma-policy-warning'}>{serviceOpen === null ? 'Vérification des horaires…' : serviceOpen ? 'Ouvert selon les horaires hebdomadaires' : 'Fermé selon les horaires hebdomadaires'}</p>
-            <p className="roma-policy-caveat">Calcul informatif selon le fuseau Europe/Brussels, hors jours fériés. Aucun créneau n’est réservé.</p>
+            <p role="status" className={serviceOpen ? 'roma-policy-ok' : 'roma-policy-warning'}>{serviceOpen === null ? 'Vérification des horaires…' : serviceOpen ? 'Ouvert selon les horaires publiés' : 'Fermé selon les horaires publiés'}</p>
+            <p className="roma-policy-caveat">Calcul informatif selon Europe/Brussels et les jours fériés légaux belges : 18h–22h, sauf dimanche fermé. Les jours de remplacement ou exceptions propres au restaurant ne sont pas intégrés. Aucun créneau n’est réservé.</p>
             <div className="roma-hours-row"><span>Lundi – vendredi</span><strong>11h30–14h00<br/>18h00–22h00</strong></div>
             <div className="roma-hours-row"><span>Samedi</span><strong>18h00–22h00</strong></div>
             <div className="roma-hours-row"><span>Dimanche</span><strong>Fermé</strong></div>
