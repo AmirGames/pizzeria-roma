@@ -9,3 +9,5 @@
 - PR-02b (en cours) : lecture sécurisée des sessions côté serveur et tests de révocation, expiration et cookies.
 
 - PR-03 (en cours) : modèles tailles/suppléments, calcul de prix en centimes et tests unitaires.
+
+- PR-04b (en cours) : page de présentation responsive des catégories, sans commandes ni prix fictifs.
