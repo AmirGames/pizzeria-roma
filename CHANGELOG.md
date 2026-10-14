@@ -1,22 +1,11 @@
 # Changelog
 
-## Unreleased
-- PR-12 : panier à identifiants de catalogue, options, prix et règles de fulfillment recalculés par l'API ; aucune commande ni paiement.
-- PR-11 : catalogue public en lecture seule connecté à `/menu`, produits, tailles et suppléments actifs uniquement ; aucune commande ni paiement.
-- PR-10 : aperçu du panier côté serveur depuis le catalogue Prisma, catégorisation explicite, `OTHER` exclu par défaut, tests ; aucune commande ni paiement.
-- Initialisation du dépôt et du squelette Next.js.
-- Ajout d'une page temporaire sans commandes, d'un contrôle CI et des documents de cadrage.
+## 2026-10-14
 
-- PR-02 (en cours) : modèle Prisma PostgreSQL, politique de permissions, générateur de jetons de session, tests et documentation sécurité.
+- PR #12 : panier relié aux sélections du catalogue ; prix, sous-total et règles de livraison/retrait relus côté serveur.
+- PR #11 : catalogue actif publié en lecture seule sur le menu.
+- PR #10 : aperçu serveur du panier fondé sur les données Prisma et classification de fulfillment explicite.
+- PR #9 : aperçu livraison/retrait connecté au panier.
+- PR #1 à #8 : fondations du projet, règles de prix et de livraison, catalogue de présentation, personnalisation pizza et panier de démonstration.
 
-- PR-02b (en cours) : lecture sécurisée des sessions côté serveur et tests de révocation, expiration et cookies.
-
-- PR-03 (en cours) : modèles tailles/suppléments, calcul de prix en centimes et tests unitaires.
-
-- PR-04b (en cours) : page de présentation responsive des catégories, sans commandes ni prix fictifs.
-
-- PR-06 (en cours) : validation des tailles/suppléments/retraits, devis pizza et page de présentation.
-
-- PR-07 (en cours) : design du panier d'après la maquette, quantités et total de démonstration, tests et documentation.
-
-- PR-08 (en cours) : page livraison/retrait responsive, zones et minima de plats, horaires et tests.
+Aucune PR n'active la prise de commandes réelles ou les paiements. Les produits commerciaux ne sont publiés qu'après validation par le restaurant. La règle concernant les desserts reste inchangée.
