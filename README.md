@@ -21,3 +21,12 @@ Développement par pull requests avec tests, revue et mise à jour de la documen
 ## Confidentialité
 
 Ne jamais committer de secrets, clés API, coordonnées bancaires ou données réelles de clients.
+
+## Développement local (préparation)
+
+- Node.js 22, npm et Docker requis.
+- `npm install`, `npm run typecheck`, `npm test`, `npm run build`.
+- Pour préparer PostgreSQL : définir `POSTGRES_PASSWORD` et `DATABASE_URL` localement, puis `docker compose up -d db` et `npm run db:validate`.
+- Ne pas exécuter de migration en production avant revue et validation.
+
+**Attention :** les comptes et les sessions ne sont pas encore utilisables. Les fichiers Prisma et les règles d'autorisation sont uniquement des fondations.
