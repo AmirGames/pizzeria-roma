@@ -34,3 +34,7 @@ Ne jamais committer de secrets, clés API, coordonnées bancaires ou données r�
 ## Authentification
 
 La vérification de session côté serveur est en cours de construction. Aucun formulaire de connexion ou inscription n'est actif. Ne pas considérer les comptes comme prêts pour la production.
+
+## Catalogue (en cours)
+
+Un modèle de tailles et suppléments ainsi qu'un calculateur de prix testable ont été ajoutés. Les prix réels et les allergènes doivent être validés par la pizzeria. Aucune commande n'est encore possible.
