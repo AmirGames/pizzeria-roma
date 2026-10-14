@@ -22,7 +22,11 @@ export function countEligibleDishes(items) {
   return items.reduce((count, item) => {
     if (!item || !Number.isSafeInteger(item.quantity) || item.quantity < 1 || item.quantity > 99) throw new Error('INVALID_ITEMS');
     if (!['pizza', 'pasta', 'other'].includes(item.category)) throw new Error('INVALID_CATEGORY');
-    const next = count + (item.category === 'pizza' || item.category === 'pasta' ? item.quantity : 0);
+    // The 50 cm maxi counts as two dishes. This must be based on a
+    // trusted product-size record, never a client-supplied size label.
+    if (item.category === 'pizza' && !['33', '50'].includes(item.sizeCm)) throw new Error('INVALID_SIZE');
+    const multiplier = item.category === 'pizza' ? (item.sizeCm === '50' ? 2 : 1) : item.category === 'pasta' ? 1 : 0;
+    const next = count + item.quantity * multiplier;
     if (!Number.isSafeInteger(next)) throw new Error('INVALID_COUNT');
     return next;
   }, 0);
