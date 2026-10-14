@@ -58,3 +58,5 @@ La page `/commande` permet de visualiser les modes livraison/retrait et les mini
 **Règle de livraison confirmée :** seules les pizzas et les pâtes comptent dans le minimum de plats par zone. Erpent = 2 plats. Les autres zones manuscrites restent à valider géographiquement avant activation.
 
 **Pizza maxi 50 cm :** compte pour 2 plats dans les minima de livraison, indépendamment de son prix. Pizza 33 cm et pâtes : 1 plat. Le serveur devra identifier la taille depuis le catalogue fiable, pas depuis une déclaration du client.
+
+**Seuil de 18 € par pizza :** une pizza normale 33 cm atteint 2 plats équivalents lorsque son prix unitaire configuré, suppléments inclus, atteint 18 €. En dessous, elle compte pour 1. Une maxi 50 cm compte toujours pour 2. Le serveur doit recalculer le prix à partir de la base de données, jamais depuis le navigateur.
