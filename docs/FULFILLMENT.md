@@ -8,7 +8,7 @@
 - Page `/commande` responsive inspirée de la maquette, avec choix livraison/retrait, zone et simulation du nombre de plats.
 
 ## Définition confirmée par le restaurateur
-Le minimum de livraison porte sur les **pizzas et les plats de pâtes uniquement**, en additionnant les quantités. Par exemple, une pizza et un plat de pâtes = 2 plats admissibles. Salades, desserts et boissons exclus. Le moteur `countEligibleDishes` fournit le comptage à partir de catégories **de confiance côté serveur** ; ne jamais croire les catégories déclarées par le navigateur. Erpent corrigé à 2 plats selon la liste manuscrite.
+Le minimum de livraison porte sur les **pizzas et les plats de pâtes uniquement**, en additionnant les quantités, avec une **pizza maxi 50 cm comptant pour 2 plats**, une pizza normale 33 cm pour 1 plat et des pâtes pour 1 plat. Par exemple, une pizza normale et un plat de pâtes = 2 plats admissibles ; une seule pizza maxi = 2 plats admissibles. Le prix payé n'influence pas ce comptage. Salades, desserts et boissons exclus. Le moteur `countEligibleDishes` fournit le comptage à partir de catégories et tailles **de confiance côté serveur** ; ne jamais croire les catégories déclarées par le navigateur. Erpent corrigé à 2 plats selon la liste manuscrite.
 
 La liste manuscrite comporte d'autres localités qui attendent une relecture des noms et une définition géographique avant activation.
 
