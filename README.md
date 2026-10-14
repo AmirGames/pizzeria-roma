@@ -50,3 +50,7 @@ La page `/menu/personnaliser` présente les options prévues. Les modules de val
 ## Panier de démonstration — PR-07
 
 Ouvrir `/panier` pour tester une interface responsive avec produit et tarif **fictifs**, quantités, suppression et commentaire. Aucune commande ni paiement n'est possible. Voir `docs/CART.md`.
+
+## Livraison et retrait (préparation)
+
+La page `/commande` permet de visualiser les modes livraison/retrait et les minima indicatifs par zone. Aucune adresse n'est validée ni commande enregistrée. Voir `docs/FULFILLMENT.md`.
