@@ -4,19 +4,19 @@ Application de commande en ligne indépendante pour Pizzeria Roma (Namur).
 
 ## État
 
-Projet en initialisation. Aucun paiement réel ni prise de commande en production.
+Le catalogue du menu communiqué le 14/10/2026 et un panier de prévisualisation sont en place. La livraison et le retrait restent des aperçus : aucune commande réelle, aucun paiement ni lancement de production n'est activé.
 
 ## Objectifs
 
 - Site client responsive et PWA, français et anglais.
 - Catalogue et personnalisation des pizzas.
 - Livraison par zones et retrait sur place.
-- Paiement en ligne sécurisé et acceptation manuelle.
+- Paiement en ligne sécurisé et acceptation manuelle, après validation juridique et opérationnelle.
 - Espace gérant et cuisine.
 
 ## Méthode
 
-Développement par pull requests avec tests, revue et mise à jour de la documentation. Voir `docs/` dans les prochaines PR.
+Développement par pull requests avec tests, revue et mise à jour de la documentation. Voir [`docs/`](docs/) pour les exigences, règles et jalons.
 
 ## Confidentialité
 
@@ -35,28 +35,28 @@ Ne jamais committer de secrets, clés API, coordonnées bancaires ou données r�
 
 La vérification de session côté serveur est en cours de construction. Aucun formulaire de connexion ou inscription n'est actif. Ne pas considérer les comptes comme prêts pour la production.
 
-## Catalogue (en cours)
+## Catalogue du menu 2026
 
-Le modèle Prisma prend en charge les formats de pizza, les choix de pâtes et les suppléments fromage exclusifs. La carte datée du 14/10/2026 est transcrite dans `docs/RESTAURANT_MENU_SOURCE.md` et structurée dans `prisma/menu-2026-10-14.mjs`. Après migration, `npm run db:seed` charge les produits sur la base pointée par `DATABASE_URL` ; le seed n'est jamais exécuté automatiquement. Les suppléments pizza et les allergènes restent absents faute de détails suffisants. Aucune commande ni aucun paiement réel n'est activé.
+La carte datée du 14/10/2026 est transcrite dans [`docs/RESTAURANT_MENU_SOURCE.md`](docs/RESTAURANT_MENU_SOURCE.md) et structurée dans `prisma/menu-2026-10-14.mjs`. Après migration, `npm run db:seed` charge explicitement les produits sur la base pointée par `DATABASE_URL` ; le seed n'est jamais exécuté automatiquement. La fusion du code ne signifie pas que la base d'un environnement particulier a été amorcée.
+
+Les formes de pâtes, la majoration tagliatelle, le choix de dessert et le supplément fromage exclusif sont tarifés côté serveur. Les suppléments pizza restent absents faute de liste et de prix individuels. Les allergènes ne sont pas déclarés ni déduits. Voir [`docs/CATALOG.md`](docs/CATALOG.md).
 
 ## Aperçu du menu
 
-Démarrer avec `npm run dev` puis ouvrir `http://localhost:3000/menu`. La page affiche les produits, tailles et suppléments actifs publiés dans le catalogue Prisma. Les données de la carte du 14/10/2026 ne sont chargées qu'après l'exécution explicite de `npm run db:seed` sur la base configurée. Si aucun produit n'a été publié ou si le catalogue est indisponible, la page affiche un état explicite. Aucun allergène n'est inventé et aucun achat n'est possible.
+Démarrer avec `npm run dev` puis ouvrir `http://localhost:3000/menu`. La page affiche les produits, tailles et suppléments actifs publiés dans le catalogue Prisma. Les données du menu du 14/10/2026 ne sont visibles qu'après exécution explicite de `npm run db:seed` sur la base configurée. Si aucun produit n'a été publié ou si le catalogue est indisponible, la page affiche un état explicite. Aucun allergène n'est inventé et aucun achat n'est possible.
 
 ## Personnalisation des pizzas (préparation)
 
-La page `/menu/personnaliser` présente les options prévues. Les modules de validation et de devis sont testés séparément. **Aucun panier, commande ou paiement n'est actif.** Voir `docs/PIZZA_CUSTOMIZATION.md`.
+La page `/menu/personnaliser` présente les options prévues. Les modules de validation et de devis sont testés séparément. Le panier catalogue permet de revoir des sélections, mais n'envoie aucune commande. Voir [`docs/PIZZA_CUSTOMIZATION.md`](docs/PIZZA_CUSTOMIZATION.md).
 
-## Panier de démonstration — PR-07 et PR-09
+## Panier
 
-Ouvrir `/panier` pour tester une interface responsive avec produit et tarif **fictifs**, quantités, suppression et commentaire. Aucune commande ni paiement n'est possible. Le panier de démonstration reste disponible. Les articles du catalogue peuvent aussi être ajoutés au panier sous forme d'identifiants ; leurs prix et règles sont recalculés par l'API serveur. Aucune commande ni paiement n'est créé. Voir `docs/CART.md`.
+Ouvrir `/panier` pour tester le panier de démonstration, avec son article et son tarif fictifs, ses quantités, sa suppression et son commentaire local. Il reste séparé du panier catalogue. Les articles du menu peuvent être ajoutés à ce dernier sous forme d'identifiants ; l'API serveur relit les prix, options et règles. Aucune commande ni aucun paiement n'est créé. Voir [`docs/CART.md`](docs/CART.md).
 
-## Livraison et retrait (aperçu local)
+## Livraison et retrait (aperçu)
 
-La page `/commande` affiche les règles selon le mode livraison/retrait et la zone choisie. Avec une sélection catalogue, les prix et règles sont recalculés côté serveur ; le panier de démonstration reste une simulation locale. Aucune adresse ni commande n'est validée. La route `POST /api/cart/preview` relit les produits et prix depuis Prisma. La route publique du catalogue ne retourne que les données actives configurées dans Prisma. Voir `docs/FULFILLMENT.md` et `docs/CATALOG.md`.
+La page `/commande` présente les règles selon le mode livraison/retrait et la zone choisie. Avec une sélection catalogue, les prix et l'éligibilité sont recalculés côté serveur. Le panier de démonstration reste une simulation locale. La route `POST /api/cart/preview` relit les produits et prix depuis Prisma ; `GET /api/catalog` ne retourne que les données actives.
 
-**Règle de livraison confirmée :** seules les pizzas et les pâtes comptent dans le minimum de plats par zone. Erpent = 2 plats. Les autres zones manuscrites restent à valider géographiquement avant activation.
+**Règle confirmée :** seules les pizzas et les pâtes comptent dans le minimum de plats par zone. Namur centre = 1 plat ; Belgrade, Erpent et Saint-Servais = 2 plats. La livraison est gratuite. Une pizza maxi 50 cm compte pour 2 plats ; une pizza 33 cm compte pour 2 à partir de 18 € par pizza, suppléments inclus ; les pâtes comptent pour 1. Salades, boissons et desserts restent exclus. La règle concernant les desserts est inchangée.
 
-**Pizza maxi 50 cm :** compte pour 2 plats dans les minima de livraison, indépendamment de son prix. Pizza 33 cm et pâtes : 1 plat. Le serveur devra identifier la taille depuis le catalogue fiable, pas depuis une déclaration du client.
-
-**Seuil de 18 € par pizza :** une pizza normale 33 cm atteint 2 plats équivalents lorsque son prix unitaire configuré, suppléments inclus, atteint 18 €. En dessous, elle compte pour 1. Une maxi 50 cm compte toujours pour 2. Le serveur doit recalculer le prix à partir de la base de données, jamais depuis le navigateur.
+Le choix d'une zone n'est pas une validation d'adresse. Les frontières géographiques, horaires, créneaux et capacités restent à confirmer avant tout checkout. Voir [`docs/FULFILLMENT.md`](docs/FULFILLMENT.md) et la [`roadmap`](docs/ROADMAP.md).
