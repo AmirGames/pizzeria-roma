@@ -28,7 +28,7 @@ test('restaurant opening windows', () => {
 
 test('counts only pizzas and pasta, including quantities', () => {
   const dishes = countEligibleDishes([
-    { category: 'pizza', sizeCm: '33', quantity: 1 },
+    { category: 'pizza', sizeCm: '33', unitCents: 1200, quantity: 1 },
     { category: 'pasta', quantity: 1 },
     { category: 'other', quantity: 5 },
   ]);
@@ -39,15 +39,30 @@ test('counts only pizzas and pasta, including quantities', () => {
 });
 
 test('a 50 cm maxi pizza counts as two dishes regardless of price', () => {
-  assert.equal(countEligibleDishes([{ category: 'pizza', sizeCm: '50', quantity: 1 }]), 2);
-  assert.equal(countEligibleDishes([{ category: 'pizza', sizeCm: '50', quantity: 2 }]), 4);
-  assert.equal(countEligibleDishes([{ category: 'pizza', sizeCm: '33', quantity: 1 }]), 1);
+  assert.equal(countEligibleDishes([{ category: 'pizza', sizeCm: '50', unitCents: 2200, quantity: 1 }]), 2);
+  assert.equal(countEligibleDishes([{ category: 'pizza', sizeCm: '50', unitCents: 2200, quantity: 2 }]), 4);
+  assert.equal(countEligibleDishes([{ category: 'pizza', sizeCm: '33', unitCents: 1200, quantity: 1 }]), 1);
   assert.equal(countEligibleDishes([
     { category: 'pizza', sizeCm: '50', quantity: 1 },
     { category: 'pasta', quantity: 1 },
     { category: 'other', quantity: 3 },
   ]), 3);
   assert.equal(evaluateDelivery({ mode: 'delivery', zoneId: 'erpent', mainDishCount: 2 }).eligible, true);
-  assert.throws(() => countEligibleDishes([{ category: 'pizza', sizeCm: '20', quantity: 1 }]), /INVALID_SIZE/);
-  assert.throws(() => countEligibleDishes([{ category: 'pizza', quantity: 1 }]), /INVALID_SIZE/);
+  assert.throws(() => countEligibleDishes([{ category: 'pizza', sizeCm: '20', unitCents: 1200, quantity: 1 }]), /INVALID_SIZE/);
+  assert.throws(() => countEligibleDishes([{ category: 'pizza', unitCents: 1200, quantity: 1 }]), /INVALID_SIZE/);
+});
+
+test('33 cm pizza counts as two at 18 euros including supplements', () => {
+  for (const [price, expected] of [[1750, 1], [1799, 1], [1800, 2], [1850, 2], [2000, 2]]) {
+    assert.equal(countEligibleDishes([{ category: 'pizza', sizeCm: '33', unitCents: price, quantity: 1 }]), expected);
+  }
+  assert.equal(countEligibleDishes([
+    { category: 'pizza', sizeCm: '33', unitCents: 1200, quantity: 2 },
+  ]), 2, 'two inexpensive pizzas count as two, not four');
+  assert.equal(countEligibleDishes([
+    { category: 'pizza', sizeCm: '33', unitCents: 1800, quantity: 2 },
+  ]), 4);
+  assert.equal(countEligibleDishes([{ category: 'pizza', sizeCm: '50', unitCents: 1500, quantity: 1 }]), 2);
+  assert.throws(() => countEligibleDishes([{ category: 'pizza', sizeCm: '33', quantity: 1 }]), /INVALID_PRICE/);
+  assert.throws(() => countEligibleDishes([{ category: 'pizza', sizeCm: '33', unitCents: 18.5, quantity: 1 }]), /INVALID_PRICE/);
 });
