@@ -5,3 +5,5 @@ export function minimumMainDishes(zoneId: string): number;
 export function evaluateDelivery(input: { mode: 'delivery' | 'pickup'; zoneId?: string; mainDishCount: number }): { eligible: boolean; minimum: number; deliveryFeeCents: number };
 export function serviceWindows(weekday: number): Array<{ start: string; end: string }>;
 export function isWithinService(weekday: number, time: string): boolean;
+
+export function countEligibleDishes(items: Array<{ category: 'pizza' | 'pasta' | 'other'; quantity: number }>): number;
