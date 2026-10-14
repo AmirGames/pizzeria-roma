@@ -1,0 +1,14 @@
+# Roadmap GitHub
+
+- [x] PR-01 : squelette Next.js, CI, page temporaire et documentation initiale (en attente de validation de la PR).
+- [ ] PR-02 : schéma DB, auth et rôles.
+- [ ] PR-03 : catalogue et personnalisation.
+- [ ] PR-04 : panier et validation serveur.
+- [ ] PR-05 : zones, horaires et précommandes.
+- [ ] PR-06 : PSP, webhooks et remboursements.
+- [ ] PR-07 : gestion des commandes, cuisine et tickets.
+- [ ] PR-08 : PWA, comptes, e-mails FR/EN.
+- [ ] PR-09 : déploiement, sauvegardes et surveillance.
+- [ ] PR-10 : recette, tests réels et pilote.
+
+À chaque PR : tests, mise à jour du README et du CHANGELOG, documentation fonctionnelle concernée.
