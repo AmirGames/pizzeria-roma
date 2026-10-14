@@ -55,3 +55,6 @@ La liste semble indiquer : Belgrade 2, Dave 3, Erpent 2, Emines 3, Loyers 3, La 
 2. Confirmer suppléments, retraits possibles, allergènes et options moitié-moitié.
 3. Confirmer l'orthographe et la couverture exacte des zones manuscrites. Définition du plat admissible confirmée : pizza normale 33 cm = 1, pizza maxi 50 cm = 2, pâtes = 1, autres = 0 ; aucune condition de prix.
 4. Ne pas publier ni activer le paiement tant que le catalogue n'est pas vérifié.
+
+## Règle de livraison actualisée
+Une pizza normale de 33 cm compte pour deux plats dès que son prix unitaire atteint 18 euros, suppléments inclus. En dessous du seuil, elle compte pour un plat. Une pizza maxi 50 cm compte toujours pour deux plats. Les pâtes comptent pour un plat. Le seuil ne s'applique pas au total du panier. Le prix et les options sont recalculés côté serveur depuis le catalogue validé.
