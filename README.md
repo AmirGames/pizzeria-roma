@@ -42,3 +42,7 @@ Un modèle de tailles et suppléments ainsi qu'un calculateur de prix testable o
 ## Aperçu du menu
 
 Démarrer avec `npm run dev` puis ouvrir `http://localhost:3000/menu`. La page présente uniquement les catégories : aucun produit, prix, allergène ou moyen de paiement réel n'y est affiché.
+
+## Personnalisation des pizzas (préparation)
+
+La page `/menu/personnaliser` présente les options prévues. Les modules de validation et de devis sont testés séparément. **Aucun panier, commande ou paiement n'est actif.** Voir `docs/PIZZA_CUSTOMIZATION.md`.
