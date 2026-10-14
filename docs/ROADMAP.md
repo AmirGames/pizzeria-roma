@@ -36,3 +36,10 @@ Les lignes initiales décrivent les jalons produit ; les sections « numérotati
 - [x] Recharger prix, catégories, tailles et suppléments depuis Prisma pour établir l'aperçu.
 - [x] Garder les catégories non classées dans `OTHER` par défaut ; ne pas reclasser les desserts.
 - [ ] Charger les produits/prix réellement approuvés et relier l'interface à l'API avant d'envisager toute commande.
+
+
+## PR-11 (numérotation GitHub) — Catalogue public en lecture seule, empilée sur PR-10
+- [x] Publier uniquement produits, tailles et suppléments actifs depuis Prisma.
+- [x] Afficher les éléments configurés dans `/menu` et prévoir un état vide/indisponible.
+- [x] Garder la règle par défaut `OTHER` et la règle dessert inchangées ; n'ajouter aucun produit réel.
+- [ ] Relier le panier aux sélections du catalogue et à l'aperçu serveur après validation des données commerciales.
