@@ -19,3 +19,5 @@
 - [ ] PR-06 : validation des options pizza, devis et page de présentation (en cours ; interface transactionnelle à venir).
 
 - [ ] PR-07 (numérotation GitHub) : panier de démonstration responsive, logique locale testée ; connexion au catalogue et validation serveur à venir.
+
+- [ ] PR-08 (numérotation GitHub) : interface livraison/retrait et règles de zones/horaires testées ; adresse, créneaux et commande réels à faire.
