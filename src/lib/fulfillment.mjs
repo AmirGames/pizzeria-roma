@@ -5,7 +5,7 @@
 export const DELIVERY_MINIMUMS = Object.freeze({
   'namur-centre': 1,
   'belgrade': 2,
-  'erpent': 3,
+  'erpent': 2,
   'saint-servais': 2,
 });
 export const DELIVERY_ZONES = Object.freeze([
@@ -14,6 +14,19 @@ export const DELIVERY_ZONES = Object.freeze([
   { id: 'erpent', label: 'Erpent' },
   { id: 'saint-servais', label: 'Saint-Servais' },
 ]);
+/** Count quantities of pizza and pasta only, never drinks, desserts or salads. 
+ * Product categories must come from trusted server-side catalog records.
+ */
+export function countEligibleDishes(items) {
+  if (!Array.isArray(items)) throw new Error('INVALID_ITEMS');
+  return items.reduce((count, item) => {
+    if (!item || !Number.isSafeInteger(item.quantity) || item.quantity < 1 || item.quantity > 99) throw new Error('INVALID_ITEMS');
+    if (!['pizza', 'pasta', 'other'].includes(item.category)) throw new Error('INVALID_CATEGORY');
+    const next = count + (item.category === 'pizza' || item.category === 'pasta' ? item.quantity : 0);
+    if (!Number.isSafeInteger(next)) throw new Error('INVALID_COUNT');
+    return next;
+  }, 0);
+}
 export function minimumMainDishes(zoneId) {
   if (!Object.hasOwn(DELIVERY_MINIMUMS, zoneId)) throw new Error('UNKNOWN_ZONE');
   return DELIVERY_MINIMUMS[zoneId];
