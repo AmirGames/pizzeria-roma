@@ -21,3 +21,9 @@
 - [ ] PR-07 (numérotation GitHub) : panier de démonstration responsive, logique locale testée ; connexion au catalogue et validation serveur à venir.
 
 - [ ] PR-08 (numérotation GitHub) : interface livraison/retrait et règles de zones/horaires testées ; adresse, créneaux et commande réels à faire.
+
+## PR-09 — Panier et aperçu livraison/retrait
+- [x] Partager le panier de démonstration entre `/panier` et `/commande` dans le stockage local du navigateur.
+- [x] Calculer les plats admissibles depuis les lignes du panier selon les règles de livraison existantes.
+- [x] Conserver le retrait sans minimum, les zones et minima actuels ; aucun changement aux règles de catégories.
+- [ ] Remplacer les données fictives par un catalogue fiable et recalculer les règles côté serveur avant activation.

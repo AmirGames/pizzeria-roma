@@ -8,3 +8,6 @@ export function serviceWindows(weekday: number): Array<{ start: string; end: str
 export function isWithinService(weekday: number, time: string): boolean;
 
 export function countEligibleDishes(items: Array<{ category: 'pizza' | 'pasta' | 'other'; quantity: number; sizeCm?: '33' | '50'; unitCents?: number }>): number;
+
+export type FulfillmentCartLine = { category: 'pizza' | 'pasta' | 'other'; quantity: number; sizeCm?: '33' | '50'; unitCents?: number };
+export function evaluateCartFulfillment(input: { mode: 'delivery' | 'pickup'; zoneId?: string; items: Array<FulfillmentCartLine> }): { eligible: boolean; minimum: number; deliveryFeeCents: number; dishCount: number };

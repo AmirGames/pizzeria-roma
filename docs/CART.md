@@ -1,19 +1,19 @@
-# Panier et interface — PR-07
+# Panier de démonstration — PR-07 et PR-09
 
-## Réalisé
-- Page `/panier` responsive, conforme à la direction artistique de la maquette fournie (vert profond, crème, rouge).
-- État local en mémoire : ajout d'un produit **fictif et explicitement identifié**, modification de quantité, suppression, commentaire.
-- Sous-total en centimes avec protections contre valeurs invalides et dépassements.
-- Tests unitaires de calcul et de mutations.
-- Bouton de commande désactivé.
+## Fonctionnement
+- Page `/panier` avec un article et un prix fictifs, quantités, suppression et commentaire.
+- Les lignes du panier de démonstration sont conservées dans le stockage local du navigateur pour rester disponibles sur `/commande` et après rechargement.
+- Le panier partagé alimente l'aperçu de livraison/retrait : pizzas et pâtes sont comptées selon les règles existantes, tandis que les autres catégories restent exclues.
+- Totaux en centimes et contrôles de forme des données restaurées.
+- Les commentaires restent en mémoire de page et ne sont pas enregistrés.
 
-## Limites de sécurité
-Le panier client **n'est pas une source de prix fiable**. Aucun prix du navigateur ne doit être accepté lors de la commande. Une future API devra recharger le catalogue et ses options depuis Prisma, valider la disponibilité et recalculer le total côté serveur.
+## Limites de sécurité et de périmètre
+Le panier et ses prix sont contrôlés par le navigateur et ne constituent pas une source fiable. Le catalogue reste fictif : aucun vrai article ni prix commercial n'est publié. Le comptage et l'éligibilité visibles dans l'interface ne sont qu'un aperçu local. Une future API devra charger les articles, catégories, tailles et prix depuis Prisma, vérifier la disponibilité, puis recalculer les montants et règles côté serveur.
 
-Aucune persistance, commande, réservation, paiement, information personnelle ou donnée réelle de la carte. Le produit et son tarif de démonstration ne sont pas une offre commerciale.
+Aucune adresse n'est validée, aucun créneau n'est réservé, aucune commande n'est enregistrée et aucun paiement n'est activé. Le commentaire n'est ni soumis ni persisté.
 
 ## Prochaines étapes
 - Alimenter la carte depuis des produits approuvés en base.
 - Ajouter des produits réels configurés (tailles, suppléments et retraits).
-- Persistance contrôlée du panier, contrôles de disponibilité, devis serveur.
-- Parcours livraison/retrait et paiement seulement après validation des étapes précédentes.
+- Persistance contrôlée du panier, contrôles de disponibilité et devis serveur.
+- Validation serveur de la couverture, créneaux, capacité et commande avant tout paiement.
