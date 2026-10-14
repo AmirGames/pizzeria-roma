@@ -50,7 +50,7 @@ export async function POST(request: Request) {
         extraSelectionMode: true,
         category: { select: { fulfillmentCategory: true } },
         sizes: { select: { id: true, label: true, priceCents: true, active: true } },
-        extras: { select: { id: true, priceCents: true, active: true } },
+        extras: { select: { id: true, nameFr: true, priceCents: true, active: true } },
       },
     });
     const preview = previewCatalogCart(products, selections, {
