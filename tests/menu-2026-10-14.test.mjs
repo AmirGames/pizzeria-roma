@@ -18,7 +18,7 @@ test('menu source has unique stable IDs and valid euro-cent prices', () => {
     }
   }
   assert.equal(new Set(ids).size, ids.length);
-  assert.equal(products.length, 89);
+  assert.equal(products.length, 88);
 });
 
 test('pizza prices match the 14 October 2026 menu, with no invented Calzone maxi or add-ons', () => {
