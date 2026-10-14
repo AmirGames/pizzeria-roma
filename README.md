@@ -47,13 +47,13 @@ Démarrer avec `npm run dev` puis ouvrir `http://localhost:3000/menu`. La page p
 
 La page `/menu/personnaliser` présente les options prévues. Les modules de validation et de devis sont testés séparément. **Aucun panier, commande ou paiement n'est actif.** Voir `docs/PIZZA_CUSTOMIZATION.md`.
 
-## Panier de démonstration — PR-07
+## Panier de démonstration — PR-07 et PR-09
 
-Ouvrir `/panier` pour tester une interface responsive avec produit et tarif **fictifs**, quantités, suppression et commentaire. Aucune commande ni paiement n'est possible. Voir `docs/CART.md`.
+Ouvrir `/panier` pour tester une interface responsive avec produit et tarif **fictifs**, quantités, suppression et commentaire. Aucune commande ni paiement n'est possible. Le panier fictif est conservé localement dans le navigateur pour alimenter l'aperçu de livraison/retrait. Voir `docs/CART.md`.
 
-## Livraison et retrait (préparation)
+## Livraison et retrait (aperçu local)
 
-La page `/commande` permet de visualiser les modes livraison/retrait et les minima indicatifs par zone. Aucune adresse n'est validée ni commande enregistrée. Voir `docs/FULFILLMENT.md`.
+La page `/commande` lit le panier de démonstration partagé depuis le stockage local et calcule l'aperçu des minima selon le mode livraison/retrait et la zone choisie. Les quantités de pizzas et de pâtes du panier remplacent la saisie manuelle du nombre de plats. Le panier reste fictif et manipulable dans le navigateur ; il ne valide ni adresse ni commande. Voir `docs/FULFILLMENT.md`.
 
 **Règle de livraison confirmée :** seules les pizzas et les pâtes comptent dans le minimum de plats par zone. Erpent = 2 plats. Les autres zones manuscrites restent à valider géographiquement avant activation.
 

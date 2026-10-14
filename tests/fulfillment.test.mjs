@@ -66,3 +66,21 @@ test('33 cm pizza counts as two at 18 euros including supplements', () => {
   assert.throws(() => countEligibleDishes([{ category: 'pizza', sizeCm: '33', quantity: 1 }]), /INVALID_PRICE/);
   assert.throws(() => countEligibleDishes([{ category: 'pizza', sizeCm: '33', unitCents: 18.5, quantity: 1 }]), /INVALID_PRICE/);
 });
+
+test('fulfillment preview is derived from cart lines for delivery and pickup', async () => {
+  const { evaluateCartFulfillment } = await import('../src/lib/fulfillment.mjs');
+  const cart = [
+    { category: 'pizza', sizeCm: '50', unitCents: 1200, quantity: 1 },
+    { category: 'pasta', quantity: 1 },
+    { category: 'other', quantity: 4 },
+  ];
+  assert.deepEqual(evaluateCartFulfillment({ mode: 'delivery', zoneId: 'erpent', items: cart }), {
+    eligible: true, minimum: 2, deliveryFeeCents: 0, dishCount: 3,
+  });
+  assert.deepEqual(evaluateCartFulfillment({ mode: 'delivery', zoneId: 'belgrade', items: [{ category: 'pizza', sizeCm: '33', unitCents: 1200, quantity: 1 }] }), {
+    eligible: false, minimum: 2, deliveryFeeCents: 0, dishCount: 1,
+  });
+  assert.deepEqual(evaluateCartFulfillment({ mode: 'pickup', items: [{ category: 'other', quantity: 1 }] }), {
+    eligible: true, minimum: 0, deliveryFeeCents: 0, dishCount: 0,
+  });
+});

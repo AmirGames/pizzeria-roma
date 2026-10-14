@@ -2,16 +2,17 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { DELIVERY_ZONES, evaluateDelivery } from '../../lib/fulfillment.mjs';
+import { DELIVERY_ZONES, evaluateCartFulfillment } from '../../lib/fulfillment.mjs';
+import { useCart } from '../../lib/use-cart';
 
 type Mode = 'delivery' | 'pickup';
 
 export default function FulfillmentPage() {
+  const { items, ready } = useCart();
   const [mode, setMode] = useState<Mode>('delivery');
   const [zone, setZone] = useState('namur-centre');
   const [address, setAddress] = useState('');
-  const [mainDishes, setMainDishes] = useState(1);
-  const policy = evaluateDelivery({ mode, zoneId: zone, mainDishCount: mainDishes });
+  const policy = evaluateCartFulfillment({ mode, zoneId: zone, items });
   return (
     <main className="roma-fulfillment">
       <header className="roma-nav">
@@ -30,15 +31,15 @@ export default function FulfillmentPage() {
               <button type="button" aria-pressed={mode === 'delivery'} className={mode === 'delivery' ? 'selected' : ''} onClick={() => setMode('delivery')}><span aria-hidden="true">🚚</span><strong>Livraison</strong><small>Gratuite selon votre zone</small></button>
               <button type="button" aria-pressed={mode === 'pickup'} className={mode === 'pickup' ? 'selected' : ''} onClick={() => setMode('pickup')}><span aria-hidden="true">🛍️</span><strong>À emporter</strong><small>Préparation estimée : 30 à 40 min</small></button>
             </div>
+            {!ready ? <p role="status">Chargement du panier…</p> : items.length === 0 ? <div role="status" className="roma-policy-warning"><p>Le panier est vide. Ajoutez un article de démonstration pour voir le calcul des règles.</p><Link href="/panier">Retourner au panier →</Link></div> : null}
             {mode === 'delivery' ? (
               <div className="roma-delivery-fields">
                 <label>Votre zone de livraison<select value={zone} onChange={event => setZone(event.target.value)}>{DELIVERY_ZONES.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
-                <label>Adresse de livraison<input value={address} onChange={event => setAddress(event.target.value)} maxLength={200} autoComplete="street-address" placeholder="Rue et numéro, Namur"/></label>
-                <label>Nombre de plats équivalents (simulation : pizza 33 cm à partir de 18 € = 2, maxi 50 cm = 2, pâtes = 1)<input type="number" min={0} max={99} value={mainDishes} onChange={event => { const value = Number(event.target.value); setMainDishes(Number.isSafeInteger(value) && value >= 0 && value <= 99 ? value : 0); }}/></label>
-                <div role="status" className={policy.eligible ? 'roma-policy-ok' : 'roma-policy-warning'}>{policy.eligible ? '✓ Minimum indicatif atteint' : 'Minimum indicatif non atteint'} : {policy.minimum} plat{policy.minimum > 1 ? 's' : ''} (pizzas ou pâtes) · Livraison gratuite.</div>
-                <p className="roma-policy-caveat">La zone sélectionnée n'est pas une validation de l'adresse. La couverture réelle devra être vérifiée côté serveur.</p>
+                <label>Adresse de livraison<input value={address} onChange={event => setAddress(event.target.value.slice(0, 200))} maxLength={200} autoComplete="street-address" placeholder="Rue et numéro, Namur"/></label>
+                <div role="status" className={policy.eligible ? 'roma-policy-ok' : 'roma-policy-warning'}>{policy.eligible ? '✓ Minimum indicatif atteint' : 'Minimum indicatif non atteint'} : {policy.dishCount} plat{policy.dishCount !== 1 ? 's' : ''} équivalent{policy.dishCount !== 1 ? 's' : ''} dans le panier · minimum {policy.minimum} plat{policy.minimum > 1 ? 's' : ''} (pizzas ou pâtes) · Livraison gratuite.</div>
+                <p className="roma-policy-caveat">Le calcul utilise les articles de ce panier de démonstration. La zone sélectionnée ne valide pas l'adresse ; aucun article, prix ou zone n'est vérifié côté serveur.</p>
               </div>
-            ) : <div className="roma-pickup-note"><strong>Retrait sur place</strong><p>Rue Général Michel 23, Namur</p><p>Temps de préparation estimé : 30 à 40 minutes, à confirmer par le restaurant.</p></div>}
+            ) : <div className="roma-pickup-note"><strong>Retrait sur place</strong><p>Rue Général Michel 23, Namur</p><p>Temps de préparation estimé : 30 à 40 minutes, à confirmer par le restaurant.</p><p>Le retrait n'a pas de minimum de plats.</p></div>}
           </section>
           <aside className="roma-fulfillment-card">
             <h2>Horaires prévus</h2>

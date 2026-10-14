@@ -59,3 +59,9 @@ export function isWithinService(weekday, time) {
   if (typeof time !== 'string' || !/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) return false;
   return serviceWindows(weekday).some(({ start, end }) => time >= start && time < end);
 }
+
+/** Preview fulfillment rules from cart lines. Call only with trusted catalog data on a server. */
+export function evaluateCartFulfillment({ mode, zoneId, items }) {
+  const dishCount = countEligibleDishes(items);
+  return { ...evaluateDelivery({ mode, zoneId, mainDishCount: dishCount }), dishCount };
+}
