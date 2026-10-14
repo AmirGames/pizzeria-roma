@@ -1,9 +1,12 @@
 import 'server-only';
 import { cookies } from 'next/headers';
 import { prisma } from './db';
-// @ts-ignore JavaScript module; covered by unit tests\nimport { hashSessionToken } from './session-token.mjs';
-// @ts-ignore JavaScript module; covered by unit tests\nimport { isActiveSession, SESSION_COOKIE } from './session-policy.mjs';
-// @ts-ignore JavaScript module; covered by unit tests\nimport { can } from './authorization.mjs';
+// @ts-ignore JavaScript module; covered by unit tests 
+import { hashSessionToken } from './session-token.mjs';
+// @ts-ignore JavaScript module; covered by unit tests 
+import { isActiveSession, SESSION_COOKIE } from './session-policy.mjs';
+// @ts-ignore JavaScript module; covered by unit tests 
+import { can } from './authorization.mjs';
 
 export async function getCurrentUser() {
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
