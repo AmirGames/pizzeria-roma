@@ -49,11 +49,11 @@ La page `/menu/personnaliser` présente les options prévues. Les modules de val
 
 ## Panier de démonstration — PR-07 et PR-09
 
-Ouvrir `/panier` pour tester une interface responsive avec produit et tarif **fictifs**, quantités, suppression et commentaire. Aucune commande ni paiement n'est possible. Le panier fictif est conservé localement dans le navigateur pour alimenter l'aperçu de livraison/retrait. Voir `docs/CART.md`.
+Ouvrir `/panier` pour tester une interface responsive avec produit et tarif **fictifs**, quantités, suppression et commentaire. Aucune commande ni paiement n'est possible. Le panier de démonstration reste disponible. Les articles du catalogue peuvent aussi être ajoutés au panier sous forme d'identifiants ; leurs prix et règles sont recalculés par l'API serveur. Aucune commande ni paiement n'est créé. Voir `docs/CART.md`.
 
 ## Livraison et retrait (aperçu local)
 
-La page `/commande` lit le panier de démonstration partagé depuis le stockage local et calcule l'aperçu des minima selon le mode livraison/retrait et la zone choisie. Les quantités de pizzas et de pâtes du panier remplacent la saisie manuelle du nombre de plats. Le panier reste fictif et manipulable dans le navigateur ; il ne valide ni adresse ni commande. Une route de prévisualisation du panier serveur existe pour les sélections du catalogue, mais elle n'est pas encore reliée au panier de démonstration. La route publique du catalogue ne retourne que les données actives configurées dans Prisma. Voir `docs/FULFILLMENT.md` et `docs/CATALOG.md`.
+La page `/commande` affiche les règles selon le mode livraison/retrait et la zone choisie. Avec une sélection catalogue, les prix et règles sont recalculés côté serveur ; le panier de démonstration reste une simulation locale. Aucune adresse ni commande n'est validée. La route `POST /api/cart/preview` relit les produits et prix depuis Prisma. La route publique du catalogue ne retourne que les données actives configurées dans Prisma. Voir `docs/FULFILLMENT.md` et `docs/CATALOG.md`.
 
 **Règle de livraison confirmée :** seules les pizzas et les pâtes comptent dans le minimum de plats par zone. Erpent = 2 plats. Les autres zones manuscrites restent à valider géographiquement avant activation.
 

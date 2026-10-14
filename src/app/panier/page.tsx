@@ -5,6 +5,8 @@ import { useMemo, useState } from 'react';
 import { addCartItem, cartTotal, setCartQuantity } from '../../lib/cart.mjs';
 import type { CartLine } from '../../lib/cart.mjs';
 import { useCart } from '../../lib/use-cart';
+import { useCatalogCart } from '../../lib/use-catalog-cart';
+import CatalogCartPanel from './catalog-cart-panel';
 
 const demoProduct: CartLine = {
   key: 'demo-pizza-33',
@@ -20,6 +22,7 @@ const money = (cents: number) => new Intl.NumberFormat('fr-BE', { style: 'curren
 
 export default function CartPage() {
   const { items, setItems, ready } = useCart();
+  const catalogCart = useCatalogCart();
   const [comment, setComment] = useState('');
   const [error, setError] = useState('');
   const total = useMemo(() => cartTotal(items), [items]);
@@ -30,6 +33,18 @@ export default function CartPage() {
   function changeQuantity(key: string, quantity: number) {
     try { setItems(current => setCartQuantity(current, key, quantity)); setError(''); }
     catch { setError('Quantité invalide.'); }
+  }
+  if (catalogCart.ready && catalogCart.items.length > 0) {
+    return (
+      <main className="roma-cart">
+        <header className="roma-nav">
+          <Link href="/" className="roma-logo">PIZZERIA <strong>ROMA</strong><small>NAMUR</small></Link>
+          <nav aria-label="Navigation principale"><Link href="/">Accueil</Link><Link href="/menu">Notre carte</Link><Link href="/panier" aria-current="page">Panier</Link></nav>
+          <span className="roma-cart-count" aria-label={`${catalogCart.items.reduce((sum, item) => sum + item.quantity, 0)} articles`}>🛒 {catalogCart.items.reduce((sum, item) => sum + item.quantity, 0)}</span>
+        </header>
+        <div className="roma-cart-container"><CatalogCartPanel items={catalogCart.items} setItems={catalogCart.setItems} /></div>
+      </main>
+    );
   }
   return (
     <main className="roma-cart">

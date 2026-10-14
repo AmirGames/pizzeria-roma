@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- PR-12 : panier à identifiants de catalogue, options, prix et règles de fulfillment recalculés par l'API ; aucune commande ni paiement.
 - PR-11 : catalogue public en lecture seule connecté à `/menu`, produits, tailles et suppléments actifs uniquement ; aucune commande ni paiement.
 - PR-10 : aperçu du panier côté serveur depuis le catalogue Prisma, catégorisation explicite, `OTHER` exclu par défaut, tests ; aucune commande ni paiement.
 - Initialisation du dépôt et du squelette Next.js.
