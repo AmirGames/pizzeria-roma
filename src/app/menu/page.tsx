@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import CatalogProducts from './catalog-products';
-import CatalogProducts from './catalog-products';
 
 const categories = [
   { label: 'Pizzas', detail: '33 cm et 50 cm — recettes à confirmer' },
@@ -43,10 +42,6 @@ export default function MenuPage() {
             </article>
           ))}
         </div>
-      </section>
-      <section className="menu-live-catalog" aria-labelledby="live-catalog-title">
-        <div className="section-heading"><p className="eyebrow">CARTE PUBLIÉE</p><h2 id="live-catalog-title">Les plats disponibles</h2></div>
-        <CatalogProducts />
       </section>
       <section className="menu-live-catalog" aria-labelledby="live-catalog-title">
         <div className="section-heading"><p className="eyebrow">CARTE PUBLIÉE</p><h2 id="live-catalog-title">Les plats disponibles</h2></div>
