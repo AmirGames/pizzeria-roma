@@ -11,7 +11,7 @@ Les PR GitHub **#1 à #17 sont fusionnées**. Les jalons produit ci-dessous déc
 - [x] PR #12 : ajouter les sélections du catalogue au panier et recalculer côté serveur les prix et règles.
 - [x] PR #13 : aligner la roadmap et les règles commerciales.
 - [x] PR #14 : transcrire le menu daté du 14/10/2026.
-- [x] PR #15 : charger explicitement les 88 produits, tarifs et choix confirmés du menu 2026 dans le catalogue.\n- [x] PR #16–#17 : synchroniser la documentation et afficher l’état informatif des horaires hebdomadaires.
+- [x] PR #15 : charger explicitement les 88 produits, tarifs et choix confirmés du menu 2026 dans le catalogue.\n- [x] PR #16–#17 : synchroniser la documentation et afficher l’état informatif des horaires hebdomadaires.\n- [x] PR #16–#17 : synchroniser la documentation et afficher l’état informatif des horaires hebdomadaires.
 
 ## Catalogue du menu actuel — PR #15 fusionnée
 
