@@ -24,6 +24,9 @@ function validateSelection(selection) {
 
 function validateExtras(product, extraIds) {
   if (!Array.isArray(product.extras)) throw new Error('CATALOG_INVALID');
+  const mode = product.extraSelectionMode ?? 'MULTIPLE';
+  if (!['SINGLE', 'MULTIPLE'].includes(mode)) throw new Error('CATALOG_INVALID');
+  if (mode === 'SINGLE' && extraIds.length > 1) throw new Error('INVALID_EXTRAS');
   return extraIds.map(id => {
     const extra = product.extras.find(item => item.id === id && item.active);
     if (!extra) throw new Error('INVALID_EXTRAS');
@@ -74,12 +77,28 @@ export function previewCatalogCart(products, rawSelections, fulfillment) {
       sizeLabel = size.label;
       fulfillmentLine = { category: 'pizza', sizeCm, unitCents: quoted.unitCents, quantity: quoted.quantity };
     } else {
-      if (selection.sizeId !== undefined) throw new Error('INVALID_SIZE');
-      quoted = priceItem({
-        baseCents: product.baseCents,
-        extras: extras.map(extra => extra.priceCents),
-        quantity: selection.quantity,
-      });
+      if (product.choiceLabel !== null && product.choiceLabel !== undefined &&
+          (typeof product.choiceLabel !== 'string' || !product.choiceLabel.trim())) throw new Error('CATALOG_INVALID');
+      if (product.choiceLabel) {
+        if (typeof selection.sizeId !== 'string' || !selection.sizeId || selection.sizeId.length > 128 || !Array.isArray(product.sizes)) {
+          throw new Error('INVALID_SIZE');
+        }
+        const option = product.sizes.find(item => item.id === selection.sizeId && item.active);
+        if (!option) throw new Error('INVALID_SIZE');
+        quoted = priceItem({
+          baseCents: option.priceCents,
+          extras: extras.map(extra => extra.priceCents),
+          quantity: selection.quantity,
+        });
+        sizeLabel = option.label;
+      } else {
+        if (selection.sizeId !== undefined) throw new Error('INVALID_SIZE');
+        quoted = priceItem({
+          baseCents: product.baseCents,
+          extras: extras.map(extra => extra.priceCents),
+          quantity: selection.quantity,
+        });
+      }
       fulfillmentLine = {
         category: product.category.fulfillmentCategory === 'PASTA' ? 'pasta' : 'other',
         quantity: selection.quantity,
