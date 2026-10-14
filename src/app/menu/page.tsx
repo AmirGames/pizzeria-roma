@@ -19,7 +19,7 @@ export default function MenuPage() {
     <main className="menu-page">
       <header className="menu-header">
         <Link href="/" className="brand">ROMA<span>PIZZERIA · NAMUR</span></Link>
-        <span className="menu-status">Commande en ligne bientôt disponible</span>
+        <span className="menu-status"><Link href="/panier">Voir le panier (démo) →</Link></span>
       </header>
       <section className="menu-hero">
         <p className="eyebrow">LA CARTE</p>
