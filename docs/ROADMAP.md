@@ -2,7 +2,7 @@
 
 ## État des pull requests
 
-Les PR GitHub **#1 à #15 sont fusionnées**. Les jalons produit ci-dessous décrivent le travail restant et ne reprennent pas nécessairement la numérotation des PR.
+Les PR GitHub **#1 à #17 sont fusionnées**. Les jalons produit ci-dessous décrivent le travail restant et ne reprennent pas nécessairement la numérotation des PR.
 
 - [x] PR #1–#8 : fondations, catalogue, personnalisation, panier de démonstration et règles de livraison/retrait.
 - [x] PR #9 : connecter le panier de démonstration aux règles de livraison et de retrait.
@@ -11,7 +11,7 @@ Les PR GitHub **#1 à #15 sont fusionnées**. Les jalons produit ci-dessous déc
 - [x] PR #12 : ajouter les sélections du catalogue au panier et recalculer côté serveur les prix et règles.
 - [x] PR #13 : aligner la roadmap et les règles commerciales.
 - [x] PR #14 : transcrire le menu daté du 14/10/2026.
-- [x] PR #15 : charger explicitement les 88 produits, tarifs et choix confirmés du menu 2026 dans le catalogue.
+- [x] PR #15 : charger explicitement les 88 produits, tarifs et choix confirmés du menu 2026 dans le catalogue.\n- [x] PR #16–#17 : synchroniser la documentation et afficher l’état informatif des horaires hebdomadaires.
 
 ## Catalogue du menu actuel — PR #15 fusionnée
 
@@ -26,7 +26,7 @@ Les règles de livraison et retrait restent inchangées. Aucune commande réelle
 
 ## Horaires hebdomadaires — aperçu
 
-La page `/commande` affiche un statut informatif calculé dans le fuseau `Europe/Brussels` à partir des horaires hebdomadaires confirmés. L’indicateur ne tient pas compte des jours fériés et ne conditionne pas le checkout. Les créneaux et exceptions restent à valider avec le restaurant.
+La page `/commande` affiche un statut informatif calculé dans le fuseau `Europe/Brussels` à partir des horaires habituels. Selon le menu du 14/10/2026, les jours fériés légaux belges ont un horaire 18h–22h ; le dimanche reste fermé. Les jours de remplacement et exceptions spécifiques doivent être confirmés avec le restaurant. L’indicateur ne conditionne pas le checkout.
 
 ## Prochain jalon — couverture d’adresse et disponibilité
 
