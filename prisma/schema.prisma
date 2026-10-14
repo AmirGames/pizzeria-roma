@@ -71,6 +71,8 @@ model Product {
   baseCents  Int
   category   MenuCategory @relation(fields: [categoryId], references: [id])
   orderItems OrderItem[]
+  sizes      ProductSize[]
+  extras     ProductExtra[]
   @@index([categoryId, active])
 }
 
@@ -101,4 +103,25 @@ model OrderItem {
   order          Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product        Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
   @@index([orderId])
+}
+
+model ProductSize {
+  id         String  @id @default(cuid())
+  productId  String
+  label      String
+  priceCents Int
+  active     Boolean @default(true)
+  product    Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  @@unique([productId, label])
+}
+
+model ProductExtra {
+  id         String  @id @default(cuid())
+  productId  String
+  nameFr     String
+  nameEn     String
+  priceCents Int
+  active     Boolean @default(true)
+  product    Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  @@index([productId, active])
 }
