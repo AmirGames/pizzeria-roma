@@ -37,11 +37,11 @@ La vérification de session côté serveur est en cours de construction. Aucun f
 
 ## Catalogue (en cours)
 
-Un modèle de tailles et suppléments ainsi qu'un calculateur de prix testable ont été ajoutés. La carte fournie et datée du 14/10/2026 est transcrite dans `docs/RESTAURANT_MENU_SOURCE.md`. Les données ne sont pas encore chargées dans le catalogue Prisma : les choix de pâtes et suppléments doivent d'abord être représentés fidèlement. Les allergènes ne sont pas indiqués par les sources. Aucune commande ni aucun paiement réel n'est activé.
+Le modèle Prisma prend en charge les formats de pizza, les choix de pâtes et les suppléments fromage exclusifs. La carte datée du 14/10/2026 est transcrite dans `docs/RESTAURANT_MENU_SOURCE.md` et structurée dans `prisma/menu-2026-10-14.mjs`. Après migration, `npm run db:seed` charge les produits sur la base pointée par `DATABASE_URL` ; le seed n'est jamais exécuté automatiquement. Les suppléments pizza et les allergènes restent absents faute de détails suffisants. Aucune commande ni aucun paiement réel n'est activé.
 
 ## Aperçu du menu
 
-Démarrer avec `npm run dev` puis ouvrir `http://localhost:3000/menu`. La page affiche les produits, tailles et suppléments actifs publiés dans le catalogue Prisma. La transcription de la carte du 14/10/2026 est disponible dans `docs/RESTAURANT_MENU_SOURCE.md`, mais elle n'est pas encore chargée dans la base. Si aucun produit n'a été publié ou si le catalogue est indisponible, la page affiche un état explicite. Aucun allergène n'est inventé et aucun achat n'est possible.
+Démarrer avec `npm run dev` puis ouvrir `http://localhost:3000/menu`. La page affiche les produits, tailles et suppléments actifs publiés dans le catalogue Prisma. Les données de la carte du 14/10/2026 ne sont chargées qu'après l'exécution explicite de `npm run db:seed` sur la base configurée. Si aucun produit n'a été publié ou si le catalogue est indisponible, la page affiche un état explicite. Aucun allergène n'est inventé et aucun achat n'est possible.
 
 ## Personnalisation des pizzas (préparation)
 
