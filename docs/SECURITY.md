@@ -16,3 +16,9 @@
 - Migrations appliquées et testées sur PostgreSQL, sauvegarde et restauration.
 
 Ne pas utiliser ce squelette comme un système d'authentification opérationnel.
+
+## PR-02b : lecture des sessions
+- Vérification serveur d'une session par hash, expiration, révocation et désactivation de l'utilisateur.
+- Permissions vérifiées à partir du rôle lu en base.
+- Politique de cookie HttpOnly/Secure/SameSite testée.
+- **Il n'existe toujours pas d'endpoint de connexion, d'inscription ni d'émission de cookie.** Le cookie doit être défini seulement par un futur flux serveur sécurisé.
