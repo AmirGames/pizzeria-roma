@@ -6,7 +6,7 @@ import type { Dispatch, SetStateAction } from 'react';
 import { setCatalogCartQuantity } from '../../lib/catalog-cart.mjs';
 import type { CatalogCartLine } from '../../lib/catalog-cart.mjs';
 
-type Preview = { items: Array<{ productId: string; label: string; quantity: number; sizeLabel?: string; extraIds: string[]; unitCents: number; totalCents: number }>; subtotalCents: number };
+type Preview = { items: Array<{ productId: string; label: string; quantity: number; sizeLabel?: string; extraIds: string[]; extraLabels: string[]; unitCents: number; totalCents: number }>; subtotalCents: number };
 const money = (cents: number) => new Intl.NumberFormat('fr-BE', { style: 'currency', currency: 'EUR' }).format(cents / 100);
 
 export default function CatalogCartPanel({ items, setItems }: {
@@ -52,7 +52,7 @@ export default function CatalogCartPanel({ items, setItems }: {
           </> :
           <ul className="roma-cart-items">{preview.items.map((item, index) => <li key={`${item.productId}-${index}`} className="roma-cart-item">
             <div className="roma-item-icon" aria-hidden="true">🍕</div><div className="roma-item-details"><h2>{item.label}</h2>
-              <p>{[item.sizeLabel, item.extraIds.length ? `${item.extraIds.length} supplément(s)` : ''].filter(Boolean).join(' · ') || 'Article du menu'}</p>
+              <p>{[item.sizeLabel, ...item.extraLabels].filter(Boolean).join(' · ') || 'Article du menu'}</p>
               <div className="roma-qty" aria-label={`Quantité pour ${item.label}`}><button type="button" onClick={() => changeQuantity(index, items[index].quantity - 1)} aria-label="Diminuer la quantité">−</button><output aria-live="polite">{item.quantity}</output><button type="button" onClick={() => changeQuantity(index, items[index].quantity + 1)} aria-label="Augmenter la quantité">+</button></div>
             </div><div className="roma-item-end"><strong>{money(item.totalCents)}</strong><button type="button" className="roma-remove" onClick={() => changeQuantity(index, 0)} aria-label={`Supprimer ${item.label}`}>Supprimer</button></div>
           </li>)}</ul>}

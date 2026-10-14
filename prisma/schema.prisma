@@ -35,6 +35,11 @@ enum FulfillmentType {
   PICKUP
 }
 
+enum ExtraSelectionMode {
+  MULTIPLE
+  SINGLE
+}
+
 model User {
   id            String    @id @default(cuid())
   email         String    @unique @db.VarChar(320)
@@ -76,6 +81,8 @@ model Product {
   nameEn     String
   active     Boolean      @default(true)
   baseCents  Int
+  choiceLabel String?
+  extraSelectionMode ExtraSelectionMode @default(MULTIPLE)
   category   MenuCategory @relation(fields: [categoryId], references: [id])
   orderItems OrderItem[]
   sizes      ProductSize[]

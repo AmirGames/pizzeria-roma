@@ -1,47 +1,39 @@
-# Catalogue et tarification — PR-03
+# Catalogue et tarification
 
-## Modèle cible
-- Catégories et produits FR/EN.
-- Tailles 33 cm et 50 cm, prix par taille provenant de la base de données.
-- Suppléments facultatifs, prix provenant de la base de données.
-- Retraits d'ingrédients sans remise automatique.
-- Disponibilité contrôlée par le gérant.
+## Source du menu
 
-## Décisions à valider
-- Menu et tarifs réels du restaurant.
-- Liste des allergènes approuvée par le restaurant.
-- Prix et règles des pizzas moitié-moitié.
-- Combinaisons autorisées de suppléments et tailles.
+La carte datée du 14/10/2026 fournie par le restaurant est transcrite dans [RESTAURANT_MENU_SOURCE.md](RESTAURANT_MENU_SOURCE.md). Les données structurées se trouvent dans `prisma/menu-2026-10-14.mjs`.
 
-## Sécurité
-Le module `menu-pricing.mjs` calcule uniquement des centimes entiers. Il ne doit **jamais** recevoir des prix fournis par le navigateur : le service serveur lit les tarifs en base et vérifie que les options appartiennent au produit et sont actives.
+- 43 pizzas avec les prix indiqués pour 33 cm et 50 cm ; aucune taille maxi n'est créée pour la Calzone.
+- 20 plats de pâtes ; les 14 plats sans forme spécifique proposent spaghetti, macaroni ou tagliatelle. La tagliatelle est tarifée 1,00 € de plus.
+- Le supplément parmesan ou gruyère est un choix unique à 2,50 €.
+- Les accompagnements, 10 salades, l'ossobuco, les boissons et les desserts sont également transcrits.
+- Les suppléments pizza restent absents du seed : la carte indique seulement des prix « à partir de » et ne fournit pas la liste des ingrédients/options ni leurs prix individuels.
+- Aucun allergène n'est déclaré ou déduit.
 
-## État
-Le catalogue actif est publié en lecture seule par `GET /api/catalog` et affiché sur `/menu`. Aucun produit commercial n'est ajouté automatiquement ; la page reste dans son état vide jusqu'à validation et chargement des données. Aucune commande réelle n'est possible.
+## Chargement de la carte
 
-## Interface PR-04b
-Page `/menu` responsive : catégories de présentation et produits provenant du catalogue Prisma lorsqu'ils sont actifs. Les prix des tailles et suppléments viennent de la base. Aucun contenu commercial n'est inventé ; les photos, allergènes et le menu doivent être approuvés par le restaurant.
+Après application des migrations, `npm run db:seed` synchronise ces données dans la base indiquée par `DATABASE_URL`. Le seed n'est pas exécuté par le build ou le déploiement. Il crée des produits actifs visibles dans `GET /api/catalog` ; l'exécuter uniquement sur une base où l'on souhaite publier cette carte. Il ne crée ni commandes ni paiements. Les options dont l'identifiant commence par `menu-20261014-` sont gérées par le seed.
 
-## Personnalisation PR-06
-Voir `docs/PIZZA_CUSTOMIZATION.md`. Le devis vérifie les identifiants d'options contre un produit de confiance. L'API de prévisualisation des prix existe ; la carte publique en lecture seule est connectée à `/menu`.
+## Choix et calcul des prix
 
+Les prix restent en centimes entiers et sont toujours relus côté serveur à partir de Prisma ; le navigateur ne transmet que des identifiants d'options.
 
-## PR-10 — Aperçu panier côté serveur
-- L'API `POST /api/cart/preview` accepte les identifiants des produits/options et les quantités. Elle lit prix, catégories, tailles et suppléments dans Prisma et retourne un récapitulatif sans créer de commande.
-- Le modèle de catégorie porte une classification de fulfillment explicite : `PIZZA`, `PASTA` ou `OTHER`. Les catégories existantes et futures valent `OTHER` par défaut ; les catégories desserts ne sont pas reclassées.
-- La classification est utilisée côté serveur uniquement. Le navigateur ne peut pas envoyer son propre prix, sa catégorie ou sa taille pour modifier le calcul. Les catégories existantes migrent en `OTHER` et restent exclues jusqu'à ce qu'une classification fiable ait été renseignée côté base.
-- La base ne contient toujours pas de menu commercial approuvé. Les produits des tests sont des fixtures et ne sont jamais exposés par l'application.
+- `ProductSize` porte les deux formats de pizza et les formes de pâtes/dessert à choix. Pour une forme, son prix est le prix final du produit, supplément tagliatelle compris.
+- `choiceLabel` indique le libellé du menu à afficher au-dessus d'un choix exclusif.
+- `extraSelectionMode` vaut `SINGLE` pour les extras fromage des pâtes. Le serveur rejette plusieurs suppléments sélectionnés dans ce mode.
+- Les pizzas conservent le mode multi-suppléments existant ; aucun supplément pizza n'est préchargé sans tarifs individuels.
+- Salades, viande, boissons et desserts sont `OTHER` pour le fulfillment. La règle des desserts n'est pas modifiée.
 
+## Tests et sécurité
 
-## PR-11 — Catalogue public
-- `GET /api/catalog` ne publie que les produits, tailles et suppléments actifs et leurs données d'affichage/prix issues de Prisma.
-- La réponse n'expose ni la catégorie de fulfillment ni les enregistrements désactivés ; les catégories vides/non classées sont omises.
-- `/menu` affiche les entrées publiées, ou un état vide/indisponible. Aucun jeu de données commercial fictif n'est ajouté.
-- Le menu n'ajoute pas au panier et n'ouvre pas de commande. La connexion du panier à la prévisualisation serveur reste une étape suivante.
+Les tests de catalogue contrôlent les prix en centimes, l'unicité des identifiants de seed, les tailles disponibles, le choix de pâtes, les suppléments exclusifs, et la classification des catégories. `POST /api/cart/preview` vérifie le produit, l'option, les extras et leur prix depuis la base avant de retourner un aperçu.
 
+Le calculateur `menu-pricing.mjs` n'accepte jamais un prix fourni par le navigateur. Aucune adresse n'est vérifiée et aucun achat, paiement ou ordre de cuisine n'est possible.
 
-## PR-12 — Sélection catalogue dans le panier
-- La page menu permet d'ajouter un produit actif, une taille et des suppléments disponibles.
-- Le stockage navigateur ne contient que les identifiants de produit/taille/suppléments et la quantité, jamais de prix ou de catégorie.
-- `/panier` et `/commande` utilisent `POST /api/cart/preview` pour obtenir prix, sous-total et règles recalculés depuis Prisma.
-- Aucune donnée commerciale n'est préremplie. `OTHER` reste exclu du minimum, sans changement à la règle des desserts.
+## Évolution historique
+
+- PR-10 : prévisualisation serveur fondée sur les données Prisma et classification explicite du fulfillment.
+- PR-11 : publication en lecture seule du catalogue actif par `GET /api/catalog`.
+- PR-12 : sélection catalogue dans le panier, recalcul des prix et règles côté serveur.
+- PR-15 : options de pâtes et de fromage, seed du menu courant et affichage des choix exclusifs.

@@ -2,7 +2,7 @@
 
 ## État des pull requests
 
-Les PR GitHub **#1 à #13 sont fusionnées**. Les jalons produit ci-dessous décrivent le travail restant et ne reprennent pas nécessairement la numérotation des PR.
+Les PR GitHub **#1 à #14 sont fusionnées**. Les jalons produit ci-dessous décrivent le travail restant et ne reprennent pas nécessairement la numérotation des PR.
 
 - [x] PR #1–#8 : fondations, catalogue, personnalisation, panier de démonstration et règles de livraison/retrait.
 - [x] PR #9 : connecter le panier de démonstration aux règles de livraison et de retrait.
@@ -10,18 +10,18 @@ Les PR GitHub **#1 à #13 sont fusionnées**. Les jalons produit ci-dessous déc
 - [x] PR #11 : publier en lecture seule le catalogue actif.
 - [x] PR #12 : ajouter les sélections du catalogue au panier et recalculer côté serveur les prix et règles.
 - [x] PR #13 : aligner la roadmap et les règles commerciales.
+- [x] PR #14 : transcrire le menu daté du 14/10/2026.
 
-## Prochain jalon — préparer le catalogue à partir du menu courant
+## Jalon en cours — catalogue du menu actuel
 
-La carte photographiée datée du 14/10/2026 a été transcrite dans [RESTAURANT_MENU_SOURCE.md](RESTAURANT_MENU_SOURCE.md).
+La carte est transcrite dans [RESTAURANT_MENU_SOURCE.md](RESTAURANT_MENU_SOURCE.md) et les données structurées dans `prisma/menu-2026-10-14.mjs).
 
-- [ ] Ajouter un modèle de choix exclusifs pour les types de pâtes et recalculer leurs suppléments côté serveur.
-- [ ] Vérifier comment représenter les suppléments pizza, dont la carte ne donne pas la liste ni les prix individuels.
-- [ ] Saisir les catégories, produits, tailles et prix du menu daté dans le catalogue Prisma avec des tests de cohérence.
+- [ ] PR #15 : représenter les choix exclusifs et leurs prix côté serveur, ajouter le seed, tests et affichage des choix.
+- [ ] Obtenir la liste et les prix individuels des suppléments pizza avant de les ajouter.
+- [ ] Confirmer les allergènes et disponibilités auprès du restaurant avant leur publication.
 - [ ] Garder les catégories de fulfillment fiables côté serveur ; salades, viande, boissons et desserts restent `OTHER`. Ne pas modifier la règle concernant les desserts sans confirmation.
-- [ ] Recueillir les allergènes et disponibilités auprès du restaurant avant de les afficher ou d'activer un service commercial.
 
-Les règles de livraison et de retrait existantes restent inchangées. La transcription ne crée aucune commande réelle et n'active aucun paiement.
+Le seed n'est exécuté par aucune étape de build ou de déploiement ; il faut le lancer explicitement sur une base où l'on veut charger les produits. Les règles de livraison et retrait restent inchangées. Aucune commande réelle ni aucun paiement n'est activé.
 
 ## Étapes suivantes après validation commerciale
 
