@@ -6,7 +6,7 @@ import type { Dispatch, SetStateAction } from 'react';
 import { setCatalogCartQuantity } from '../../lib/catalog-cart.mjs';
 import type { CatalogCartLine } from '../../lib/catalog-cart.mjs';
 
-type Preview = { items: Array<{ productId: string; label: string; quantity: number; sizeLabel?: string; extraIds: string[]; unitCents: number; totalCents: number }>; subtotalCents: number };
+type Preview = { items: Array<{ productId: string; label: string; quantity: number; sizeLabel?: string; extraIds: string[]; extraLabels: string[]; unitCents: number; totalCents: number }>; subtotalCents: number };
 const money = (cents: number) => new Intl.NumberFormat('fr-BE', { style: 'currency', currency: 'EUR' }).format(cents / 100);
 
 export default function CatalogCartPanel({ items, setItems }: {
