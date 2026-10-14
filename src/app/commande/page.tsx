@@ -34,8 +34,8 @@ export default function FulfillmentPage() {
               <div className="roma-delivery-fields">
                 <label>Votre zone de livraison<select value={zone} onChange={event => setZone(event.target.value)}>{DELIVERY_ZONES.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
                 <label>Adresse de livraison<input value={address} onChange={event => setAddress(event.target.value)} maxLength={200} autoComplete="street-address" placeholder="Rue et numéro, Namur"/></label>
-                <label>Nombre de plats principaux (simulation)<input type="number" min={0} max={99} value={mainDishes} onChange={event => { const value = Number(event.target.value); setMainDishes(Number.isSafeInteger(value) && value >= 0 && value <= 99 ? value : 0); }}/></label>
-                <div role="status" className={policy.eligible ? 'roma-policy-ok' : 'roma-policy-warning'}>{policy.eligible ? '✓ Minimum indicatif atteint' : 'Minimum indicatif non atteint'} : {policy.minimum} plat{policy.minimum > 1 ? 's' : ''} principal{policy.minimum > 1 ? 'aux' : ''} · Livraison gratuite.</div>
+                <label>Nombre de pizzas et plats de pâtes (simulation)<input type="number" min={0} max={99} value={mainDishes} onChange={event => { const value = Number(event.target.value); setMainDishes(Number.isSafeInteger(value) && value >= 0 && value <= 99 ? value : 0); }}/></label>
+                <div role="status" className={policy.eligible ? 'roma-policy-ok' : 'roma-policy-warning'}>{policy.eligible ? '✓ Minimum indicatif atteint' : 'Minimum indicatif non atteint'} : {policy.minimum} plat{policy.minimum > 1 ? 's' : ''} (pizzas ou pâtes) · Livraison gratuite.</div>
                 <p className="roma-policy-caveat">La zone sélectionnée n'est pas une validation de l'adresse. La couverture réelle devra être vérifiée côté serveur.</p>
               </div>
             ) : <div className="roma-pickup-note"><strong>Retrait sur place</strong><p>Rue Général Michel 23, Namur</p><p>Temps de préparation estimé : 30 à 40 minutes, à confirmer par le restaurant.</p></div>}
