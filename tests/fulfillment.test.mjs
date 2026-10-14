@@ -37,6 +37,16 @@ test('restaurant status uses Europe/Brussels across standard and daylight time',
   assert.equal(isWithinRestaurantService('2026-10-14T09:30:00Z'), false);
 });
 
+test('Belgian public holidays use the printed evening schedule and Sunday stays closed', () => {
+  assert.equal(isWithinRestaurantService(new Date('2026-07-21T17:00:00Z')), true, 'National Day: 19:00 CEST is open');
+  assert.equal(isWithinRestaurantService(new Date('2026-07-21T10:00:00Z')), false, 'public holidays have no lunch service');
+  assert.equal(isWithinRestaurantService(new Date('2026-04-06T17:00:00Z')), true, 'Easter Monday');
+  assert.equal(isWithinRestaurantService(new Date('2026-05-14T17:00:00Z')), true, 'Ascension');
+  assert.equal(isWithinRestaurantService(new Date('2026-05-25T17:00:00Z')), true, 'Whit Monday');
+  assert.equal(isWithinRestaurantService(new Date('2026-11-01T18:00:00Z')), false, 'All Saints falls on Sunday, which remains closed');
+  assert.equal(isWithinRestaurantService(new Date('2026-07-22T17:00:00Z')), true, 'the following ordinary weekday keeps regular evening hours');
+});
+
 test('counts only pizzas and pasta, including quantities', () => {
   const dishes = countEligibleDishes([
     { category: 'pizza', sizeCm: '33', unitCents: 1200, quantity: 1 },
