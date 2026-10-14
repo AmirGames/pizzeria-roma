@@ -54,3 +54,5 @@ Ouvrir `/panier` pour tester une interface responsive avec produit et tarif **fi
 ## Livraison et retrait (préparation)
 
 La page `/commande` permet de visualiser les modes livraison/retrait et les minima indicatifs par zone. Aucune adresse n'est validée ni commande enregistrée. Voir `docs/FULFILLMENT.md`.
+
+**Règle de livraison confirmée :** seules les pizzas et les pâtes comptent dans le minimum de plats par zone. Erpent = 2 plats. Les autres zones manuscrites restent à valider géographiquement avant activation.
