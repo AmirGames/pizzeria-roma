@@ -43,3 +43,10 @@ Les lignes initiales décrivent les jalons produit ; les sections « numérotati
 - [x] Afficher les éléments configurés dans `/menu` et prévoir un état vide/indisponible.
 - [x] Garder la règle par défaut `OTHER` et la règle dessert inchangées ; n'ajouter aucun produit réel.
 - [ ] Relier le panier aux sélections du catalogue et à l'aperçu serveur après validation des données commerciales.
+
+
+## PR-12 (numérotation GitHub) — Panier depuis le catalogue, aperçu côté serveur
+- [x] Ajouter des produits catalogue avec taille et suppléments sans stocker de prix/catégorie côté navigateur.
+- [x] Recalculer le récapitulatif et les règles de livraison/retrait via l'API serveur.
+- [x] Garder le panier fictif disponible et ne créer ni commande ni paiement.
+- [ ] Charger les données commerciales approuvées ; les écrans de commande réelle restent hors périmètre.

@@ -14,7 +14,7 @@
 - Combinaisons autorisées de suppléments et tailles.
 
 ## Sécurité
-Le module `menu-pricing.mjs` calcule uniquement des centimes entiers. Il ne doit **jamais** recevoir des prix fournis par le navigateur : un futur service serveur doit lire les tarifs en base et vérifier que les options appartiennent au produit, sont actives et sont compatibles.
+Le module `menu-pricing.mjs` calcule uniquement des centimes entiers. Il ne doit **jamais** recevoir des prix fournis par le navigateur : le service serveur lit les tarifs en base et vérifie que les options appartiennent au produit et sont actives.
 
 ## État
 Le catalogue actif est publié en lecture seule par `GET /api/catalog` et affiché sur `/menu`. Aucun produit commercial n'est ajouté automatiquement ; la page reste dans son état vide jusqu'à validation et chargement des données. Aucune commande réelle n'est possible.
@@ -38,3 +38,10 @@ Voir `docs/PIZZA_CUSTOMIZATION.md`. Le devis vérifie les identifiants d'options
 - La réponse n'expose ni la catégorie de fulfillment ni les enregistrements désactivés ; les catégories vides/non classées sont omises.
 - `/menu` affiche les entrées publiées, ou un état vide/indisponible. Aucun jeu de données commercial fictif n'est ajouté.
 - Le menu n'ajoute pas au panier et n'ouvre pas de commande. La connexion du panier à la prévisualisation serveur reste une étape suivante.
+
+
+## PR-12 — Sélection catalogue dans le panier
+- La page menu permet d'ajouter un produit actif, une taille et des suppléments disponibles.
+- Le stockage navigateur ne contient que les identifiants de produit/taille/suppléments et la quantité, jamais de prix ou de catégorie.
+- `/panier` et `/commande` utilisent `POST /api/cart/preview` pour obtenir prix, sous-total et règles recalculés depuis Prisma.
+- Aucune donnée commerciale n'est préremplie. `OTHER` reste exclu du minimum, sans changement à la règle des desserts.
