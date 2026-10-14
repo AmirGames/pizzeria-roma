@@ -1,5 +1,5 @@
 const menuId = 'menu-20261014';
-const size = (slug, label, priceCents) => ({ id: `${menuId}-option-${slug}`, label, priceCents, active: true });
+const size = (productSlug, slug, label, priceCents) => ({ id: `${menuId}-size-${productSlug}-${slug}`, label, priceCents, active: true });
 const extra = (slug, nameFr) => ({ id: `${menuId}-extra-${slug}`, nameFr, nameEn: nameFr, priceCents: 250, active: true });
 const pastaExtras = [extra('parmesan', 'Parmesan'), extra('gruyere', 'Gruyère')];
 
@@ -21,7 +21,7 @@ const pizzas = [
   ['burrata-truffe','Burrata à l’huile de truffe',1950,4100], ['truffe','Truffe',1950,4100],
 ].map(([slug, nameFr, price33, price50]) => ({
   id: `${menuId}-pizza-${slug}`, nameFr, nameEn: nameFr, baseCents: 0, active: true,
-  sizes: [size('33cm', '33 cm', price33), ...(price50 === null ? [] : [size('50cm', '50 cm', price50)])],
+  sizes: [size(slug, '33cm', '33 cm', price33), ...(price50 === null ? [] : [size(slug, '50cm', '50 cm', price50)])],
   extras: [],
 }));
 
@@ -40,9 +40,9 @@ const pastas = pastaRows.map(([slug, nameFr, priceCents, hasShapeChoice]) => ({
   choiceLabel: hasShapeChoice ? 'Type de pâtes' : null,
   extraSelectionMode: 'SINGLE',
   sizes: hasShapeChoice ? [
-    size('spaghetti', 'Spaghetti', priceCents),
-    size('macaroni', 'Macaroni', priceCents),
-    size('tagliatelle', 'Tagliatelle', priceCents + 100),
+    size(slug, 'spaghetti', 'Spaghetti', priceCents),
+    size(slug, 'macaroni', 'Macaroni', priceCents),
+    size(slug, 'tagliatelle', 'Tagliatelle', priceCents + 100),
   ] : [],
   extras: pastaExtras.map(item => ({ ...item, id: `${item.id}-${slug}` })),
 }));
@@ -75,7 +75,7 @@ const drinks = [
 ];
 const desserts = [
   product('dessert','tiramisu-profiteroles','Tiramisù ou profiteroles','Tiramisu or profiteroles',500,{
-    choiceLabel:'Choix', sizes:[size('tiramisu','Tiramisù',500),size('profiteroles','Profiteroles',500)],
+    choiceLabel:'Choix', sizes:[size('tiramisu-profiteroles','tiramisu','Tiramisù',500),size('tiramisu-profiteroles','profiteroles','Profiteroles',500)],
   }),
   product('dessert','mousse-chocolat','Mousse au chocolat','Chocolate mousse',500),
 ];
