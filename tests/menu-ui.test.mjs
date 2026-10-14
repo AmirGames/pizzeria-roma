@@ -9,4 +9,7 @@ test('menu shows categories without inventing product prices', () => {
   }
   assert.match(page, /prix et allergènes seront publiés après validation/);
   assert.match(page, /aucune commande ni paiement disponible/);
+  assert.match(page, /CatalogProducts/);
+  assert.match(page, /CatalogProducts/);
+  assert.match(page, /aucune commande ni paiement disponible/);
 });
