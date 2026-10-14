@@ -15,3 +15,5 @@
 - PR-06 (en cours) : validation des tailles/suppléments/retraits, devis pizza et page de présentation.
 
 - PR-07 (en cours) : design du panier d'après la maquette, quantités et total de démonstration, tests et documentation.
+
+- PR-08 (en cours) : page livraison/retrait responsive, zones et minima de plats, horaires et tests.
