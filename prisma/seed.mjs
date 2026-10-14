@@ -48,8 +48,8 @@ async function main() {
         });
 
         // This seed owns option rows for its stable menu product IDs.
-        await tx.productSize.deleteMany({ where: { productId: product.id } });
-        await tx.productExtra.deleteMany({ where: { productId: product.id } });
+        await tx.productSize.deleteMany({ where: { productId: product.id, id: { startsWith: 'menu-20261014-size-' } } });
+        await tx.productExtra.deleteMany({ where: { productId: product.id, id: { startsWith: 'menu-20261014-extra-' } } });
         if (product.sizes.length) {
           await tx.productSize.createMany({
             data: product.sizes.map(option => ({ ...option, productId: product.id })),
