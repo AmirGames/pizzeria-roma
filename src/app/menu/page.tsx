@@ -27,6 +27,7 @@ export default function MenuPage() {
         <p>Nous préparons notre nouvelle carte en ligne. Les plats, prix et allergènes seront publiés après validation par le restaurant.</p>
         <span className="menu-chip">Livraison & retrait · Prochainement</span>
       </section>
+      <div style={{ textAlign: "center", padding: "30px 20px 0" }}><Link href="/menu/personnaliser" className="customize-link">Découvrir la personnalisation des pizzas →</Link></div>
       <section className="menu-categories" aria-labelledby="categories-title">
         <div className="section-heading">
           <p className="eyebrow">DÉCOUVRIR</p>
