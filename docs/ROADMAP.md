@@ -13,3 +13,5 @@
 - [ ] PR-10 : recette, tests réels et pilote.
 
 À chaque PR : tests, mise à jour du README et du CHANGELOG, documentation fonctionnelle concernée.
+
+- [ ] PR-04b : interface de présentation du menu sans prix réels (en cours).
