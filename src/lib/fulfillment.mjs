@@ -60,15 +60,47 @@ export function isWithinService(weekday, time) {
   return serviceWindows(weekday).some(({ start, end }) => time >= start && time < end);
 }
 
+/** Return Belgian legal public holidays as local calendar dates (without substitute days). */
+function isBelgianPublicHoliday(year, month, day) {
+  const key = `${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  const fixedHolidays = new Set([
+    '01-01', '05-01', '07-21', '08-15', '11-01', '11-11', '12-25',
+  ]);
+  if (fixedHolidays.has(key)) return true;
+
+  // Gregorian Easter date (Meeus/Jones/Butcher), then the three movable holidays.
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const easterMonth = Math.floor((h + l - 7 * m + 114) / 31);
+  const easterDay = ((h + l - 7 * m + 114) % 31) + 1;
+  const easter = new Date(Date.UTC(year, easterMonth - 1, easterDay));
+  const date = new Date(Date.UTC(year, month - 1, day));
+  const daysAfterEaster = Math.round((date - easter) / 86_400_000);
+  return daysAfterEaster === 1 || daysAfterEaster === 39 || daysAfterEaster === 50;
+}
+
 /**
- * Informational check against regular weekly hours using the restaurant's timezone.
- * Belgian public-holiday overrides are intentionally not inferred here.
+ * Informational check in the restaurant timezone. Legal Belgian holidays use
+ * the printed 18:00–22:00 schedule, except Sundays which remain closed.
  */
 export function isWithinRestaurantService(instant) {
   if (!(instant instanceof Date) || !Number.isFinite(instant.getTime())) return false;
 
   const parts = new Intl.DateTimeFormat('en-GB', {
     timeZone: 'Europe/Brussels',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
     weekday: 'short',
     hour: '2-digit',
     minute: '2-digit',
@@ -76,8 +108,13 @@ export function isWithinRestaurantService(instant) {
   }).formatToParts(instant);
   const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
   const weekday = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 }[values.weekday];
-  if (weekday === undefined || !values.hour || !values.minute) return false;
-  return isWithinService(weekday, `${values.hour}:${values.minute}`);
+  if (weekday === undefined || !values.year || !values.month || !values.day || !values.hour || !values.minute) return false;
+  if (weekday === 0) return false;
+  const time = `${values.hour}:${values.minute}`;
+  if (isBelgianPublicHoliday(Number(values.year), Number(values.month), Number(values.day))) {
+    return time >= '18:00' && time < '22:00';
+  }
+  return isWithinService(weekday, time);
 }
 
 /** Preview fulfillment rules from cart lines. Call only with trusted catalog data on a server. */
