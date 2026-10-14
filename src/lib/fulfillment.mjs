@@ -2,6 +2,7 @@
  * Business policy draft. Only the restaurant can approve zone boundaries and times.
  * This module does not geocode or confirm an address belongs to a zone.
  */
+export const DOUBLE_DISH_THRESHOLD_CENTS = 1800;
 export const DELIVERY_MINIMUMS = Object.freeze({
   'namur-centre': 1,
   'belgrade': 2,
@@ -15,7 +16,7 @@ export const DELIVERY_ZONES = Object.freeze([
   { id: 'saint-servais', label: 'Saint-Servais' },
 ]);
 /** Count quantities of pizza and pasta only, never drinks, desserts or salads. 
- * Product categories must come from trusted server-side catalog records.
+ * Product categories, sizes and configured unit prices must come from trusted server-side catalog records.
  */
 export function countEligibleDishes(items) {
   if (!Array.isArray(items)) throw new Error('INVALID_ITEMS');
@@ -25,7 +26,12 @@ export function countEligibleDishes(items) {
     // The 50 cm maxi counts as two dishes. This must be based on a
     // trusted product-size record, never a client-supplied size label.
     if (item.category === 'pizza' && !['33', '50'].includes(item.sizeCm)) throw new Error('INVALID_SIZE');
-    const multiplier = item.category === 'pizza' ? (item.sizeCm === '50' ? 2 : 1) : item.category === 'pasta' ? 1 : 0;
+    let multiplier = item.category === 'pasta' ? 1 : 0;
+    if (item.category === 'pizza') {
+      if (!Number.isSafeInteger(item.unitCents) || item.unitCents < 0) throw new Error('INVALID_PRICE');
+      // Trusted, per-unit configured price including supplements, excluding delivery.
+      multiplier = item.sizeCm === '50' || item.unitCents >= DOUBLE_DISH_THRESHOLD_CENTS ? 2 : 1;
+    }
     const next = count + item.quantity * multiplier;
     if (!Number.isSafeInteger(next)) throw new Error('INVALID_COUNT');
     return next;
