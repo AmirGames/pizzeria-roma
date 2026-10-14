@@ -46,3 +46,7 @@ Démarrer avec `npm run dev` puis ouvrir `http://localhost:3000/menu`. La page p
 ## Personnalisation des pizzas (préparation)
 
 La page `/menu/personnaliser` présente les options prévues. Les modules de validation et de devis sont testés séparément. **Aucun panier, commande ou paiement n'est actif.** Voir `docs/PIZZA_CUSTOMIZATION.md`.
+
+## Panier de démonstration — PR-07
+
+Ouvrir `/panier` pour tester une interface responsive avec produit et tarif **fictifs**, quantités, suppression et commentaire. Aucune commande ni paiement n'est possible. Voir `docs/CART.md`.
