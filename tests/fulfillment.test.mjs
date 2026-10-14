@@ -63,6 +63,6 @@ test('33 cm pizza counts as two at 18 euros including supplements', () => {
     { category: 'pizza', sizeCm: '33', unitCents: 1800, quantity: 2 },
   ]), 4);
   assert.equal(countEligibleDishes([{ category: 'pizza', sizeCm: '50', unitCents: 1500, quantity: 1 }]), 2);
-  assert.throws(() => countEligibleDishes([{ category: 'pizza', sizeCm: '33', quantity: 1 }]), /INVALID_PRICE/);
+  assert.throws(() => countEligibleDishes([{ category: 'pizza', sizeCm: '33', unitCents: 1200, quantity: 1 }]), /INVALID_PRICE/);
   assert.throws(() => countEligibleDishes([{ category: 'pizza', sizeCm: '33', unitCents: 18.5, quantity: 1 }]), /INVALID_PRICE/);
 });
