@@ -7,7 +7,7 @@ const catalog = [
     id: 'pizza-margherita', nameFr: 'Margherita', active: true, baseCents: 0,
     category: { fulfillmentCategory: 'PIZZA' },
     sizes: [{ id: 's33', label: '33 cm', priceCents: 1200, active: true }, { id: 's50', label: '50 cm', priceCents: 1700, active: true }],
-    extras: [{ id: 'extra-cheese', priceCents: 200, active: true }],
+    extras: [{ id: 'extra-cheese', priceCents: 200, active: true }, { id: 'extra-basil', priceCents: 400, active: true }],
   },
   {
     id: 'pasta-roma', nameFr: 'Pâtes Roma', active: true, baseCents: 1400,
@@ -27,6 +27,10 @@ test('prices pizza from trusted size and extras, then applies per-unit delivery 
   assert.equal(result.items[0].unitCents, 1400);
   assert.equal(result.subtotalCents, 1400);
   assert.deepEqual(result.fulfillment, { eligible: false, minimum: 2, dishCount: 1, deliveryFeeCents: 0 });
+  const atThreshold = previewCatalogCart(catalog, [{ productId: 'pizza-margherita', sizeId: 's33', extraIds: ['extra-cheese', 'extra-basil'], quantity: 1 }], { mode: 'delivery', zoneId: 'belgrade' });
+  assert.equal(atThreshold.items[0].unitCents, 1800);
+  assert.equal(atThreshold.fulfillment.dishCount, 2);
+  assert.equal(atThreshold.fulfillment.eligible, true);
 });
 
 test('maxi, pasta and dessert use their existing dish rules', () => {

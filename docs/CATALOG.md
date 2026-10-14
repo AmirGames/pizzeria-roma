@@ -23,7 +23,7 @@ Schéma des options et calculateur isolé ajoutés ; pas encore de catalogue int
 Page `/menu` responsive : catégories uniquement, sans fiches produits ni tarifs inventés. Aucun panier ou paiement. Les photographies et les informations de menu seront fournies/validées par le restaurant.
 
 ## Personnalisation PR-06
-Voir `docs/PIZZA_CUSTOMIZATION.md`. Le devis vérifie les identifiants d'options contre un produit de confiance. Pas de tarification réelle ni d'API pour le moment.
+Voir `docs/PIZZA_CUSTOMIZATION.md`. Le devis vérifie les identifiants d'options contre un produit de confiance. Pas de tarification réelle ni d'API de catalogue connectée à la page du menu.
 
 
 ## PR-10 — Aperçu panier côté serveur

@@ -1,7 +1,7 @@
 # Changelog
 
 ## Unreleased
-- PR-10 : aperçu du panier côté serveur depuis le catalogue Prisma, catégorisation explicite par defaut exclue, tests ; aucune commande ni paiement.
+- PR-10 : aperçu du panier côté serveur depuis le catalogue Prisma, catégorisation explicite, `OTHER` exclu par défaut, tests ; aucune commande ni paiement.
 - Initialisation du dépôt et du squelette Next.js.
 - Ajout d'une page temporaire sans commandes, d'un contrôle CI et des documents de cadrage.
 
