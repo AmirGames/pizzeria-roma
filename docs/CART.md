@@ -10,10 +10,10 @@
 ## Limites de sécurité et de périmètre
 Le panier et ses prix sont contrôlés par le navigateur et ne constituent pas une source fiable. Le catalogue reste fictif : aucun vrai article ni prix commercial n'est publié. Le comptage et l'éligibilité visibles dans l'interface ne sont qu'un aperçu local. Une future API devra charger les articles, catégories, tailles et prix depuis Prisma, vérifier la disponibilité, puis recalculer les montants et règles côté serveur.
 
-Aucune adresse n'est validée, aucun créneau n'est réservé, aucune commande n'est enregistrée et aucun paiement n'est activé. Le commentaire n'est ni soumis ni persisté.
+Aucune adresse n'est validée, aucun créneau n'est réservé, aucune commande n'est enregistrée et aucun paiement n'est activé. Le commentaire n'est ni soumis ni persisté. Une API de prévisualisation serveur distincte relit les choix et prix depuis Prisma, mais n'est pas encore branchée à l'interface ni à un catalogue rempli.
 
 ## Prochaines étapes
-- Alimenter la carte depuis des produits approuvés en base.
+- Obtenir et charger le menu commercial approuvé dans la base, puis relier l'interface à l'aperçu serveur.
 - Ajouter des produits réels configurés (tailles, suppléments et retraits).
 - Persistance contrôlée du panier, contrôles de disponibilité et devis serveur.
 - Validation serveur de la couverture, créneaux, capacité et commande avant tout paiement.

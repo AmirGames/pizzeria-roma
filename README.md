@@ -53,7 +53,7 @@ Ouvrir `/panier` pour tester une interface responsive avec produit et tarif **fi
 
 ## Livraison et retrait (aperçu local)
 
-La page `/commande` lit le panier de démonstration partagé depuis le stockage local et calcule l'aperçu des minima selon le mode livraison/retrait et la zone choisie. Les quantités de pizzas et de pâtes du panier remplacent la saisie manuelle du nombre de plats. Le panier reste fictif et manipulable dans le navigateur ; il ne valide ni adresse ni commande. Voir `docs/FULFILLMENT.md`.
+La page `/commande` lit le panier de démonstration partagé depuis le stockage local et calcule l'aperçu des minima selon le mode livraison/retrait et la zone choisie. Les quantités de pizzas et de pâtes du panier remplacent la saisie manuelle du nombre de plats. Le panier reste fictif et manipulable dans le navigateur ; il ne valide ni adresse ni commande. Une route de prévisualisation serveur existe pour les sélections de catalogue, mais l'interface n'y est pas encore reliée et aucun produit commercial n'est chargé. Voir `docs/FULFILLMENT.md` et `docs/CATALOG.md`.
 
 **Règle de livraison confirmée :** seules les pizzas et les pâtes comptent dans le minimum de plats par zone. Erpent = 2 plats. Les autres zones manuscrites restent à valider géographiquement avant activation.
 
