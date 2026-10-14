@@ -53,5 +53,5 @@ La liste semble indiquer : Belgrade 2, Dave 3, Erpent 2, Emines 3, Loyers 3, La 
 ## Actions avant publication
 1. Confirmer prix, descriptions, disponibilité des formats 50 cm, recettes et ingrédients exacts.
 2. Confirmer suppléments, retraits possibles, allergènes et options moitié-moitié.
-3. Confirmer l'orthographe et la couverture exacte des zones manuscrites. Définition du plat admissible confirmée : pizza ou pâtes.
+3. Confirmer l'orthographe et la couverture exacte des zones manuscrites. Définition du plat admissible confirmée : pizza normale 33 cm = 1, pizza maxi 50 cm = 2, pâtes = 1, autres = 0 ; aucune condition de prix.
 4. Ne pas publier ni activer le paiement tant que le catalogue n'est pas vérifié.
