@@ -1,11 +1,16 @@
 # Livraison, retrait et horaires — PR-08
 
 ## Fonctionnel (fondations)
-- Livraison gratuite pour les quatre zones envisagées : Namur centre (1 plat principal), Belgrade (2), Erpent (3), Saint-Servais (2).
+- Livraison gratuite pour les quatre zones envisagées : Namur centre (1 plat principal), Belgrade (2), Erpent (2), Saint-Servais (2).
 - Retrait sans minimum de livraison ; préparation estimée 30–40 minutes.
 - Horaires : lundi à vendredi 11h30–14h00 et 18h00–22h00, samedi 18h00–22h00, dimanche fermé.
 - Moteur de règles pur testé : `evaluateDelivery`, `serviceWindows`, `isWithinService`.
 - Page `/commande` responsive inspirée de la maquette, avec choix livraison/retrait, zone et simulation du nombre de plats.
+
+## Définition confirmée par le restaurateur
+Le minimum de livraison porte sur les **pizzas et les plats de pâtes uniquement**, en additionnant les quantités. Par exemple, une pizza et un plat de pâtes = 2 plats admissibles. Salades, desserts et boissons exclus. Le moteur `countEligibleDishes` fournit le comptage à partir de catégories **de confiance côté serveur** ; ne jamais croire les catégories déclarées par le navigateur. Erpent corrigé à 2 plats selon la liste manuscrite.
+
+La liste manuscrite comporte d'autres localités qui attendent une relecture des noms et une définition géographique avant activation.
 
 ## Limites critiques
 La sélection de zone ne prouve pas qu'une adresse est desservie. Aucun géocodage, aucune validation d'adresse, aucun créneau réel ni commande active. Le nombre de plats est une **simulation** saisie manuellement, et non un panier contrôlé. Les horaires sont les horaires locaux du restaurant ; les fonctions prennent explicitement le jour de semaine et l'heure locale, sans conversion de fuseau.
