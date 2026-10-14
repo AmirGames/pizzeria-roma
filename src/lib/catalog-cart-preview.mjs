@@ -115,6 +115,7 @@ export function previewCatalogCart(products, rawSelections, fulfillment) {
       quantity: quoted.quantity,
       ...(sizeLabel ? { sizeLabel } : {}),
       extraIds: [...selection.extraIds],
+      extraLabels: extras.map(extra => typeof extra.nameFr === 'string' ? extra.nameFr : 'Supplément'),
       unitCents: quoted.unitCents,
       totalCents: lineTotalCents,
     });
