@@ -13,3 +13,5 @@
 - PR-04b (en cours) : page de présentation responsive des catégories, sans commandes ni prix fictifs.
 
 - PR-06 (en cours) : validation des tailles/suppléments/retraits, devis pizza et page de présentation.
+
+- PR-07 (en cours) : design du panier d'après la maquette, quantités et total de démonstration, tests et documentation.
