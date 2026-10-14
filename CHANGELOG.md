@@ -2,7 +2,8 @@
 
 ## 2026-10-14
 
-- Transcription du menu photographié daté du 14/10/2026 : pizzas, pâtes, accompagnements, salades, viande, boissons et desserts. Les options incomplètes restent signalées comme telles ; aucun produit n'est encore publié dans Prisma.
+- PR #14 : transcription du menu photographié daté du 14/10/2026 dans la documentation.
+- PR #15 (en cours) : seed de 88 produits, choix de pâtes/desserts tarifés côté serveur et supplément fromage exclusif. Les suppléments pizza non détaillés ne sont pas configurés.
 
 - PR #12 : panier relié aux sélections du catalogue ; prix, sous-total et règles de livraison/retrait relus côté serveur.
 - PR #11 : catalogue actif publié en lecture seule sur le menu.
