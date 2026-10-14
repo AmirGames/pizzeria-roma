@@ -28,6 +28,7 @@ export function buildPublicCatalog(categories) {
           extraSelectionMode: product.extraSelectionMode === 'SINGLE' ? 'SINGLE' : 'MULTIPLE',
           sizes: (Array.isArray(product.sizes) ? product.sizes : []).filter(size => size && size.active === true).map(size => ({ id: size.id, label: size.label, priceCents: assertPrice(size.priceCents) })),
           extras: (Array.isArray(product.extras) ? product.extras : []).filter(extra => extra && extra.active === true).map(extra => ({ id: extra.id, nameFr: extra.nameFr, priceCents: assertPrice(extra.priceCents) })),
+          };
         }).sort((a, b) => a.nameFr.localeCompare(b.nameFr, 'fr')),
     }))
     .filter(category => category.products.length > 0)
