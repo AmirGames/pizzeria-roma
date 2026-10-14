@@ -17,3 +17,5 @@
 - [ ] PR-04b : interface de présentation du menu sans prix réels (en cours).
 
 - [ ] PR-06 : validation des options pizza, devis et page de présentation (en cours ; interface transactionnelle à venir).
+
+- [ ] PR-07 (numérotation GitHub) : panier de démonstration responsive, logique locale testée ; connexion au catalogue et validation serveur à venir.
