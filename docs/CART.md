@@ -25,3 +25,11 @@ La route `GET /api/catalog` et la section « Les plats disponibles » de `/menu`
 
 ## Panier relié au catalogue — PR-12
 Les cartes de `/menu` permettent de choisir une taille et des suppléments actifs, puis ajoutent au stockage local uniquement les IDs produit/taille/suppléments et la quantité. Les prix ne sont jamais persistés par le navigateur. `/panier` et `/commande` envoient ces sélections à `POST /api/cart/preview` pour relire le catalogue et calculer le sous-total ainsi que les règles de retrait/livraison. Le panier de démonstration reste séparé et fonctionne en local. Aucun envoi de commande, paiement, adresse ou créneau réel n'est activé ; la classification et la règle des desserts sont inchangées.
+
+## Modification d’une recette
+
+Le panier catalogue propose « Modifier les options ». Le même configurateur sert à l’ajout depuis le menu et à la modification : format, suppléments disponibles et ingrédients retirables. La quantité est conservée pour tous les exemplaires de la ligne. Les modifications ne sont appliquées qu’après validation par le serveur ; annuler ou une erreur réseau laisse le panier intact.
+
+Si la recette modifiée correspond à une autre ligne, les quantités sont regroupées, dans la limite de 99. Si la ligne a été modifiée ou supprimée dans un autre onglet entre-temps, l’enregistrement est refusé. Le client peut rouvrir l’éditeur après actualisation. Lorsqu’une option est retirée du catalogue, l’éditeur l’omet en le signalant et demande de vérifier les choix avant d’enregistrer. Un article entièrement indisponible doit être supprimé.
+
+Les tests unitaires couvrent la conservation des quantités, la fusion, les limites et les conflits. `npm run test:browser` vérifie dans Chromium le parcours de modification, l’annulation et le conflit entre onglets. Il nécessite un build, les migrations appliquées et une base dédiée dont le nom finit par `_test`, avec `RUN_DATABASE_TESTS=1`.

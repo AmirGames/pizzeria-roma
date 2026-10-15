@@ -1,6 +1,9 @@
 # Changelog
 
-## 2026-10-15 — proposition en cours
+## 2026-10-15
+
+- Proposition suivante : modification des recettes depuis le panier, validation serveur, fusion des recettes identiques et tests Chromium.
+- PR #20 fusionnée : personnalisation interactive et espace gérant avec création de pizzas en brouillon.
 
 - Personnalisation interactive : retraits sans remise, suppléments par format, recettes conservées dans le panier et contrôle serveur.
 - Création de pizzas en brouillon (33 cm et 50 cm facultatif), publication explicite et recherche des articles.

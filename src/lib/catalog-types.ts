@@ -1,0 +1,1 @@
+export type CatalogProduct = { id: string; nameFr: string; baseCents: number; removableIngredients?: string[]; choiceLabel: string | null; extraSelectionMode: 'SINGLE' | 'MULTIPLE'; sizes: Array<{ id: string; label: string; priceCents: number }>; extras: Array<{ id: string; nameFr: string; priceCents: number; sizePrices?: Record<string, number> }> };
