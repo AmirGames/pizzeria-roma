@@ -47,4 +47,8 @@ Ces jalons demandent des validations commerciales et opérationnelles. Tant qu�
 
 ## Proposition du 15/10/2026
 
-Personnalisation interactive et espace gérant avec accès privé : voir [MANAGER.md](MANAGER.md) et [PIZZA_CUSTOMIZATION.md](PIZZA_CUSTOMIZATION.md). Ces changements sont préparés pour revue et ne sont pas encore fusionnés ni déployés. Les compositions et tarifs des suppléments restent à fournir ; les migrations doivent être appliquées explicitement.
+Personnalisation interactive et espace gérant avec accès privé : voir [MANAGER.md](MANAGER.md) et [PIZZA_CUSTOMIZATION.md](PIZZA_CUSTOMIZATION.md). Ces changements ont été fusionnés dans la PR #20 ; aucun déploiement n’est effectué. Les compositions et tarifs des suppléments restent à fournir ; les migrations doivent être appliquées explicitement.
+
+## Proposition suivante — édition du panier
+
+Modification du format, des suppléments et des retraits directement depuis le panier, avec validation serveur et conservation des quantités. Les recettes identiques sont regroupées ; un changement externe du panier bloque une édition devenue obsolète. Tests du parcours dans Chromium.

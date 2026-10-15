@@ -51,7 +51,7 @@ La carte permet de retirer les ingrédients configurés sans réduction de prix 
 
 ## Panier
 
-Ouvrir `/panier` pour tester le panier de démonstration, avec son article et son tarif fictifs, ses quantités, sa suppression et son commentaire local. Il reste séparé du panier catalogue. Les articles du menu peuvent être ajoutés à ce dernier sous forme d'identifiants ; l'API serveur relit les prix, options et règles. Aucune commande ni aucun paiement n'est créé. Voir [`docs/CART.md`](docs/CART.md).
+Ouvrir `/panier` pour tester le panier de démonstration, avec son article et son tarif fictifs, ses quantités, sa suppression et son commentaire local. Il reste séparé du panier catalogue. Les recettes peuvent être modifiées directement depuis le panier catalogue, avec validation serveur et conservation des quantités. Les articles du menu peuvent être ajoutés à ce dernier sous forme d'identifiants ; l'API serveur relit les prix, options et règles. Aucune commande ni aucun paiement n'est créé. Voir [`docs/CART.md`](docs/CART.md).
 
 ## Livraison et retrait (aperçu)
 

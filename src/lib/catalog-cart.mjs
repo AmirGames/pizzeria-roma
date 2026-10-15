@@ -58,3 +58,22 @@ export function setCatalogCartQuantity(items, index, quantity) {
   if (quantity === 0) return items.filter((_, i) => i !== index).map(validateLine);
   return items.map((item, i) => i === index ? validateLine({ ...item, quantity }) : validateLine(item));
 }
+
+/** Replace an existing recipe, preserving its quantity and merging equivalent recipes. */
+export function replaceCatalogCartItem(items, original, replacement) {
+  if (!Array.isArray(items) || items.length > MAX_LINES) throw new Error('INVALID_CART');
+  const lines = items.map(validateLine);
+  if (new Set(lines.map(lineKey)).size !== lines.length) throw new Error('INVALID_CART');
+  const expected = validateLine(original);
+  const index = lines.findIndex(line => lineKey(line) === lineKey(expected) && line.quantity === expected.quantity);
+  if (index < 0) throw new Error('CART_CHANGED');
+  const next = validateLine({ ...replacement, quantity: expected.quantity });
+  if (next.productId !== expected.productId) throw new Error('INVALID_CART');
+  const equivalent = lines.findIndex((line, i) => i !== index && lineKey(line) === lineKey(next));
+  if (equivalent >= 0) {
+    const quantity = lines[equivalent].quantity + next.quantity;
+    if (quantity > 99) throw new Error('INVALID_CART');
+    return lines.flatMap((line, i) => i === index ? [] : [{ ...line, ...(i === equivalent ? { quantity } : {}) }]);
+  }
+  return lines.map((line, i) => i === index ? next : line);
+}
