@@ -133,6 +133,7 @@ export function previewCatalogCart(products, rawSelections, fulfillment) {
   return {
     items: lines,
     subtotalCents,
+    pizzaCount: fulfillmentLines.reduce((count, line) => count + (line.category === 'pizza' ? line.quantity : 0), 0),
     fulfillment: {
       eligible: policy.eligible,
       minimum: policy.minimum,

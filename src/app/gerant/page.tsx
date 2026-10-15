@@ -23,7 +23,7 @@ export default async function ManagerDashboard() {
     { label: 'En livraison', status: 'OUT_FOR_DELIVERY', count: data.statuses.OUT_FOR_DELIVERY },
   ] as const;
   return <main className="customer-page"><h1>Tableau de bord gérant</h1><p>Mode test : ces compteurs concernent uniquement les essais. Aucune préparation réelle ni aucun paiement.</p>
-    <div className="customer-actions"><Link href="/gerant/carte">Gérer la carte</Link><Link href="/gerant/commandes-test">Ouvrir la file des essais</Link><RefreshTestOrders label="Actualiser le tableau de bord" /></div>
+    <div className="customer-actions"><Link href="/gerant/carte">Gérer la carte</Link><Link href="/gerant/livraison">Livraison et créneaux</Link><Link href="/gerant/commandes-test">Ouvrir la file des essais</Link><RefreshTestOrders label="Actualiser le tableau de bord" /></div>
     <p>Actualisé à {data.refreshedAt.toLocaleString('fr-BE', { timeZone: 'Europe/Brussels' })} · heure de Bruxelles.</p>
     <section aria-labelledby="dashboard-queue-title"><h2 id="dashboard-queue-title">File à traiter</h2><p>Essais encore actifs, quelle que soit leur date d’enregistrement. Chaque compteur ouvre la liste correspondante.</p>
       <nav className={styles.cards} aria-label="Compteurs de la file">{cards.map(card => <Link className={styles.card} key={card.status} href={staffTestHref({ ...defaults, status: card.status })}><h3>{card.label}</h3><p>{card.count}</p></Link>)}</nav>

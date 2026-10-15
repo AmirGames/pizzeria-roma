@@ -12,6 +12,7 @@ const permissions = Object.freeze({
   'catalog:write': [ROLES.MANAGER],
   'staff:manage': [ROLES.MANAGER],
   'reports:read': [ROLES.MANAGER],
+  'delivery:write': [ROLES.MANAGER],
 });
 
 export function can(role, permission) {

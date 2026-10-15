@@ -22,6 +22,8 @@ Le projet peut être essayé en local. **Les commandes commerciales et les paiem
 - Tableau de bord gérant : compteurs des essais actifs, liens vers les files et résumé du jour en heure de Bruxelles.
 - File gérant/cuisine paginée : essais à traiter par ancienneté, recherche par référence, filtres par statut et livraison/retrait, transitions de statut et contrôle des permissions.
 - Aperçu des zones et minima de livraison, du retrait et des horaires dans le fuseau `Europe/Brussels`.
+- En mode test : vérification des adresses avec ICAR (Géoportail de Wallonie), zone déduite des frontières dessinées par le gérant et conservation de l’adresse complète pour le livreur.
+- En mode test : créneaux de 15 minutes pendant les heures d’ouverture jusqu’à 7 jours à l’avance, capacité initiale de 7 pizzas et délai de retrait initial de 30 minutes réglables par le gérant.
 
 Les compositions des pizzas, les tarifs individuels des suppléments pizza et les allergènes restent à confirmer/renseigner. Ils ne sont pas déduits des noms des produits ni inventés par le seed.
 
@@ -125,6 +127,7 @@ Garder ce lien privé. Utiliser des comptes distincts pour les parcours client e
 | `/gerant` | Tableau de bord des essais, réservé au gérant |
 | `/gerant/carte` | Édition de la carte, réservée au gérant |
 | `/gerant/commandes-test` | Suivi simulé, réservé au gérant et à la cuisine |
+| `/gerant/livraison` | Réglage des créneaux et dessin des zones, réservé au gérant |
 
 ## Parcours de test conseillé
 
@@ -140,7 +143,9 @@ Le changement de mot de passe demande le mot de passe actuel et une confirmation
 
 La livraison est gratuite. Seules les pizzas et les pâtes comptent pour le minimum : Namur centre = 1 plat ; Belgrade, Erpent et Saint-Servais = 2 plats. Une pizza 50 cm compte pour 2 ; une pizza 33 cm compte pour 2 à partir de 18 € par pizza, suppléments inclus ; les pâtes comptent pour 1. Salades, boissons et desserts sont exclus. Le retrait n’a pas de minimum de plats.
 
-Choisir une zone ne vérifie pas une adresse. Les frontières de livraison, créneaux, capacités et exceptions d’horaires restent à confirmer avant des commandes réelles. Les jours fériés légaux belges affichent un service informatif 18h–22h, sauf dimanche fermé.
+En mode test, le client saisit son adresse sans placer de repère. ICAR renvoie une position de maison, y compris estimée sur la rue si le numéro exact est introuvable ; le serveur détermine la zone depuis les frontières enregistrées par le gérant. L’adresse complète saisie est conservée pour le livreur. Le gérant doit dessiner les zones sur `/gerant/livraison` avant d’essayer une livraison.
+
+Les créneaux simulés durent 15 minutes et sont proposés pendant les horaires d’ouverture, jusqu’à 7 jours à l’avance. La configuration initiale limite chaque créneau à 7 pizzas ; le délai de retrait initial est de 30 minutes. Le gérant peut modifier ces valeurs, par pas de 15 minutes pour le délai. Les jours fériés légaux belges affichent un service informatif 18h–22h, sauf dimanche fermé.
 
 La vérification e-mail et la récupération du mot de passe sont disponibles avec Mailpit en local. Un service d’envoi externe, la suppression/export du compte et les exigences d’exploitation restent à préparer avant l’ouverture publique de l’espace client. La PWA, la traduction complète et les paiements sont des objectifs, pas des fonctions annoncées comme terminées.
 
@@ -181,7 +186,7 @@ Le mot de passe oublié donne une réponse générique, que le compte existe ou 
 
 Dans `/compte`, « Mes adresses » permet d’ajouter jusqu’à dix adresses fictives avec un libellé (domicile, travail…) et une zone. La première devient l’adresse par défaut. Il est possible de choisir une autre adresse par défaut, de modifier une adresse ou de confirmer sa suppression. Supprimer l’adresse par défaut sélectionne automatiquement la plus ancienne adresse restante.
 
-En livraison simulée, `/commande/test` préremplit l’adresse par défaut et sa zone. Choisir une adresse dans la liste remplit les deux champs ; une saisie ponctuelle ne modifie pas le carnet. Les adresses sont privées à chaque compte et ne sont pas enregistrées dans le stockage local du navigateur. Une modification ou une suppression ne change pas l’adresse conservée dans les anciens essais. La zone reste déclarative : aucune vérification géographique ni réservation de livraison.
+En livraison simulée, `/commande/test` préremplit l’adresse par défaut. Le client saisit ou corrige son adresse ; ICAR (Géoportail de Wallonie) fournit une position, éventuellement approximative sur la rue, et le serveur déduit la zone des polygones dessinés par le gérant. Le client n’a pas à placer de repère. L’adresse complète est conservée sur l’essai pour le livreur. Une saisie ponctuelle ne modifie pas le carnet ; les adresses restent privées et leur modification ne réécrit pas l’historique. La vérification et le créneau sont simulés.
 
 Cette évolution nécessite la migration `20261015120000_customer_addresses`, en suivant les commandes de mise à jour locale ci-dessus ; aucun seed supplémentaire. Deux modifications concurrentes ne s’écrasent pas : un conflit demande d’actualiser la liste.
 

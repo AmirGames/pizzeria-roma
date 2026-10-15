@@ -9,7 +9,7 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
   try {
     const user = await requireCustomer();
     const { id } = await context.params;
-    const order = await prisma.testOrder.findFirst({ where: { id, userId: user.id }, select: { id: true, publicReference: true, status: true, revision: true, fulfillment: true, totalCents: true, placedAt: true, itemsSnapshot: true, contactName: true, phone: true, address: true, zoneId: true, comment: true } });
+    const order = await prisma.testOrder.findFirst({ where: { id, userId: user.id }, select: { id: true, publicReference: true, status: true, revision: true, fulfillment: true, totalCents: true, placedAt: true, scheduledFor: true, itemsSnapshot: true, contactName: true, phone: true, address: true, zoneId: true, comment: true } });
     return order ? Response.json({ order }, { headers: { 'Cache-Control': 'no-store' } }) : Response.json({ error: 'NOT_FOUND' }, { status: 404 });
   } catch (error) { return Response.json({ error: 'UNAVAILABLE' }, { status: error instanceof Error && error.message === 'UNAUTHORIZED' ? 401 : 503 }); }
 }

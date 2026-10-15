@@ -178,6 +178,8 @@ model TestOrder {
   requestHash String @db.Char(64)
   fulfillment FulfillmentType
   zoneId String?
+  scheduledFor DateTime @default(now())
+  pizzaCount Int @default(0)
   contactName String @db.VarChar(128)
   phone String @db.VarChar(40)
   address String? @db.VarChar(300)
@@ -192,6 +194,21 @@ model TestOrder {
   @@unique([userId, requestKey])
   @@index([userId, placedAt])
   @@index([status, placedAt])
+}
+
+model DeliveryConfiguration {
+  id String @id @default("global")
+  pickupLeadMinutes Int @default(30)
+  slotPizzaCapacity Int @default(7)
+  revision Int @default(0)
+  updatedAt DateTime @updatedAt
+}
+
+model DeliveryZoneBoundary {
+  zoneId String @id
+  geometry Json
+  revision Int @default(0)
+  updatedAt DateTime @updatedAt
 }
 
 enum CustomerEmailPurpose {

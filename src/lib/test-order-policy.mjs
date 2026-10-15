@@ -5,13 +5,14 @@ export function nextTestStatuses(status, fulfillment) {
 }
 export function validateTestOrder(input) {
   const fail = () => { throw new Error('INVALID_TEST_ORDER'); };
-  if (!input || typeof input !== 'object' || Array.isArray(input) || Object.keys(input).some(key => !['items', 'mode', 'zoneId', 'contactName', 'phone', 'address', 'comment', 'requestKey', 'expectedTotalCents'].includes(key))) fail();
+  if (!input || typeof input !== 'object' || Array.isArray(input) || Object.keys(input).some(key => !['items', 'mode', 'zoneId', 'scheduledFor', 'contactName', 'phone', 'address', 'comment', 'requestKey', 'expectedTotalCents'].includes(key))) fail();
   if (!['delivery', 'pickup'].includes(input.mode) || typeof input.requestKey !== 'string' || !/^[a-f0-9-]{36}$/i.test(input.requestKey) || !Number.isSafeInteger(input.expectedTotalCents) || input.expectedTotalCents < 0) fail();
   const text = (value, max) => typeof value === 'string' && value.trim().length > 0 && value.trim().length <= max;
   if (!text(input.contactName, 128) || !text(input.phone, 40) || !/^\+?[0-9 ()-]{7,30}$/.test(input.phone.trim()) || (input.comment !== undefined && (typeof input.comment !== 'string' || input.comment.length > 500))) fail();
   if (input.mode === 'delivery' && (!text(input.address, 300) || !text(input.zoneId, 128))) fail();
   if (input.mode === 'pickup' && (input.zoneId !== undefined || (input.address !== undefined && input.address !== ''))) fail();
+  if (input.scheduledFor !== undefined && (typeof input.scheduledFor !== 'string' || !/^\d{4}-\d\d-\d\dT\d\d:\d\d:00\.000Z$/.test(input.scheduledFor) || !Number.isFinite(Date.parse(input.scheduledFor)))) fail();
   const items = readCatalogCart(JSON.stringify(input.items));
   if (!items.length) fail();
-  return { items, mode: input.mode, ...(input.mode === 'delivery' ? { address: input.address.trim(), zoneId: input.zoneId } : {}), contactName: input.contactName.trim(), phone: input.phone.trim(), comment: input.comment?.trim() ?? '', requestKey: input.requestKey, expectedTotalCents: input.expectedTotalCents };
+  return { items, mode: input.mode, ...(input.mode === 'delivery' ? { address: input.address.trim(), zoneId: input.zoneId } : {}), ...(input.scheduledFor ? { scheduledFor: input.scheduledFor } : {}), contactName: input.contactName.trim(), phone: input.phone.trim(), comment: input.comment?.trim() ?? '', requestKey: input.requestKey, expectedTotalCents: input.expectedTotalCents };
 }

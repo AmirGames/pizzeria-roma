@@ -13,7 +13,7 @@ export async function listStaffTestOrders(filters: StaffTestFilters) {
     const total = await tx.testOrder.count({ where });
     const pages = Math.max(1, Math.ceil(total / STAFF_TEST_PAGE_SIZE));
     const page = Math.min(filters.page, pages);
-    const orders = await tx.testOrder.findMany({ where, select: { id: true, publicReference: true, status: true, placedAt: true, contactName: true, phone: true, fulfillment: true, address: true, zoneId: true, comment: true, itemsSnapshot: true, totalCents: true, revision: true }, orderBy: [{ placedAt: direction }, { id: direction }], skip: (page - 1) * STAFF_TEST_PAGE_SIZE, take: STAFF_TEST_PAGE_SIZE });
+    const orders = await tx.testOrder.findMany({ where, select: { id: true, publicReference: true, status: true, placedAt: true, scheduledFor: true, contactName: true, phone: true, fulfillment: true, address: true, zoneId: true, comment: true, itemsSnapshot: true, totalCents: true, revision: true }, orderBy: [{ placedAt: direction }, { id: direction }], skip: (page - 1) * STAFF_TEST_PAGE_SIZE, take: STAFF_TEST_PAGE_SIZE });
     return { orders, total, page, pages };
   }, { isolationLevel: 'RepeatableRead' });
 }

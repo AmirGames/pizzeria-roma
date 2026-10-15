@@ -61,7 +61,7 @@ export function isWithinService(weekday, time) {
 }
 
 /** Return Belgian legal public holidays as local calendar dates (without substitute days). */
-function isBelgianPublicHoliday(year, month, day) {
+export function isBelgianPublicHoliday(year, month, day) {
   const key = `${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
   const fixedHolidays = new Set([
     '01-01', '05-01', '07-21', '08-15', '11-01', '11-11', '12-25',

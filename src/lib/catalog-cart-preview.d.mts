@@ -12,6 +12,7 @@ export type CatalogProduct = {
 export type CatalogCartPreview = {
   items: Array<{ productId: string; label: string; quantity: number; sizeId?: string; sizeLabel?: string; extraIds: string[]; extraLabels: string[]; removedIngredients: string[]; unitCents: number; totalCents: number }>;
   subtotalCents: number;
+  pizzaCount: number;
   fulfillment: { eligible: boolean; minimum: number; dishCount: number; deliveryFeeCents: number };
 };
 export function previewCatalogCart(

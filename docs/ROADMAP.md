@@ -31,17 +31,17 @@ Les règles de livraison et retrait restent inchangées. Aucune commande réelle
 
 La page `/commande` affiche un statut informatif calculé dans le fuseau `Europe/Brussels` à partir des horaires habituels. Selon le menu du 14/10/2026, les jours fériés légaux belges ont un horaire 18h–22h ; le dimanche reste fermé. Les jours de remplacement et exceptions spécifiques doivent être confirmés avec le restaurant. L’indicateur ne conditionne pas le checkout.
 
-## Prochain jalon — couverture d’adresse et disponibilité
+## Couverture d’adresse et disponibilité en mode test
 
-L’interface de zones actuelle est un aperçu : choisir une zone ne prouve pas qu’une adresse est desservie. Avant toute validation d’adresse, le restaurant doit approuver une source de couverture et des frontières précises. Ne pas déduire ces frontières depuis les noms de zones ou les saisies du client.
-
-- [ ] Valider la source de couverture et les frontières d’adresse avec le restaurant, puis appliquer la vérification côté serveur.
-- [ ] Définir les horaires, créneaux, capacités et précommandes avec le restaurant.
+- [x] Le client saisit son adresse sans placer de repère ; ICAR (Géoportail de Wallonie) fournit une position, éventuellement approximative sur la rue, et le serveur calcule la zone depuis les frontières dessinées par le gérant.
+- [x] Le gérant peut dessiner les frontières des zones sur `/gerant/livraison`.
+- [x] Créneaux de 15 minutes pendant les heures d’ouverture, jusqu’à 7 jours à l’avance ; capacité initiale de 7 pizzas par créneau et délai de retrait initial de 30 minutes modifiables par pas de 15 minutes.
+- [ ] Confirmer les frontières concrètes, horaires d’exception et valeurs opérationnelles avant une éventuelle ouverture commerciale.
 - [ ] Concevoir la création et le suivi des commandes avec autorisation serveur et processus de cuisine.
 - [ ] Étudier les paiements et remboursements après validation juridique, contractuelle et opérationnelle.
 - [ ] Préparer le pilote, la surveillance et les sauvegardes avant toute mise en production.
 
-Ces jalons demandent des validations commerciales et opérationnelles. Tant qu’elles ne sont pas acquises, l’application reste en prévisualisation : aucun checkout, commande réelle ou paiement ne doit être activé. Ne pas modifier la règle des desserts sans confirmation.
+Les fonctions d’adresse et de créneaux ne s’appliquent qu’aux essais. Tant que les validations commerciales et opérationnelles ne sont pas acquises, aucun checkout commercial, commande réelle ou paiement ne doit être activé. Ne pas modifier la règle des desserts sans confirmation.
 
 À chaque PR : ajouter les tests appropriés, exécuter le typecheck et le build, et mettre à jour le README, le changelog et la documentation fonctionnelle concernée.
 
