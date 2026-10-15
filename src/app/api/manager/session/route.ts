@@ -1,7 +1,6 @@
 import { cookies } from 'next/headers';
 import { prisma } from '../../../../lib/db';
 import { isSameOriginMutation } from '../../../../lib/catalog-management.mjs';
-// @ts-ignore JavaScript module; covered by unit tests
 import { redeemManagerAccess } from '../../../../lib/manager-access.mjs';
 // @ts-ignore JavaScript module; covered by unit tests
 import { SESSION_COOKIE, SESSION_COOKIE_OPTIONS } from '../../../../lib/session-policy.mjs';

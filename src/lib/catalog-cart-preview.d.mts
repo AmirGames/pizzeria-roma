@@ -7,7 +7,7 @@ export type CatalogProduct = {
   removableIngredients?: string[];
   category: { fulfillmentCategory: 'PIZZA' | 'PASTA' | 'OTHER' };
   sizes: Array<{ id: string; label: string; priceCents: number; active: boolean }>;
-  extras: Array<{ id: string; nameFr?: string; priceCents: number; sizePrices?: Record<string, number> | null; active: boolean }>;
+  extras: Array<{ id: string; nameFr?: string; priceCents: number; sizePrices?: unknown; active: boolean }>;
 };
 export type CatalogCartPreview = {
   items: Array<{ productId: string; label: string; quantity: number; sizeLabel?: string; extraIds: string[]; extraLabels: string[]; removedIngredients: string[]; unitCents: number; totalCents: number }>;
