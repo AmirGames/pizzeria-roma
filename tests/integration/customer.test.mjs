@@ -30,6 +30,8 @@ test('customer accounts, ownership, idempotent checkout and simulated staff work
     }
     assert.equal((await fetch('http://localhost:3120/api/customer/auth', { method: 'POST' })).status, 404);
     assert.equal((await fetch('http://localhost:3120/api/test-orders', { method: 'POST' })).status, 404);
+    assert.equal((await fetch('http://localhost:3120/api/customer/profile', { method: 'PATCH' })).status, 404);
+    assert.equal((await fetch('http://localhost:3120/api/customer/password', { method: 'POST' })).status, 404);
     const registration = { action: 'register', email, password, name: 'Client test' };
     assert.equal((await request('/api/customer/auth', 'POST', registration, undefined, 'https://evil.example')).status, 403);
     assert.equal((await request('/api/customer/auth', 'POST', { ...registration, role: 'MANAGER' })).status, 400);
@@ -94,8 +96,45 @@ test('customer accounts, ownership, idempotent checkout and simulated staff work
     const loggedIn = await request('/api/customer/auth', 'POST', { action: 'login', email, password });
     assert.equal(loggedIn.status, 200);
     const newCookie = loggedIn.headers.get('set-cookie').split(';')[0];
-    await prisma.user.update({ where: { id: customer.id }, data: { disabledAt: new Date() } });
+    const profile = { name: 'Client modifié', phone: '081 11 11 11' };
+    assert.equal((await request('/api/customer/profile', 'PATCH', profile)).status, 401);
+    assert.equal((await request('/api/customer/profile', 'PATCH', profile, newCookie, 'https://evil.example')).status, 403);
+    assert.equal((await request('/api/customer/profile', 'PATCH', { ...profile, userId: 'other' }, newCookie)).status, 400);
+    assert.equal((await request('/api/customer/profile', 'PATCH', { ...profile, role: 'MANAGER' }, newCookie)).status, 400);
+    assert.equal((await request('/api/customer/profile', 'PATCH', profile, newCookie)).status, 200);
+    const updatedProfile = await prisma.user.findUnique({ where: { id: customer.id } });
+    assert.equal(updatedProfile.name, profile.name);
+    assert.equal(updatedProfile.phone, profile.phone);
+    assert.notEqual((await prisma.user.findUnique({ where: { email: otherEmail } })).name, profile.name);
+    assert.equal((await (await request(`/api/test-orders/${id}`, 'GET', undefined, newCookie)).json()).order.contactName, 'Client test');
+    const secondLogin = await request('/api/customer/auth', 'POST', { action: 'login', email, password });
+    assert.equal(secondLogin.status, 200);
+    const secondCookie = secondLogin.headers.get('set-cookie').split(';')[0];
+    const nextPassword = 'New-customer-local-password';
+    const passwordInput = { currentPassword: password, newPassword: nextPassword, confirmation: nextPassword };
+    assert.equal((await request('/api/customer/password', 'POST', passwordInput)).status, 401);
+    assert.equal((await request('/api/customer/password', 'POST', passwordInput, newCookie, 'https://evil.example')).status, 403);
+    assert.equal((await request('/api/customer/password', 'POST', { ...passwordInput, currentPassword: 'Wrong-local-password' }, newCookie)).status, 400);
+    const [changedPassword, concurrentLogin] = await Promise.all([
+      request('/api/customer/password', 'POST', passwordInput, newCookie),
+      request('/api/customer/auth', 'POST', { action: 'login', email, password }),
+    ]);
+    assert.equal(changedPassword.status, 200);
+    const rotatedCookie = changedPassword.headers.get('set-cookie').split(';')[0];
+    assert.notEqual(rotatedCookie, newCookie);
     assert.equal((await request(`/api/test-orders/${id}`, 'GET', undefined, newCookie)).status, 401);
+    assert.equal((await request(`/api/test-orders/${id}`, 'GET', undefined, secondCookie)).status, 401);
+    if (concurrentLogin.status === 200) {
+      const concurrentCookie = concurrentLogin.headers.get('set-cookie').split(';')[0];
+      assert.equal((await request(`/api/test-orders/${id}`, 'GET', undefined, concurrentCookie)).status, 401);
+    } else assert.equal(concurrentLogin.status, 401);
+    assert.equal((await request(`/api/test-orders/${id}`, 'GET', undefined, rotatedCookie)).status, 200);
+    assert.equal((await request('/api/customer/auth', 'POST', { action: 'login', email, password })).status, 401);
+    const postChangeLogin = await request('/api/customer/auth', 'POST', { action: 'login', email, password: nextPassword });
+    assert.equal(postChangeLogin.status, 200);
+    const activeCookie = postChangeLogin.headers.get('set-cookie').split(';')[0];
+    await prisma.user.update({ where: { id: customer.id }, data: { disabledAt: new Date() } });
+    assert.equal((await request(`/api/test-orders/${id}`, 'GET', undefined, activeCookie)).status, 401);
     const failed = [];
     for (let i = 0; i < 11; i++) failed.push((await request('/api/customer/auth', 'POST', { action: 'login', email: otherEmail, password: 'Wrong-local-password' })).status);
     assert.ok(failed.includes(429));

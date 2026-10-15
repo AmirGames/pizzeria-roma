@@ -17,7 +17,7 @@ Un compte inscrit publiquement reçoit toujours le rôle CUSTOMER. Le navigateur
 
 La session utilise le mécanisme existant : jeton aléatoire, seul son hash en base, cookie HttpOnly/SameSite=Lax, Secure hors développement. Elle dure sept jours ; une déconnexion supprime la session en base. Les mutations exigent du JSON de même origine. La connexion et l’inscription sont limitées en base à 10 tentatives par e-mail et 100 au total sur une fenêtre de 15 minutes. Les rôles, comptes désactivés et sessions révoquées sont contrôlés sur chaque accès.
 
-Le client voit son nom, son e-mail, ses 50 derniers tests et leur détail. La consultation d’un test appartenant à une autre personne est refusée, même avec son identifiant. La vérification e-mail, la récupération du mot de passe, l’édition du profil et la suppression/export du compte restent à développer avant un espace client public. Pour les essais locaux, créer un autre compte fictif si nécessaire ; ne pas utiliser de données réelles.
+Le client voit son nom, son e-mail, ses 50 derniers tests et leur détail. La consultation d’un test appartenant à une autre personne est refusée, même avec son identifiant. La vérification e-mail, la récupération du mot de passe et la suppression/export du compte restent à développer avant un espace client public. Pour les essais locaux, créer un autre compte fictif si nécessaire ; ne pas utiliser de données réelles.
 
 ## Enregistrement d’un test
 
@@ -42,3 +42,14 @@ Les tests sont conservés dans `TestOrder`, séparément de `Order`. Les prix, l
 - Chromium : inscription, confirmation avec personnalisation, panier consommé, historique après reconnexion et annulation.
 
 La CI utilise des comptes fictifs et une base jetable dont le nom finit par `_test`. Les scénarios ne doivent pas être exécutés sur une base commerciale. Les migrations ne sont jamais appliquées automatiquement hors CI.
+
+
+## Profil et changement du mot de passe
+
+Depuis `/compte`, ouvrir « Mes coordonnées et mon mot de passe ». Le nom et le téléphone du profil peuvent être modifiés ; le téléphone est facultatif et peut être effacé. Le nom et le téléphone préremplissent les futurs essais. Ils ne modifient pas les instantanés des commandes antérieures. L’adresse e-mail et le rôle ne sont pas modifiables depuis ce formulaire.
+
+Le changement du mot de passe exige le mot de passe actuel, un nouveau mot de passe différent et une confirmation identique. Il utilise la même limitation des tentatives que la connexion. La mise à jour du hash, la suppression de toutes les sessions du compte et la création d’une nouvelle session sont regroupées dans une transaction. Le navigateur reçoit un nouveau cookie ; les anciens cookies, y compris celui de l’onglet courant, sont invalidés.
+
+La connexion verrouille le hash qu’elle vient de vérifier jusqu’à la création de sa session. Une connexion concurrente avec l’ancien mot de passe ne peut donc pas recréer une session valide après la rotation. Deux changements concurrents ne peuvent pas s’écraser silencieusement : le hash attendu fait partie du contrôle de mise à jour.
+
+Les tests PostgreSQL vérifient l’isolation du profil, la conservation de l’historique, la révocation des autres sessions, une connexion concurrente, le refus de l’ancien mot de passe et l’utilisation du nouveau. Un test Chromium couvre les formulaires, la confirmation, la persistance des coordonnées et une seconde session révoquée.
