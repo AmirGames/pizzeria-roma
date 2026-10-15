@@ -24,6 +24,7 @@ test('a customer verifies their email and recovers their password using the loca
   await expect(page.getByText('Adresse e-mail vérifiée', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Se déconnecter' }).click();
   await page.getByRole('link', { name: 'Mot de passe oublié ?' }).click();
+  await expect(page.getByRole('heading', { name: 'Mot de passe oublié', exact: true })).toBeVisible();
   await page.getByLabel('Adresse e-mail').fill(email);
   const [recovery] = await Promise.all([
     page.waitForResponse(response => response.url().endsWith('/api/customer/email/request') && response.request().method() === 'POST'),
