@@ -70,6 +70,16 @@ La demande de récupération ne révèle pas si un compte existe : même répons
 
 La CI démarre une boîte Mailpit jetable. Les tests vérifient la réception, les types de liens, l’expiration, les consommations simultanées, l’invalidation après changement de mot de passe, la révocation des sessions et le parcours dans Chromium.
 
+## Carnet d’adresses privé
+
+Le compte client peut conserver dix adresses fictives au maximum (libellé, adresse complète et zone déclarée). Les API `/api/customer/addresses` et `/api/customer/addresses/[id]` exigent une session CUSTOMER active et le mode test ; les mutations exigent du JSON de même origine. L’identité du propriétaire vient exclusivement de la session. Un identifiant d’un autre client renvoie 404. Les réponses privées utilisent `Cache-Control: no-store`.
+
+La première adresse est définie par défaut ; une suppression de l’adresse par défaut promeut la plus ancienne restante. Les mutations verrouillent la ligne du propriétaire dans une transaction afin de sérialiser les changements de défaut et la limite de dix adresses. Un index unique partiel PostgreSQL interdit plusieurs adresses par défaut pour le même propriétaire. Une révision est exigée pour modifier ou supprimer une adresse ; une révision obsolète renvoie 409. Le bouton d’actualisation récupère l’état courant avant une nouvelle décision.
+
+Le checkout charge uniquement les adresses du client connecté. Les champs de livraison sont préremplis avec le défaut, puis restent modifiables pour cet essai. La confirmation transmet les valeurs visibles et conserve leur instantané dans `TestOrder`, sans référence mutable au carnet. Le mode retrait reste disponible sans adresse. Aucun géocodage ni envoi externe n’est ajouté. Utiliser des données fictives.
+
+Les tests couvrent l’isolation des comptes, les rôles, le mode désactivé, les origines étrangères, les révisions obsolètes, les créations concurrentes, l’unicité du défaut, la limite, la suppression en cascade et le parcours Chromium jusqu’à la confirmation d’une livraison simulée. L’adresse historique reste identique après suppression du carnet.
+
 ## Reprendre une sélection depuis un ancien essai
 
 L’action « Commander à nouveau » sur le détail d’un essai appelle `POST /api/test-orders/[id]/reorder` avec un objet JSON vide. Le mode test, une session CUSTOMER active, la propriété et l’origine sont vérifiés côté serveur ; un essai d’un autre compte renvoie 404. Les réponses utilisent `Cache-Control: no-store`. L’action n’inscrit aucune nouvelle commande et ne change ni le statut ni l’historique, y compris pour un essai annulé ou terminé.
@@ -78,4 +88,4 @@ Le serveur reconstitue les identifiants et quantités puis recalcule le prix ave
 
 Le client affiche l’aperçu et demande confirmation avant d’ajouter les articles au panier. Le stockage est relu au moment de la confirmation pour conserver les ajouts intervenus depuis l’aperçu. Les recettes identiques sont fusionnées ; les limites de lignes et quantités sont contrôlées avant une écriture unique. Une capacité dépassée, un stockage invalide ou indisponible conserve le panier existant. L’ajout ne reprend aucune coordonnée, zone ou commentaire ancien. Les prix et règles de livraison sont à nouveau vérifiés lors du checkout habituel.
 
-Les tests unitaires couvrent prix actuels, identifiants, instantanés anciens, indisponibilités, limites et fusion du panier. Les tests PostgreSQL/Next vérifient les droits, les refus d’origine et de mode, l’absence de mutation de l’historique et la confirmation distincte d’un nouveau test au tarif courant. Chromium couvre l’aperçu, l’annulation, le changement du panier entre aperçu et confirmation, l’ajout et un supplément devenu indisponible.
+Les tests unitaires couvrent prix actuels, identifiants, instantanés anciens, indisponibilités, limites et fusion du panier. Les tests PostgreSQL/Next vérifient les droits, les refus d’origine et de mode, l’absence de mutation de l’historique et la confirmation distincte d’un nouveau test au tarif courant. Chromium couvre l’aperçu, l’annulation, le changement du panier entre aperçu et confirmation, l’ajout, puis une nouvelle livraison simulée avec l’adresse enregistrée par défaut. Il vérifie aussi le refus d’un supplément devenu indisponible et la conservation de l’historique.

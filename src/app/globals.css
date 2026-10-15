@@ -47,3 +47,6 @@
 .customer-actions { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; margin-block: 1rem; }
 .customer-actions [aria-pressed=true] { font-weight: 700; outline: 2px solid currentColor; }
 .customer-orders, .test-order-card { padding: 1rem; border: 1px solid #bbb; border-radius: .5rem; margin-block: 1rem; }
+
+.customer-page .customer-address-default { display: flex; align-items: center; gap: .6rem; }
+.customer-page .customer-address-default input { width: auto; }

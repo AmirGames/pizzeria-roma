@@ -56,6 +56,7 @@ model User {
   customerCredential CustomerCredential?
   testOrders TestOrder[]
   customerEmailTokens CustomerEmailToken[]
+  customerAddresses CustomerAddress[]
 }
 
 model Session {
@@ -209,4 +210,19 @@ model CustomerEmailToken {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@index([userId, purpose])
   @@index([expiresAt])
+}
+
+model CustomerAddress {
+  id String @id @default(cuid())
+  userId String
+  label String @db.VarChar(60)
+  address String @db.VarChar(300)
+  zoneId String
+  isDefault Boolean @default(false)
+  revision Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+  // The migration also enforces one default per owner with a partial unique index.
 }
