@@ -41,6 +41,28 @@ test('manager authentication and catalogue mutations against PostgreSQL and Next
     assert.match(setCookie, /HttpOnly/i);
     assert.match(setCookie, /Secure/i);
     const cookie = setCookie.split(';')[0];
+    const creation = { categoryId: category.id, nameFr: 'CI draft', price33Cents: 1300, removableIngredients: ['Tomate'] };
+    assert.equal((await request('/api/manager/products', { method: 'POST', body: creation })).status, 403);
+    assert.equal((await request('/api/manager/products', { method: 'POST', cookie, body: creation, requestOrigin: 'https://evil.example' })).status, 403);
+    assert.equal((await request('/api/manager/products', { method: 'POST', cookie, body: { ...creation, active: true } })).status, 400);
+    assert.equal((await request('/api/manager/products', { method: 'POST', cookie, body: { ...creation, categoryId: 'missing' } })).status, 400);
+    const otherCategory = await prisma.menuCategory.create({ data: { nameFr: 'CI other', nameEn: 'CI other', fulfillmentCategory: 'OTHER' } });
+    try {
+      assert.equal((await request('/api/manager/products', { method: 'POST', cookie, body: { ...creation, categoryId: otherCategory.id } })).status, 400);
+    } finally { await prisma.menuCategory.delete({ where: { id: otherCategory.id } }); }
+    const draftResponse = await request('/api/manager/products', { method: 'POST', cookie, body: creation });
+    assert.equal(draftResponse.status, 201);
+    const { product: draft } = await draftResponse.json();
+    assert.equal(draft.active, false);
+    assert.equal(draft.sizes.length, 1);
+    assert.equal(draft.sizes[0].priceCents, 1300);
+    const beforePublish = await (await request('/api/catalog')).json();
+    assert.equal(beforePublish.categories.flatMap(item => item.products).some(item => item.id === draft.id), false);
+    const publishDraft = { revision: 0, nameFr: draft.nameFr, active: true, baseCents: 0, removableIngredients: ['Tomate'], sizes: draft.sizes.map(size => ({ id: size.id, priceCents: size.priceCents, active: true })), extras: [] };
+    assert.equal((await request(`/api/manager/products/${draft.id}`, { method: 'PATCH', cookie, body: publishDraft })).status, 200);
+    const afterPublish = await (await request('/api/catalog')).json();
+    assert.equal(afterPublish.categories.flatMap(item => item.products).some(item => item.id === draft.id), true);
+
     assert.equal((await request('/api/manager/session', { method: 'POST', body: { token: access.token } })).status, 401);
     assert.equal((await request(`/api/manager/products/${product.id}`, { method: 'PATCH', cookie, body: edit, requestOrigin: 'https://evil.example' })).status, 403);
     const results = await Promise.all([request(`/api/manager/products/${product.id}`, { method: 'PATCH', cookie, body: edit }), request(`/api/manager/products/${product.id}`, { method: 'PATCH', cookie, body: edit })]);
@@ -51,7 +73,7 @@ test('manager authentication and catalogue mutations against PostgreSQL and Next
     const catalogResponse = await request('/api/catalog');
     assert.equal(catalogResponse.status, 200);
     const catalog = await catalogResponse.json();
-    const published = catalog.categories.find(item => item.id === category.id).products[0];
+    const published = catalog.categories.find(item => item.id === category.id).products.find(item => item.id === product.id);
     assert.equal(published.sizes.length, 2);
     assert.deepEqual(published.removableIngredients, ['Tomate']);
     assert.deepEqual(published.extras[0].sizePrices, { [small.id]: 150, [large.id]: 300 });

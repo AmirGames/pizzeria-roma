@@ -29,7 +29,7 @@ Ne jamais committer de secrets, clés API, coordonnées bancaires ou données r�
 - Pour préparer PostgreSQL : définir `POSTGRES_PASSWORD` et `DATABASE_URL` localement, puis `docker compose up -d db` et `npm run db:validate`.
 - Ne pas exécuter de migration en production avant revue et validation.
 
-Un accès privé gérant par lien à usage unique est disponible après configuration du serveur. La connexion client et l’inscription restent indisponibles.
+L’espace gérant permet de créer des pizzas en brouillon, de gérer les prix et options et de rechercher un article. Un accès privé par lien à usage unique est disponible après configuration du serveur. La connexion client et l’inscription restent indisponibles.
 
 ## Authentification
 

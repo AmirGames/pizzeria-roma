@@ -13,7 +13,8 @@ export default async function ManagerCatalogPage() {
     return <main className="manager-page"><h1>Espace gérant</h1><p>Une session gérant est nécessaire pour gérer la carte. Utilisez votre lien privé de connexion.</p><Link href="/gerant/connexion">Se connecter</Link></main>;
   }
   try {
+    const pizzaCategories = await prisma.menuCategory.findMany({ where: { fulfillmentCategory: 'PIZZA' }, select: { id: true, nameFr: true }, orderBy: { position: 'asc' } });
     const products = await prisma.product.findMany({ orderBy: [{ categoryId: 'asc' }, { nameFr: 'asc' }], include: { category: true, sizes: { orderBy: { priceCents: 'asc' } }, extras: { orderBy: { nameFr: 'asc' } } } });
-    return <main className="manager-page"><Link href="/menu">← Voir la carte</Link><h1>Gérer la carte</h1><p>Modifiez les prix, les disponibilités et les options. Les changements enregistrés sont publiés sur la carte.</p><CatalogEditor initialProducts={products} /></main>;
+    return <main className="manager-page"><Link href="/menu">← Voir la carte</Link><h1>Gérer la carte</h1><p>Modifiez les prix, les disponibilités et les options. Les changements enregistrés sont publiés sur la carte.</p><CatalogEditor initialProducts={products} pizzaCategories={pizzaCategories} /></main>;
   } catch { return <main className="manager-page"><h1>Gérer la carte</h1><p role="alert">La carte est indisponible pour le moment. Réessayez plus tard.</p></main>; }
 }

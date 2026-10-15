@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import PizzaCreator from './pizza-creator';
+import type { PizzaCategory } from './pizza-creator';
 import { parseEuroCents } from '../../../lib/catalog-management.mjs';
 import type { ManagerProduct } from '../../../lib/catalog-management.mjs';
 
@@ -76,8 +78,9 @@ function ProductEditor({ product, onSaved }: { product: ManagerProduct; onSaved:
   </form>;
 }
 
-export default function CatalogEditor({ initialProducts }: { initialProducts: ManagerProduct[] }) {
+export default function CatalogEditor({ initialProducts, pizzaCategories }: { initialProducts: ManagerProduct[]; pizzaCategories: PizzaCategory[] }) {
   const [products, setProducts] = useState(initialProducts);
+  const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState(initialProducts[0]?.id ?? '');
   const [logoutError, setLogoutError] = useState('');
   async function logout() {
@@ -88,12 +91,18 @@ export default function CatalogEditor({ initialProducts }: { initialProducts: Ma
     } catch { setLogoutError('Déconnexion impossible. Réessayez.'); }
   }
   const [saved, setSaved] = useState('');
+  const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('fr');
+  const filteredProducts = products.filter(product => normalize(`${product.nameFr} ${product.category.nameFr}`).includes(normalize(search)));
+  const visibleProducts = products.filter(product => product.id === selectedId || filteredProducts.includes(product));
   const selected = products.find(product => product.id === selectedId);
   return <section aria-label="Éditeur de carte">
     <button type="button" onClick={logout}>Se déconnecter</button>
     {logoutError && <p role="alert">{logoutError}</p>}
+    <PizzaCreator categories={pizzaCategories} onCreated={product => { setProducts(current => [...current, product]); setSelectedId(product.id); setSearch(''); setSaved('Brouillon créé. Configurez les suppléments puis activez « Disponible sur la carte » pour publier.'); }} />
+    <label>Rechercher un article<input type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Nom ou catégorie" /></label>
+    <p role="status">{filteredProducts.length} article(s) correspondant à la recherche. L’article sélectionné reste accessible.</p>
     <label>Article à modifier<select value={selectedId} onChange={event => { setSelectedId(event.target.value); setSaved(''); }}>
-      {products.map(product => <option key={product.id} value={product.id}>{product.category.nameFr} — {product.nameFr}{product.active ? '' : ' (indisponible)'}</option>)}
+      {visibleProducts.map(product => <option key={product.id} value={product.id}>{product.category.nameFr} — {product.nameFr}{product.active ? '' : ' (indisponible)'}</option>)}
     </select></label>
     <p role="status">{saved}</p>
     {selected ? <ProductEditor key={`${selected.id}-${selected.catalogRevision}`} product={selected} onSaved={updated => { setProducts(current => current.map(product => product.id === updated.id ? updated : product)); setSaved('Article enregistré. La carte a été mise à jour.'); }} /> : <p>Aucun article dans la carte.</p>}

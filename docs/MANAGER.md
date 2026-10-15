@@ -4,7 +4,7 @@
 
 `/gerant/carte` permet à un gérant connecté de modifier le nom français, la disponibilité et les prix des articles existants. Pour les pizzas : ingrédients retirables et suppléments avec prix fixe ou par format. Un tarif de format laissé vide signifie que le supplément n'est pas proposé dans ce format. Les prix nuls sont autorisés explicitement ; aucun tarif n'est inventé par le système.
 
-Les formats existants sont conservés, avec prix et disponibilité modifiables. La création de produits, catégories et formats, la traduction anglaise et les allergènes ne font pas partie de cet écran. Retirer un supplément du formulaire le désactive en base ; il reste visible comme indisponible après rechargement. Au maximum 20 suppléments sont soumis dans une modification.
+Les formats existants sont conservés, avec prix et disponibilité modifiables. Un formulaire permet de créer une pizza en brouillon dans une catégorie PIZZA existante : prix 33 cm obligatoire, format 50 cm facultatif et ingrédients retirables. Le brouillon reste invisible aux clients jusqu’à son activation explicite dans l’éditeur. Le nom anglais est initialement identique au nom français. La création de catégories, les autres types de produits, l’ajout de formats à un article existant, la traduction anglaise et les allergènes ne font pas partie de cet écran. Une recherche par nom ou catégorie facilite la sélection des articles. Retirer un supplément du formulaire le désactive en base ; il reste visible comme indisponible après rechargement. Au maximum 20 suppléments sont soumis dans une modification.
 
 Les changements enregistrés sont immédiatement publiés dans la base cible. Une révision empêche l'écrasement silencieux des changements d'un autre gérant (HTTP 409). Les articles déjà au panier sont recalculés selon le catalogue courant. Un ingrédient retiré de la configuration peut rendre un ancien panier invalide ; le client peut supprimer l'article concerné et le recomposer.
 
@@ -30,3 +30,5 @@ Le seed du menu est un import explicite : le relancer réapplique les noms, prix
 ## Vérifications
 
 `npm test` couvre les règles de prix, les retraits, la validation des modifications, l'origine des requêtes et les jetons à usage unique. La CI crée PostgreSQL 16 dans une base jetable `roma_test`, applique toutes les migrations, valide Prisma, vérifie TypeScript, compile Next.js puis lance `npm run test:integration`. Ce test utilise les vraies routes et contrôle la connexion, le refus des accès anonymes et des origines étrangères, les mises à jour concurrentes, les options publiées, les devis par format, le changement de rôle et la déconnexion. Il ne s'exécute qu'avec `RUN_DATABASE_TESTS=1` et une base dont le nom finit par `_test`.
+
+Le test d’intégration couvre aussi la création protégée d’un brouillon, le refus d’une catégorie étrangère au type PIZZA et sa publication explicite.

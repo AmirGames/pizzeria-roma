@@ -3,6 +3,7 @@
 ## 2026-10-15 — proposition en cours
 
 - Personnalisation interactive : retraits sans remise, suppléments par format, recettes conservées dans le panier et contrôle serveur.
+- Création de pizzas en brouillon (33 cm et 50 cm facultatif), publication explicite et recherche des articles.
 - Éditeur de carte gérant protégé, vérification des identifiants et révisions contre les conflits.
 - Connexion gérant par lien privé à usage unique généré depuis le serveur, session sécurisée et déconnexion.
 - Migrations préparées, sans exécution automatique ni données commerciales inventées.
