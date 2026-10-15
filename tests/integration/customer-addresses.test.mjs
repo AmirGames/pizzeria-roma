@@ -46,6 +46,9 @@ test('saved addresses isolate owners and serialize defaults, edits and the ten-a
     assert.equal((await request('PATCH', `/${first.id}`, { ...edit(first), label: 'Maison' }, owner.cookie)).status, 200);
     assert.equal((await request('PATCH', `/${first.id}`, edit(first), owner.cookie)).status, 409);
     assert.equal((await request('DELETE', `/${first.id}`, { revision: first.revision }, owner.cookie)).status, 409);
+    const editable = (await list(owner.cookie))[0];
+    const concurrentEdits = await Promise.all(['Maison A', 'Maison B'].map(label => request('PATCH', `/${editable.id}`, { ...edit(editable), label }, owner.cookie)));
+    assert.deepEqual(concurrentEdits.map(response => response.status).sort(), [200, 409]);
     // Two creations asking to become default must leave exactly one default.
     const parallel = await Promise.all(['Travail', 'Autre'].map(label => request('POST', '', { ...input, label, isDefault: true }, owner.cookie)));
     assert.deepEqual(parallel.map(result => result.status), [201, 201]);

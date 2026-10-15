@@ -62,7 +62,7 @@ export default function AddressBook({ initialAddresses }: { initialAddresses: Sa
       <label>Nom de l’adresse<input name="label" required maxLength={60} defaultValue={editing?.label ?? ''} placeholder="Domicile, travail…" /></label>
       <label>Adresse enregistrée fictive<input name="address" required maxLength={300} autoComplete="off" defaultValue={editing?.address ?? ''} placeholder="Rue, numéro, code postal et ville" /></label>
       <label>Zone de l’adresse<select name="zoneId" defaultValue={editing?.zoneId ?? DELIVERY_ZONES[0].id}>{DELIVERY_ZONES.map(zone => <option key={zone.id} value={zone.id}>{zone.label}</option>)}</select></label>
-      <label><input name="isDefault" type="checkbox" defaultChecked={editing?.isDefault ?? addresses.length === 0} disabled={editing?.isDefault === true || addresses.length === 0} />Utiliser par défaut</label>
+      <label className="customer-address-default"><input name="isDefault" type="checkbox" defaultChecked={editing?.isDefault ?? addresses.length === 0} disabled={editing?.isDefault === true || addresses.length === 0} />Utiliser par défaut</label>
       <button type="submit">{busy ? 'Enregistrement…' : editing ? 'Enregistrer l’adresse' : 'Ajouter l’adresse'}</button>
     </fieldset>{editing && <button type="button" disabled={busy} onClick={() => setEditing(null)}>Annuler la modification</button>}</form>
     {message && <p role="status">{message}</p>}{error && <p role="alert">{error}</p>}
