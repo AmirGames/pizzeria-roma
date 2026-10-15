@@ -3,12 +3,12 @@ import { isWithinRestaurantService } from '../lib/fulfillment.mjs';
 import styles from './home.module.css';
 
 const categories = [
-  { name: 'Pizzas', slug: 'pizzas', icon: '🍕', tone: 'tomato' },
-  { name: 'Pâtes', slug: 'pates', icon: '🍝', tone: 'olive' },
-  { name: 'Entrées', slug: 'entrees', icon: '🥖', tone: 'bread' },
-  { name: 'Salades', slug: 'salades', icon: '🥗', tone: 'leaf' },
-  { name: 'Desserts', slug: 'desserts', icon: '🍰', tone: 'cream' },
-  { name: 'Boissons', slug: 'boissons', icon: '🥤', tone: 'wine' },
+  { name: 'Pizzas', slug: 'pizzas', image: 'pizza' },
+  { name: 'Pâtes', slug: 'pates', image: 'pasta' },
+  { name: 'Entrées', slug: 'entrees', image: 'starters' },
+  { name: 'Salades', slug: 'salades', image: 'salad' },
+  { name: 'Desserts', slug: 'desserts', image: 'dessert' },
+  { name: 'Boissons', slug: 'boissons', image: 'drinks' },
 ];
 
 export const metadata = {
@@ -20,25 +20,21 @@ export default function HomePage() {
   const openNow = isWithinRestaurantService(new Date());
   return <main className={styles.home}>
     <section className={styles.hero}>
-      <div className={styles.heroInner}>
-        <div className={styles.heroCopy}>
-          <p className={styles.kicker}><span /> PIZZERIA ROMA · NAMUR</p>
-          <h1>Un goût d’Italie,<br /><em>tout près de chez vous.</em></h1>
-          <p className={styles.intro}>Des pizzas généreuses et une carte aux saveurs italiennes, préparées avec passion à Namur.</p>
-          <div className={styles.actions}><Link className={styles.primary} href="/menu">Découvrir la carte <span aria-hidden="true">↗</span></Link><Link className={styles.secondary} href="/commande">Livraison & retrait</Link></div>
-          <p className={styles.status}><span className={openNow ? styles.openDot : styles.closedDot} />{openNow ? 'Ouvert selon les horaires publiés' : 'Consultez nos horaires'}</p>
-        </div>
-        <div className={styles.heroArt} role="img" aria-label="Illustration d’une pizza garnie"><div className={styles.artStamp}>FAIT AVEC<br /><b>PASSION</b></div><span className={styles.artNote}>PIZZA · ROMA · NAMUR</span></div>
-        <div className={styles.heroFoot}><span>01 <i /> CUISINE ITALIENNE</span><span>02 <i /> LIVRAISON GRATUITE SELON LA ZONE</span><span>03 <i /> À EMPORTER</span></div>
+      <div className={styles.heroCopy}>
+        <p className={styles.kicker}>PIZZERIA ROMA · NAMUR</p>
+        <h1>De véritables<br />saveurs italiennes<br />à Namur</h1>
+        <p className={styles.intro}>Pizzas artisanales, pâtes, salades et bien plus encore.<br />À emporter ou en livraison, toujours avec passion.</p>
+        <div className={styles.actions}><Link className={styles.primary} href="/menu">Commander maintenant <span aria-hidden="true">→</span></Link><Link className={styles.secondary} href="/menu">Voir la carte</Link></div>
+      </div>
+      <div className={styles.heroFoot}>
+        <div><span aria-hidden="true">◷</span><p><b>{openNow ? 'Ouvert aujourd’hui' : 'Nos horaires'}</b><br />11h30–14h00 | 18h00–22h00<br />(Samedi : 18h00–22h00)</p></div>
+        <div><span aria-hidden="true">♧</span><p><b>Livraison gratuite</b><br />Selon votre zone<br />à partir de 1 plat</p></div>
+        <div><span aria-hidden="true">♧</span><p><b>À emporter</b><br />Commande prête<br />en 30 à 40 minutes</p></div>
       </div>
     </section>
-    <section className={styles.categorySection} id="apropos">
-      <div className={styles.sectionHead}><div><p className={styles.kicker}>À TABLE</p><h2>À chacun son envie.</h2></div><Link href="/menu">Toute la carte <span aria-hidden="true">↗</span></Link></div>
-      <div className={styles.categories}>{categories.map(category => <Link key={category.name} href={`/menu?category=${category.slug}#carte`} className={`${styles.category} ${styles[category.tone]}`}><span className={styles.categoryIcon} aria-hidden="true">{category.icon}</span><span>{category.name}</span><b aria-hidden="true">↗</b></Link>)}</div>
+    <section className={styles.categorySection} id="apropos" aria-label="Catégories de la carte">
+      <div className={styles.categories}>{categories.map((category, index) => <Link key={category.name} href={`/menu?category=${category.slug}#carte`} className={`${styles.category} ${styles[category.image]}`}><span>{category.name}</span></Link>)}</div>
     </section>
-    <section className={styles.story}>
-      <div className={styles.storyMark} aria-hidden="true">R</div><div><p className={styles.kicker}>PIZZERIA ROMA · NAMUR</p><h2>Le plaisir des bonnes choses,<br />à partager.</h2></div><Link href="/menu" className={styles.storyLink}>Voir la carte <span aria-hidden="true">→</span></Link>
-    </section>
-    <footer className={styles.footer}><span>© Pizzeria Roma · Namur</span><span>Site en évolution · Les commandes en ligne restent en mode test.</span><Link href="/commande">Horaires & livraison</Link></footer>
+    <footer className={styles.footer} id="contact"><span>© Pizzeria Roma · Namur</span><Link href="/compte">Mon espace client</Link><span>Les commandes en ligne restent en mode test.</span><Link href="/commande">Livraison & retrait</Link></footer>
   </main>;
 }

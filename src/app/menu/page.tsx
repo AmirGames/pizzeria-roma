@@ -10,11 +10,9 @@ export default function MenuPage() {
   return (
     <main className="menu-page">
       <section className="menu-hero">
-        <div><p className="eyebrow">LES SAVEURS DE ROMA</p>
+        <div><p className="eyebrow">PIZZERIA ROMA · NAMUR</p>
         <h1>Notre carte</h1>
-        <p>Des recettes généreuses, à choisir et à personnaliser selon vos envies.</p>
-        <a className="menu-hero-cta" href="#carte">Explorer la carte <span aria-hidden="true">↓</span></a></div>
-        <div className="menu-hero-art" aria-hidden="true"><span>CUCINA<br/><b>ITALIANA</b></span></div>
+        <p>Découvrez nos pizzas, pâtes, salades et spécialités italiennes.</p></div>
       </section>
       <section className="menu-live-catalog" id="carte" aria-labelledby="live-catalog-title">
         <div className="section-heading"><p className="eyebrow">FAIT AVEC PASSION</p><h2 id="live-catalog-title">Choisissez votre envie</h2><p>Les recettes et tarifs proviennent de la carte publiée par le restaurant.</p></div>
