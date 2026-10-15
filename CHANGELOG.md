@@ -2,6 +2,8 @@
 
 ## 2026-10-15
 
+- Reprise d’un essai depuis l’historique client avec vérification des options et tarifs actuels, puis ajout confirmé au panier existant.
+
 - Proposition suivante : vérification e-mail, récupération du mot de passe et Mailpit local, avec liens à usage unique, expiration et révocation des accès précédents.
 
 - Proposition suivante : coordonnées du profil client et changement de mot de passe avec rotation et révocation des sessions, y compris face aux connexions concurrentes.

@@ -116,6 +116,7 @@ export function previewCatalogCart(products, rawSelections, fulfillment) {
     fulfillmentLines.push(fulfillmentLine);
     lines.push({
       productId: product.id,
+      ...(selection.sizeId ? { sizeId: selection.sizeId } : {}),
       label: product.nameFr,
       quantity: quoted.quantity,
       ...(sizeLabel ? { sizeLabel } : {}),
