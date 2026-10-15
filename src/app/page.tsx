@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { isWithinRestaurantService } from '../lib/fulfillment.mjs';
 import styles from './home.module.css';
+import SiteFooter from '../components/site-footer';
 
 const categories = [
   { name: 'Pizzas', slug: 'pizzas', image: 'pizza' },
@@ -34,6 +35,6 @@ export default function HomePage() {
     <section className={styles.categorySection} id="apropos" aria-label="Catégories de la carte">
       <div className={styles.categories}>{categories.map(category => <Link key={category.name} href={`/menu?category=${category.slug}#carte`} className={`${styles.category} ${styles[category.image]}`}><span>{category.name}</span></Link>)}</div>
     </section>
-    <div className={styles.bottomSpace} id="contact" />
+    <SiteFooter />
   </main>;
 }
