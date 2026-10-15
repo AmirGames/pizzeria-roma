@@ -13,7 +13,8 @@ export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Commandes de test | Pizzeria Roma', robots: { index: false, follow: false } };
 export default async function StaffTestOrders({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   if (!testOrdersEnabled()) notFound();
-  try { await requirePermission('orders:read'); }
+  let staff;
+  try { staff = await requirePermission('orders:read'); }
   catch (error) { if (!(error instanceof Error) || error.message !== 'FORBIDDEN') throw error; return <main className="customer-page"><h1>Accès professionnel requis</h1><Link href="/gerant/connexion">Connexion gérant</Link></main>; }
   let filters = parseStaffTestFilters();
   let filterError: string | undefined;
@@ -21,7 +22,7 @@ export default async function StaffTestOrders({ searchParams }: { searchParams: 
   catch { filterError = 'Filtres invalides. La file à traiter est affichée avec les réglages par défaut.'; }
   const result = await listStaffTestOrders(filters);
   const from = (result.page - 1) * STAFF_TEST_PAGE_SIZE + 1;
-  return <main className="customer-page"><Link href="/gerant/carte">← Gestion de la carte</Link><h1>Gérant et cuisine — commandes de test</h1>
+  return <main className="customer-page"><Link href="/gerant/carte">← Gestion de la carte</Link>{staff.role === 'MANAGER' && <p><Link href="/gerant">Tableau de bord gérant</Link></p>}<h1>Gérant et cuisine — commandes de test</h1>
     <p>Simulation uniquement. Ne préparez pas ces commandes. La file à traiter affiche d’abord les essais les plus anciens.</p>
     <section aria-labelledby="staff-test-list-title"><h2 id="staff-test-list-title">File des essais</h2>
       <form key={JSON.stringify([filters, result.page])} method="get" action="/gerant/commandes-test#staff-test-list-title"><fieldset><legend>Filtrer la file</legend>
