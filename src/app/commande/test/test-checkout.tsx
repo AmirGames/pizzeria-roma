@@ -62,15 +62,15 @@ export default function TestCheckout({ name, phone, addresses }: { name: string;
   if (!cart.ready) return <p role="status">Chargement du panier…</p>;
   if (!cart.items.length) return <p>Le panier est vide. Choisissez un article sur la carte avant de créer un test.</p>;
   return <form method="post" onSubmit={submit}><fieldset disabled={busy}><legend>Votre essai</legend>
-    <label>Mode<select value={mode} onChange={event => setMode(event.target.value as 'pickup' | 'delivery')}><option value="pickup">Retrait sur place</option><option value="delivery">Livraison simulée</option></select></label>
+    <label htmlFor="test-order-mode">Mode</label><select id="test-order-mode" value={mode} onChange={event => setMode(event.target.value as 'pickup' | 'delivery')}><option value="pickup">Retrait sur place</option><option value="delivery">Livraison simulée</option></select>
     {mode === 'delivery' && <>
-      <label>Adresse de livraison<select value={selectedAddressId} onChange={event => {
+      <label htmlFor="test-order-saved-address">Adresse de livraison</label><select id="test-order-saved-address" value={selectedAddressId} onChange={event => {
         const address = addresses.find(address => address.id === event.target.value);
         setSelectedAddressId(address?.id ?? ''); setAddressText(address?.address ?? '');
         if (address) setZoneId(address.zoneId);
-      }}><option value="">Saisir une autre adresse</option>{addresses.map(address => <option key={address.id} value={address.id}>{address.label}{address.isDefault ? ' (par défaut)' : ''}</option>)}</select></label>
+      }}><option value="">Saisir une autre adresse</option>{addresses.map(address => <option key={address.id} value={address.id}>{address.label}{address.isDefault ? ' (par défaut)' : ''}</option>)}</select>
       <Link href="/compte#address-book-title">Gérer mes adresses</Link>
-      <label>Zone<select value={zoneId} onChange={event => { setZoneId(event.target.value); setSelectedAddressId(''); }}>{DELIVERY_ZONES.map(zone => <option key={zone.id} value={zone.id}>{zone.label}</option>)}</select></label>
+      <label htmlFor="test-order-zone">Zone</label><select id="test-order-zone" value={zoneId} onChange={event => { setZoneId(event.target.value); setSelectedAddressId(''); }}>{DELIVERY_ZONES.map(zone => <option key={zone.id} value={zone.id}>{zone.label}</option>)}</select>
       <label>Adresse fictive<input name="address" required maxLength={300} autoComplete="off" value={addressText} onChange={event => { setAddressText(event.target.value); setSelectedAddressId(''); }} /></label>
       <p>L’adresse n’est pas vérifiée et aucun service de livraison n’est réservé. Une modification ici vaut uniquement pour cet essai.</p>
     </>}
