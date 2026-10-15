@@ -2,7 +2,7 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '../../../../lib/db';
 import { isSameOriginMutation } from '../../../../lib/catalog-management.mjs';
 import { validateCustomerAuth, hashCustomerPassword, verifyCustomerPassword } from '../../../../lib/customer-password.mjs';
-import { consumeAuthAttempt, issueCustomerSession, setCustomerCookie } from '../../../../lib/customer-session';
+import { consumeAuthAttempt, issueCustomerSession, issueVerifiedCustomerSession, setCustomerCookie } from '../../../../lib/customer-session';
 import { testOrdersEnabled } from '../../../../lib/test-mode';
 
 export async function POST(request: Request) {
@@ -26,11 +26,12 @@ export async function POST(request: Request) {
       const user = await prisma.user.findUnique({ where: { email: input.email }, include: { customerCredential: true } });
       const valid = await verifyCustomerPassword(input.password, user?.customerCredential?.passwordHash);
       if (!valid || !user || user.disabledAt || user.role !== 'CUSTOMER') return Response.json({ error: 'INVALID_AUTH' }, { status: 401 });
-      token = await prisma.$transaction(tx => issueCustomerSession(tx, user.id));
+      token = await prisma.$transaction(tx => issueVerifiedCustomerSession(tx, user.id, user.customerCredential!.passwordHash));
     }
     await setCustomerCookie(token);
     return Response.json({ ok: true }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
+    if (error instanceof Error && error.message === 'INVALID_AUTH') return Response.json({ error: 'INVALID_AUTH' }, { status: 401 });
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') return Response.json({ error: 'INVALID_AUTH' }, { status: 400 });
     return Response.json({ error: 'SERVICE_UNAVAILABLE' }, { status: 503 });
   }

@@ -36,3 +36,12 @@ export async function consumeAuthAttempt(tx: Prisma.TransactionClient, email: st
   }
   return true;
 }
+
+/** Lock the verified credential until the new session is committed. A concurrent
+ * password rotation either revokes this session afterwards or invalidates the hash. */
+export async function issueVerifiedCustomerSession(tx: Prisma.TransactionClient, userId: string, verifiedHash: string) {
+  const matched = await tx.customerCredential.updateMany({ where: { userId, passwordHash: verifiedHash }, data: { passwordHash: verifiedHash } });
+  const current = await tx.user.findFirst({ where: { id: userId, role: 'CUSTOMER', disabledAt: null } });
+  if (matched.count !== 1 || !current) throw new Error('INVALID_AUTH');
+  return issueCustomerSession(tx, userId);
+}

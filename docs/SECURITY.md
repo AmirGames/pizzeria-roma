@@ -26,3 +26,5 @@ Le périmètre d’accès gérant actuel est décrit ci-dessous ; les comptes cl
 ## Proposition — comptes clients et commandes simulées
 
 Le mode explicite `ENABLE_TEST_ORDERS=true` ajoute l’inscription et la connexion CUSTOMER par mot de passe scrypt, sessions serveur et protection d’origine. La limitation en base couvre chaque adresse e-mail et le total des tentatives. Les essais sont isolés dans `TestOrder` ; leur consultation exige la propriété côté serveur et les actions professionnelles vérifient les permissions existantes. Ce mode n’active aucune commande commerciale. La vérification e-mail, la récupération de compte et les obligations d’exploitation restent à traiter avant publication du service client. Voir [CUSTOMER_TESTS.md](CUSTOMER_TESTS.md).
+
+Le changement de mot de passe authentifié exige l’ancien secret et révoque les sessions existantes dans une transaction. La connexion compare et verrouille le hash vérifié jusqu’à l’émission de session pour éviter une réémission concurrente fondée sur l’ancien mot de passe. Les modifications de profil sont limitées au nom et au téléphone du compte CUSTOMER connecté.
