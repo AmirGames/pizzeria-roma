@@ -1,5 +1,4 @@
 import CatalogProducts from './catalog-products';
-import SiteFooter from '../../components/site-footer';
 
 export const metadata = {
   title: 'Notre carte | Pizzeria Roma',
@@ -15,7 +14,6 @@ export default function MenuPage() {
         <p>Découvrez nos pizzas, pâtes, salades et spécialités italiennes.</p></div>
       </section>
       <section className="menu-live-catalog" id="carte" aria-label="Carte des plats"><CatalogProducts /></section>
-      <SiteFooter />
     </main>
   );
 }
