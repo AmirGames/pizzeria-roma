@@ -6,12 +6,17 @@ import { useCatalogCart } from '../../../lib/use-catalog-cart';
 import { consumeCatalogCartItems } from '../../../lib/catalog-cart.mjs';
 import type { CatalogCartPreview } from '../../../lib/catalog-cart-preview.mjs';
 import TestOrderSummary from '../../../components/test-order-summary';
+import Link from 'next/link';
+import type { SavedCustomerAddress } from '../../../lib/customer-address.mjs';
 
-export default function TestCheckout({ name, phone }: { name: string; phone: string }) {
+export default function TestCheckout({ name, phone, addresses }: { name: string; phone: string; addresses: SavedCustomerAddress[] }) {
   const cart = useCatalogCart();
   const router = useRouter();
   const [mode, setMode] = useState<'pickup' | 'delivery'>('pickup');
-  const [zoneId, setZoneId] = useState(DELIVERY_ZONES[0].id);
+  const defaultAddress = addresses.find(address => address.isDefault);
+  const [selectedAddressId, setSelectedAddressId] = useState(defaultAddress?.id ?? '');
+  const [addressText, setAddressText] = useState(defaultAddress?.address ?? '');
+  const [zoneId, setZoneId] = useState(defaultAddress?.zoneId ?? DELIVERY_ZONES[0].id);
   const [preview, setPreview] = useState<CatalogCartPreview | null>(null);
   const [checking, setChecking] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -56,9 +61,19 @@ export default function TestCheckout({ name, phone }: { name: string; phone: str
 
   if (!cart.ready) return <p role="status">Chargement du panier…</p>;
   if (!cart.items.length) return <p>Le panier est vide. Choisissez un article sur la carte avant de créer un test.</p>;
-  return <form onSubmit={submit}><fieldset disabled={busy}><legend>Votre essai</legend>
+  return <form method="post" onSubmit={submit}><fieldset disabled={busy}><legend>Votre essai</legend>
     <label>Mode<select value={mode} onChange={event => setMode(event.target.value as 'pickup' | 'delivery')}><option value="pickup">Retrait sur place</option><option value="delivery">Livraison simulée</option></select></label>
-    {mode === 'delivery' && <><label>Zone<select value={zoneId} onChange={event => setZoneId(event.target.value)}>{DELIVERY_ZONES.map(zone => <option key={zone.id} value={zone.id}>{zone.label}</option>)}</select></label><label>Adresse fictive<input name="address" required maxLength={300} autoComplete="off" /></label><p>L’adresse n’est pas vérifiée et aucun service de livraison n’est réservé.</p></>}
+    {mode === 'delivery' && <>
+      <label>Adresse de livraison<select value={selectedAddressId} onChange={event => {
+        const address = addresses.find(address => address.id === event.target.value);
+        setSelectedAddressId(address?.id ?? ''); setAddressText(address?.address ?? '');
+        if (address) setZoneId(address.zoneId);
+      }}><option value="">Saisir une autre adresse</option>{addresses.map(address => <option key={address.id} value={address.id}>{address.label}{address.isDefault ? ' (par défaut)' : ''}</option>)}</select></label>
+      <Link href="/compte#address-book-title">Gérer mes adresses</Link>
+      <label>Zone<select value={zoneId} onChange={event => { setZoneId(event.target.value); setSelectedAddressId(''); }}>{DELIVERY_ZONES.map(zone => <option key={zone.id} value={zone.id}>{zone.label}</option>)}</select></label>
+      <label>Adresse fictive<input name="address" required maxLength={300} autoComplete="off" value={addressText} onChange={event => { setAddressText(event.target.value); setSelectedAddressId(''); }} /></label>
+      <p>L’adresse n’est pas vérifiée et aucun service de livraison n’est réservé. Une modification ici vaut uniquement pour cet essai.</p>
+    </>}
     <label>Nom<input name="contactName" required maxLength={128} defaultValue={name} autoComplete="name" /></label>
     <label>Téléphone fictif<input name="phone" type="tel" required minLength={7} maxLength={30} defaultValue={phone} autoComplete="off" placeholder="Ex. 081 00 00 00" /></label>
     <label>Commentaire<textarea name="comment" maxLength={500} rows={3} /></label>
