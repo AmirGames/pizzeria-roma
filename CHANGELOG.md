@@ -2,6 +2,8 @@
 
 ## 2026-10-15
 
+- Historique client paginé et recherche par référence/statut, avec accès aux anciens essais au-delà des 50 derniers.
+
 - Carnet d’adresses client privé, adresse par défaut et préremplissage des livraisons simulées, avec contrôle des modifications concurrentes.
 
 - Reprise d’un essai depuis l’historique client avec vérification des options et tarifs actuels, puis ajout confirmé au panier existant.

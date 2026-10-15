@@ -17,6 +17,7 @@ Le projet peut être essayé en local. **Les commandes commerciales et les paiem
 - En mode test : inscription/connexion client, profil nom/téléphone, changement de mot de passe, confirmation, historique privé et annulation des essais en attente.
 - Carnet privé de dix adresses en mode test : ajout, modification, suppression, adresse par défaut et sélection au checkout.
 
+- Historique client paginé : recherche par référence, filtre par statut et accès aux anciens essais au-delà des 50 derniers.
 - Reprise d’une ancienne sélection depuis l’historique, avec prix actuels et ajout confirmé au panier existant.
 - Suivi simulé des commandes côté gérant/cuisine, avec transitions de statut et contrôle des permissions.
 - Aperçu des zones et minima de livraison, du retrait et des horaires dans le fuseau `Europe/Brussels`.
@@ -154,7 +155,7 @@ npm run build
 
 Les tests d’intégration (`npm run test:integration`) et navigateur (`npm run test:browser`) nécessitent un build, les migrations appliquées, `RUN_DATABASE_TESTS=1`, `ENABLE_TEST_ORDERS=true` et une base dédiée dont le nom finit par `_test`. Pour Chromium, installer au préalable le navigateur avec `npx playwright install chromium`. Ne pas utiliser une base contenant des données réelles.
 
-La CI fournit PostgreSQL 16 dans une base jetable, valide/applique les migrations, vérifie TypeScript, lance les tests unitaires et d’intégration, compile Next.js puis teste huit parcours dans Chromium avec Mailpit. Les contrôles sont exécutés sur chaque PR, puis sur `main` après fusion.
+La CI fournit PostgreSQL 16 dans une base jetable, valide/applique les migrations, vérifie TypeScript, lance les tests unitaires et d’intégration, compile Next.js puis teste neuf parcours dans Chromium avec Mailpit. Les contrôles sont exécutés sur chaque PR, puis sur `main` après fusion.
 
 ## Documentation
 
@@ -189,3 +190,9 @@ Depuis le détail d’un essai dans `/compte`, « Commander à nouveau » vérif
 Le panier existant est conservé ; les recettes identiques sont regroupées sans dépasser 99 exemplaires par recette ni 30 lignes. Un échec de l’ajout laisse le panier intact. L’adresse, les coordonnées et le commentaire de l’ancien essai ne sont pas copiés. L’historique reste identique.
 
 Un article, format, supplément ou retrait devenu indisponible bloque la reprise complète : refaire la sélection depuis la carte. Les nouveaux instantanés conservent l’identifiant du format ; pour les anciens, seule une correspondance unique et exacte avec un libellé de format actif est acceptée. Aucune migration ou nouveau seed n’est nécessaire pour cette fonctionnalité.
+
+## Rechercher dans l’historique client
+
+Dans `/compte`, « Mes commandes de test » affiche les essais du compte connecté, 20 par page, du plus récent au plus ancien. La recherche accepte une référence complète ou partielle (lettres, chiffres et tirets, sans distinction de casse), combinable avec un statut. Lancer une recherche revient à la première page ; les liens de pagination gardent les filtres. « Réinitialiser les filtres » réaffiche l’historique complet. Les filtres et la page figurent dans l’URL pour pouvoir revenir au même écran.
+
+Tous les anciens essais sont accessibles, y compris au-delà des 50 derniers. Une page au-delà de la dernière affiche la dernière page disponible. Des paramètres invalides affichent un message et rétablissent les filtres par défaut. Aucun essai n’est modifié et une URL ne donne jamais accès à l’historique d’un autre compte. Aucune migration ni nouveau seed nécessaire.
