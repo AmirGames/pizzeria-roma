@@ -14,10 +14,7 @@ export default function MenuPage() {
         <h1>Notre carte</h1>
         <p>Découvrez nos pizzas, pâtes, salades et spécialités italiennes.</p></div>
       </section>
-      <section className="menu-live-catalog" id="carte" aria-labelledby="live-catalog-title">
-        <div className="section-heading"><p className="eyebrow">FAIT AVEC PASSION</p><h2 id="live-catalog-title">Choisissez votre envie</h2><p>Les recettes et tarifs proviennent de la carte publiée par le restaurant.</p></div>
-        <CatalogProducts />
-      </section>
+      <section className="menu-live-catalog" id="carte" aria-label="Carte des plats"><CatalogProducts /></section>
       <footer className="menu-footer"><span>Pizzeria Roma · Namur</span><span>Site en évolution · Commandes en mode test</span><Link href="/commande">Livraison & retrait →</Link></footer>
     </main>
   );
