@@ -8,21 +8,21 @@ export const metadata = {
 export default function CustomizePizzaPage() {
   return (
     <main className="customize-page">
-      <Link href="/menu" className="customize-back">← Retour à la carte</Link>
       <div className="customize-panel">
-        <p className="eyebrow">PIZZERIA ROMA · NAMUR</p>
-        <h1>Votre pizza, à votre goût.</h1>
-        <p>Choisissez une pizza sur la carte, retirez les ingrédients proposés et ajoutez les suppléments disponibles. Le prix se met à jour avec vos choix.</p>
-        <section aria-label="Options à venir">
-          <h2>Personnalisez votre recette</h2>
+        <Link href="/menu" className="customize-back">← Retour à la carte</Link>
+        <p className="eyebrow">À VOTRE GOÛT</p>
+        <h1>Votre pizza,<br/>votre façon.</h1>
+        <p>Choisissez une recette publiée sur la carte pour ajuster le format, retirer les ingrédients proposés et ajouter vos suppléments.</p>
+        <section aria-label="Personnalisation">
+          <h2>Comment ça marche ?</h2>
           <ul>
-            <li>Choix de la taille : 33 cm ou 50 cm</li>
-            <li>Suppléments selon la recette</li>
-            <li>Retrait d’ingrédients autorisés</li>
+            <li>Choisissez le format disponible pour la recette.</li>
+            <li>Retirez les ingrédients autorisés, sans réduction du prix.</li>
+            <li>Ajoutez les suppléments disponibles ; leur tarif s’ajoute au total.</li>
           </ul>
-          <p className="customize-warning">Retirer un ingrédient ne réduit pas le prix. Les suppléments augmentent le prix selon les tarifs publiés. Les commandes restent désactivées.</p>
+          <p className="customize-warning">La carte publiée par le restaurant détermine les choix et les prix. Les commandes en ligne restent en mode test.</p>
         </section>
-        <Link href="/menu" className="customize-link">Voir les catégories</Link>
+        <Link href="/menu#carte" className="customize-link">Choisir une pizza <span aria-hidden="true">↗</span></Link>
       </div>
     </main>
   );

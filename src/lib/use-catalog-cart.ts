@@ -29,6 +29,7 @@ export function useCatalogCart(): {
   useEffect(() => {
     if (!ready) return;
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    window.dispatchEvent(new Event('catalog-cart-change'));
   }, [items, ready]);
 
   const updateItems = useCallback<Dispatch<SetStateAction<CatalogCartLine[]>>>(action => {

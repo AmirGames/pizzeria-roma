@@ -37,22 +37,12 @@ export default function CartPage() {
   if (catalogCart.ready && catalogCart.items.length > 0) {
     return (
       <main className="roma-cart">
-        <header className="roma-nav">
-          <Link href="/" className="roma-logo">PIZZERIA <strong>ROMA</strong><small>NAMUR</small></Link>
-          <nav aria-label="Navigation principale"><Link href="/">Accueil</Link><Link href="/menu">Notre carte</Link><Link href="/panier" aria-current="page">Panier</Link></nav>
-          <span className="roma-cart-count" aria-label={`${catalogCart.items.reduce((sum, item) => sum + item.quantity, 0)} articles`}>🛒 {catalogCart.items.reduce((sum, item) => sum + item.quantity, 0)}</span>
-        </header>
         <div className="roma-cart-container"><CatalogCartPanel items={catalogCart.items} setItems={catalogCart.setItems} /></div>
       </main>
     );
   }
   return (
     <main className="roma-cart">
-      <header className="roma-nav">
-        <Link href="/" className="roma-logo">PIZZERIA <strong>ROMA</strong><small>NAMUR</small></Link>
-        <nav aria-label="Navigation principale"><Link href="/">Accueil</Link><Link href="/menu">Notre carte</Link><Link href="/panier" aria-current="page">Panier</Link></nav>
-        <span className="roma-cart-count" aria-label={`${items.reduce((sum, item) => sum + item.quantity, 0)} articles`}>🛒 {items.reduce((sum, item) => sum + item.quantity, 0)}</span>
-      </header>
       <div className="roma-cart-container">
         <div className="roma-cart-intro"><p className="eyebrow">VOTRE COMMANDE</p><h1>Votre panier</h1><p>Un avant-goût de l'expérience Roma. La commande en ligne n'est pas encore ouverte.</p></div>
         <div className="roma-cart-layout">

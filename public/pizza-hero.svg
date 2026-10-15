@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 600" fill="none">
+  <defs>
+    <radialGradient id="crust" cx="0" cy="0" r="1" gradientTransform="matrix(280 0 0 280 340 300)" gradientUnits="userSpaceOnUse"><stop stop-color="#f5d68e"/><stop offset=".79" stop-color="#d58d42"/><stop offset=".9" stop-color="#f2bb60"/><stop offset="1" stop-color="#9b4f23"/></radialGradient>
+    <radialGradient id="cheese" cx="0" cy="0" r="1" gradientTransform="matrix(230 0 0 230 340 300)" gradientUnits="userSpaceOnUse"><stop stop-color="#ffe5a4"/><stop offset="1" stop-color="#f4c967"/></radialGradient>
+    <filter id="shadow" x="0" y="0" width="680" height="600" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feGaussianBlur stdDeviation="18"/></filter>
+  </defs>
+  <ellipse cx="350" cy="500" fill="#000" opacity=".42" rx="230" ry="30" filter="url(#shadow)"/>
+  <g transform="rotate(-10 340 290)">
+    <circle cx="340" cy="286" r="254" fill="url(#crust)"/>
+    <circle cx="340" cy="286" r="218" fill="url(#cheese)" stroke="#ffe7a5" stroke-width="5"/>
+    <path d="M184 185c39-45 76-34 88-9 11 24-16 47-45 42-28-5-46-15-43-33Zm194-30c26-18 56-10 60 13 5 25-24 44-49 31-24-13-34-28-11-44Zm-85 119c19-27 55-18 60 7 6 29-22 46-47 34-25-12-28-24-13-41Zm115 96c20-22 50-13 51 9 1 23-25 38-45 25-19-13-21-22-6-34Zm-200 21c27-27 58-10 52 17-6 29-35 38-56 19-17-15-14-25 4-36Z" fill="#bf3826"/>
+    <path d="M248 157c16 7 24 18 20 30-4 11-19 15-29 8-11-8-8-25 9-38Zm112 47c17 3 25 17 20 29-5 13-22 14-30 4-8-11-4-25 10-33Zm-91 113c17-8 31-1 31 13 0 16-16 25-29 17-13-8-13-20-2-30Zm144-1c16-8 30-1 29 12-1 16-18 24-30 15-12-9-11-20 1-27Zm-94 112c17-10 32-2 29 13-3 16-21 22-32 11-10-10-8-18 3-24Z" fill="#f6f1d7"/>
+    <g fill="#386b37"><path d="M276 213c-14-27-5-53 21-63 22 29 12 55-21 63Z"/><path d="M443 251c-28-8-37-31-23-57 34 9 43 32 23 57Z"/><path d="M337 370c-27-13-31-38-11-60 31 15 35 39 11 60Z"/><path d="M207 316c-28-9-36-33-20-58 34 10 42 33 20 58Z"/><path d="M414 403c-27-13-31-37-12-60 32 14 37 38 12 60Z"/></g>
+    <g fill="#281b14" opacity=".55"><circle cx="291" cy="155" r="5"/><circle cx="448" cy="321" r="6"/><circle cx="227" cy="386" r="5"/><circle cx="369" cy="443" r="4"/><circle cx="173" cy="284" r="4"/></g>
+  </g>
+</svg>

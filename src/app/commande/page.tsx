@@ -50,11 +50,6 @@ export default function FulfillmentPage() {
   }, [catalogCart.items, catalogCart.ready, isCatalogCart, mode, zone]);
   return (
     <main className="roma-fulfillment">
-      <header className="roma-nav">
-        <Link href="/" className="roma-logo">PIZZERIA <strong>ROMA</strong><small>NAMUR</small></Link>
-        <nav aria-label="Navigation principale"><Link href="/">Accueil</Link><Link href="/menu">Notre carte</Link><Link href="/panier">Panier</Link></nav>
-        <span className="roma-cart-count">Livraison & retrait</span>
-      </header>
       <div className="roma-fulfillment-container">
         <p className="eyebrow">PIZZERIA ROMA · NAMUR</p>
         <h1>Livraison ou à emporter</h1>

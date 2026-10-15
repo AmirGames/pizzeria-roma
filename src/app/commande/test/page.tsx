@@ -12,5 +12,5 @@ export default async function TestCheckoutPage() {
   if (!user) redirect('/compte?retour=commande');
   if (user.role !== 'CUSTOMER') return <main className="customer-page"><h1>Un compte client est nécessaire</h1><Link href="/compte">Changer de compte</Link></main>;
   const addresses = await listCustomerAddresses(user.id);
-  return <main className="customer-page"><Link href="/panier">← Panier</Link><h1>Passer une commande de test</h1><p>Aucun paiement, aucune préparation réelle, aucun créneau réservé. Utilisez des coordonnées fictives.</p><TestCheckout name={user.name ?? ''} phone={user.phone ?? ''} addresses={addresses} /></main>;
+  return <main className="customer-page test-checkout-page"><Link href="/panier">← Panier</Link><h1>Livraison ou à emporter</h1><p>Aucun paiement ni aucune préparation réelle. Utilisez des coordonnées fictives.</p><TestCheckout name={user.name ?? ''} phone={user.phone ?? ''} addresses={addresses} /></main>;
 }
