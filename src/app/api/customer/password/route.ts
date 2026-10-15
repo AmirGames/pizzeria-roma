@@ -17,9 +17,10 @@ export async function POST(request: Request) {
     if (!await verifyCustomerPassword(input.currentPassword, credential?.passwordHash) || !credential) return Response.json({ error: 'INVALID_PASSWORD' }, { status: 400 });
     const passwordHash = await hashCustomerPassword(input.newPassword);
     const token = await prisma.$transaction(async tx => {
-      const updated = await tx.customerCredential.updateMany({ where: { userId: user.id, passwordHash: credential.passwordHash }, data: { passwordHash } });
+      const updated = await tx.customerCredential.updateMany({ where: { userId: user.id, passwordHash: credential.passwordHash }, data: { passwordHash, version: { increment: 1 } } });
       const current = await tx.user.findFirst({ where: { id: user.id, role: 'CUSTOMER', disabledAt: null } });
       if (updated.count !== 1 || !current) throw new Error('PASSWORD_CONFLICT');
+      await tx.customerEmailToken.deleteMany({ where: { userId: user.id, purpose: 'RESET_PASSWORD' } });
       await tx.session.deleteMany({ where: { userId: user.id } });
       return issueCustomerSession(tx, user.id);
     });

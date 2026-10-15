@@ -1,3 +1,4 @@
+import { localCustomerMailConfigured, sendCustomerLink } from '../../../../lib/local-customer-mail';
 import { Prisma } from '@prisma/client';
 import { prisma } from '../../../../lib/db';
 import { isSameOriginMutation } from '../../../../lib/catalog-management.mjs';
@@ -29,6 +30,10 @@ export async function POST(request: Request) {
       token = await prisma.$transaction(tx => issueVerifiedCustomerSession(tx, user.id, user.customerCredential!.passwordHash));
     }
     await setCustomerCookie(token);
+    if (input.action === 'register' && localCustomerMailConfigured()) {
+      const created = await prisma.user.findUnique({ where: { email: input.email }, select: { id: true } });
+      if (created) { try { await sendCustomerLink(created.id, 'VERIFY_EMAIL'); } catch { /* Account and session remain usable; the customer can resend. */ } }
+    }
     return Response.json({ ok: true }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     if (error instanceof Error && error.message === 'INVALID_AUTH') return Response.json({ error: 'INVALID_AUTH' }, { status: 401 });
