@@ -1,4 +1,4 @@
-.header{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:24px;width:calc(100% - 16px);margin:8px auto 0;min-height:100px;padding:12px clamp(24px,6.3vw,80px);background:#071b16;border-radius:12px 12px 0 0;color:#fff}
+.header{position:sticky;top:0;z-index:1000;display:flex;align-items:center;justify-content:space-between;gap:24px;width:calc(100% - 16px);margin:0 auto;min-height:100px;padding:12px clamp(24px,6.3vw,80px);background:#071b16;border-radius:12px 12px 0 0;color:#fff}
 .logo{display:block;color:#fff;text-decoration:none;font:11px Georgia,serif;letter-spacing:.2em;line-height:1}.logo strong{display:block;font-size:29px;font-weight:400;letter-spacing:.16em}.logo small{display:block;text-align:center;font-size:9px;letter-spacing:.35em;margin-top:4px}
 .nav{display:flex;align-items:center;gap:clamp(13px,2.2vw,32px)}.nav a{position:relative;color:#f3f1eb;text-decoration:none;font-size:11px;white-space:nowrap}.nav a:hover:after,.nav a:focus-visible:after{position:absolute;content:"";left:0;right:0;bottom:-10px;height:2px;background:#d82131}
 .utilities{display:flex;align-items:center;gap:12px;color:white;font-size:11px}.utilities>span{color:#ede9e2}.account{color:white;text-decoration:none;font-size:15px}.test{color:#e6c98f;font-size:10px;text-decoration:none}.cart{position:relative;display:grid;place-items:center;width:38px;height:38px;color:white;text-decoration:none}.cart svg{width:22px;height:22px}.cart b{position:absolute;right:-5px;top:-5px;min-width:18px;height:18px;padding:0 4px;border-radius:50px;background:#d82131;color:white;text-align:center;font:700 11px/18px Arial,sans-serif}
@@ -6,7 +6,7 @@
 @media(max-width:480px){.nav{gap:9px}.nav a{font-size:9px}.utilities>span:nth-child(2){display:none}.account{display:none}}
 
 .nav a[aria-current=page]:after{position:absolute;content:"";left:0;right:0;bottom:-12px;height:3px;background:#d82131}
-.homeHeader{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:calc(100% - 16px);margin:0;min-height:120px;padding:12px clamp(24px,6.3vw,80px);background:#07120f9c;backdrop-filter:blur(2px);border-radius:12px 12px 0 0}
+.homeHeader{position:sticky;top:0;transform:none;width:calc(100% - 16px);margin:0 auto -120px;min-height:120px;padding:12px clamp(24px,6.3vw,80px);background:#07120f9c;backdrop-filter:blur(2px);border-radius:12px 12px 0 0}
 .homeHeader .logo{font-size:15px}.homeHeader .logo strong{font-size:42px}.homeHeader .logo small{font-size:11px}
 .homeHeader .nav{gap:clamp(18px,2.2vw,32px)}.homeHeader .nav a{font-size:clamp(12px,1.3vw,17px)}.homeHeader .nav a[aria-current=page]:after{bottom:-17px;height:4px}
 .homeHeader .utilities{gap:18px;font-size:clamp(13px,1.6vw,20px)}.homeHeader .account{display:none}
