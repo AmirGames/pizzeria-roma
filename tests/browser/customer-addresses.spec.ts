@@ -39,7 +39,11 @@ test('a customer manages private addresses and uses a saved address for a delive
   await expect(book.getByRole('listitem').filter({ hasText: 'Domicile' })).toContainText('Rue fictive 3');
   await page.reload();
   await expect(book.getByRole('listitem')).toHaveCount(2);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pizzeria-roma-catalog-cart-v1')!))).toEqual(cart);
   await page.getByRole('link', { name: 'Passer une commande de test' }).click();
+  await expect(page).toHaveURL(/\/commande\/test$/);
+  await expect(page.getByRole('heading', { name: 'Passer une commande de test', exact: true })).toBeVisible();
+  await expect(page.getByLabel('Mode', { exact: true }), await page.locator('main').innerText()).toBeVisible();
   await page.getByLabel('Mode', { exact: true }).selectOption('delivery');
   await expect(page.getByLabel('Adresse fictive', { exact: true })).toHaveValue('Rue fictive 2, 5000 Namur');
   await expect(page.getByLabel('Zone', { exact: true })).toHaveValue('namur-centre');
