@@ -42,7 +42,7 @@ export async function POST(request: Request) {
         const day = brusselsDayWindow(new Date(`${date}T12:00:00.000Z`));
         const reservations = await tx.testOrder.groupBy({
           by: ['scheduledFor'],
-          where: { scheduledFor: { gte: day.start, lt: day.end }, status: { notIn: ['REJECTED', 'CANCELLED', 'COMPLETED'] } },
+          where: { scheduledFor: { gte: day.start, lt: day.end }, status: { notIn: ['REJECTED', 'CANCELLED'] } },
           _sum: { pizzaCount: true },
         });
         const usedBySlot = Object.fromEntries(reservations.map(row => [row.scheduledFor.toISOString(), row._sum.pizzaCount ?? 0]));

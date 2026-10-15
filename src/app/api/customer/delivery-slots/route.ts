@@ -26,7 +26,7 @@ export async function GET(request: Request) {
     if (!config) throw new Error('DELIVERY_CONFIGURATION_MISSING');
     const groups = await prisma.testOrder.groupBy({
       by: ['scheduledFor'],
-      where: { scheduledFor: { gte: day.start, lt: day.end }, status: { notIn: ['REJECTED', 'CANCELLED', 'COMPLETED'] } },
+      where: { scheduledFor: { gte: day.start, lt: day.end }, status: { notIn: ['REJECTED', 'CANCELLED'] } },
       _sum: { pizzaCount: true },
     });
     const usedBySlot = Object.fromEntries(groups.map(group => [group.scheduledFor.toISOString(), group._sum.pizzaCount ?? 0]));
