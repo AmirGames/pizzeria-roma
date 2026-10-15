@@ -52,6 +52,8 @@ LOCAL_MAIL_URL=http://127.0.0.1:8025
 
 Le mot de passe PostgreSQL doit correspondre dans les deux premières lignes. Ne jamais committer `.env` ni des identifiants réels. Voir [`.env.example`](.env.example).
 
+Si le port local `5432` est déjà utilisé ou réservé, définir aussi `POSTGRES_PORT=5433` dans `.env` et remplacer `localhost:5432` par `localhost:5433` dans `DATABASE_URL`. Le port du conteneur reste `5432`.
+
 `ENABLE_TEST_ORDERS=true` active explicitement les comptes clients et les commandes simulées. Sans cette valeur, le mode est désactivé. Utiliser des coordonnées fictives pour les essais.
 
 ### 3. Installer et préparer la base locale
