@@ -65,6 +65,6 @@ test('an external cart change cannot be overwritten by an edit already in progre
   await expect(page.locator('.roma-qty output').first()).toHaveText('4');
   await page.getByLabel('Sans Tomate').uncheck();
   await page.getByRole('button', { name: 'Enregistrer la recette' }).click();
-  await expect(page.getByRole('alert')).toContainText('Le panier a changé');
+  await expect(page.getByRole('region', { name: 'Modifier la recette' }).getByRole('alert')).toContainText('Le panier a changé');
   expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), storageKey)).toEqual(changed);
 });
