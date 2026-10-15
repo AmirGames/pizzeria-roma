@@ -12,7 +12,7 @@ export function parseStaffTestFilters(input = {}) {
   const status = value('statut', 'active');
   const fulfillment = value('mode', '');
   const sort = value('tri', 'oldest');
-  if ((!['active', 'all'].includes(status) && !Object.hasOwn(TEST_STATUS_LABELS, status)) || !['', 'PICKUP', 'DELIVERY'].includes(fulfillment) || !['oldest', 'newest'].includes(sort)) throw new Error('INVALID_STAFF_FILTER');
+  if ((!['active', 'all'].includes(status) && !Object.hasOwn(TEST_STATUS_LABELS, status)) || !['', 'PICKUP', 'DELIVERY'].includes(fulfillment) || !['oldest', 'newest', 'scheduled'].includes(sort)) throw new Error('INVALID_STAFF_FILTER');
   return { q, page, status, fulfillment, sort };
 }
 export function staffTestHref(filters, page = 1) {

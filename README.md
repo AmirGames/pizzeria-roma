@@ -208,7 +208,7 @@ Tous les anciens essais sont accessibles, y compris au-delà des 50 derniers. Un
 
 En mode test, `/gerant/commandes-test` affiche par défaut les essais à traiter (enregistrés, acceptés, en préparation simulée, prêts ou en livraison simulée), du plus ancien au plus récent. La liste est paginée à 20 résultats ; les anciens essais restent accessibles au-delà de l’ancienne limite de 100.
 
-Rechercher une référence, choisir un statut (y compris « Tous les statuts »), le mode livraison/retrait et l’ordre de tri. Les liens de pagination gardent ces filtres ; une nouvelle recherche revient à la première page. Le bouton « Actualiser la liste » relit les données sans changer les filtres. Après une transition, un essai qui ne correspond plus au filtre quitte la liste.
+Rechercher une référence, choisir un statut (y compris « Tous les statuts »), le mode livraison/retrait et l’ordre de tri : date d’enregistrement ou créneau prévu le plus proche. Les liens de pagination gardent ces filtres ; une nouvelle recherche revient à la première page. Le bouton « Actualiser la liste » relit les données sans changer les filtres. Après une transition, un essai qui ne correspond plus au filtre quitte la liste.
 
 L’accès exige une session professionnelle MANAGER ou KITCHEN ; un client ou une URL ne peut pas s’attribuer ces droits. Les transitions et révisions existantes restent contrôlées côté serveur. Il s’agit uniquement de simulations : aucune préparation réelle ni livraison n’est déclenchée. Aucune migration ni nouveau seed.
 

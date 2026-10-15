@@ -23,13 +23,13 @@ export default async function StaffTestOrders({ searchParams }: { searchParams: 
   const result = await listStaffTestOrders(filters);
   const from = (result.page - 1) * STAFF_TEST_PAGE_SIZE + 1;
   return <main className="customer-page"><Link href="/gerant/carte">← Gestion de la carte</Link>{staff.role === 'MANAGER' && <p><Link href="/gerant">Tableau de bord gérant</Link></p>}<h1>Gérant et cuisine — commandes de test</h1>
-    <p>Simulation uniquement. Ne préparez pas ces commandes. La file à traiter affiche d’abord les essais les plus anciens.</p>
+    <p>Simulation uniquement. Ne préparez pas ces commandes. Choisissez le tri par créneau pour voir ensemble les essais prévus le plus tôt.</p>
     <section aria-labelledby="staff-test-list-title"><h2 id="staff-test-list-title">File des essais</h2>
       <form key={JSON.stringify([filters, result.page])} method="get" action="/gerant/commandes-test#staff-test-list-title"><fieldset><legend>Filtrer la file</legend>
         <label htmlFor="staff-test-q">Référence à rechercher</label><input id="staff-test-q" name="q" type="search" maxLength={64} defaultValue={filters.q} placeholder="Référence complète ou partielle" />
         <label htmlFor="staff-test-status">Statut des essais</label><select id="staff-test-status" name="statut" defaultValue={filters.status}><option value="active">À traiter</option><option value="all">Tous les statuts</option>{Object.entries(TEST_STATUS_LABELS).map(([status, label]) => <option key={status} value={status}>{label}</option>)}</select>
         <label htmlFor="staff-test-mode">Mode des essais</label><select id="staff-test-mode" name="mode" defaultValue={filters.fulfillment}><option value="">Tous les modes</option><option value="PICKUP">Retrait simulé</option><option value="DELIVERY">Livraison simulée</option></select>
-        <label htmlFor="staff-test-sort">Ordre des essais</label><select id="staff-test-sort" name="tri" defaultValue={filters.sort}><option value="oldest">Plus anciens d’abord</option><option value="newest">Plus récents d’abord</option></select>
+        <label htmlFor="staff-test-sort">Ordre des essais</label><select id="staff-test-sort" name="tri" defaultValue={filters.sort}><option value="oldest">Enregistrés les plus anciens d’abord</option><option value="newest">Enregistrés les plus récents d’abord</option><option value="scheduled">Créneaux prévus les plus proches d’abord</option></select>
         <button type="submit">Appliquer les filtres</button> <Link href="/gerant/commandes-test#staff-test-list-title">Réinitialiser la file</Link>
       </fieldset></form><RefreshTestOrders />{filterError && <p role="alert">{filterError}</p>}
       {!result.total ? <p>Aucun essai ne correspond à ces filtres.</p> : <>
