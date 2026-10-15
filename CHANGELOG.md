@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-15 — proposition en cours
+
+- Personnalisation interactive : retraits sans remise, suppléments par format, recettes conservées dans le panier et contrôle serveur.
+- Éditeur de carte gérant protégé, vérification des identifiants et révisions contre les conflits.
+- Connexion gérant par lien privé à usage unique généré depuis le serveur, session sécurisée et déconnexion.
+- Migrations préparées, sans exécution automatique ni données commerciales inventées.
+
+
 ## 2026-10-14
 
 - PR #18 fusionnée : statut des horaires informatif étendu aux jours fériés légaux belges (service du soir 18h–22h, dimanche fermé). Les jours de remplacement et exceptions du restaurant restent à confirmer.

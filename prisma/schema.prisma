@@ -52,6 +52,7 @@ model User {
   updatedAt     DateTime  @updatedAt
   orders        Order[]
   sessions      Session[]
+  managerAccessTokens ManagerAccessToken[]
 }
 
 model Session {
@@ -81,6 +82,8 @@ model Product {
   nameEn     String
   active     Boolean      @default(true)
   baseCents  Int
+  removableIngredients String[] @default([])
+  catalogRevision Int @default(0)
   choiceLabel String?
   extraSelectionMode ExtraSelectionMode @default(MULTIPLE)
   category   MenuCategory @relation(fields: [categoryId], references: [id])
@@ -130,6 +133,7 @@ model ProductSize {
 }
 
 model ProductExtra {
+  sizePrices Json?
   id         String  @id @default(cuid())
   productId  String
   nameFr     String
@@ -138,4 +142,13 @@ model ProductExtra {
   active     Boolean @default(true)
   product    Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   @@index([productId, active])
+}
+
+model ManagerAccessToken {
+  tokenHash String @id @db.Char(64)
+  userId String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([expiresAt])
 }

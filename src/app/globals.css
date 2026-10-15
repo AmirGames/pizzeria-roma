@@ -20,3 +20,14 @@
 .menu-live-catalog{max-width:1180px;margin:auto;padding:30px 24px 90px}.catalog-message{text-align:center;color:#746e64;padding:18px}.catalog-groups{display:grid;gap:32px}.catalog-groups h3{font:normal 1.8rem Georgia,serif;border-bottom:1px solid #e5dfd4;padding-bottom:12px}.catalog-products{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.catalog-product{background:#fff;border:1px solid #ece4d7;border-radius:12px;padding:20px}.catalog-product h4{font:normal 1.35rem Georgia,serif;margin:0 0 12px}.catalog-product ul{list-style:none;padding:0;margin:0}.catalog-product li{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid #f0ece5}.catalog-extras{font-size:.82rem;color:#746e64}.catalog-product>p:not(.catalog-extras){font-weight:700}@media(max-width:720px){.menu-live-catalog{padding:15px 16px 70px}.catalog-products{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:420px){.catalog-products{grid-template-columns:1fr}}
 
 .catalog-cart-link{text-align:right;margin:0 0 18px}.catalog-cart-link a{color:#1b5037;font-weight:700}.catalog-option{display:grid;gap:8px;margin:10px 0;font-size:.9rem}.catalog-option select{border:1px solid #ded8ce;background:white;border-radius:7px;padding:9px;color:#243a31;font:inherit}.catalog-extra-options{display:grid;gap:8px;border:1px solid #e8e4dd;border-radius:8px;margin:12px 0;padding:10px}.catalog-extra-options legend{font-size:.84rem;font-weight:700}.catalog-extra-options label{font-size:.85rem}.catalog-add{width:100%;border:0;border-radius:7px;background:#1f3d31;color:#fff;padding:12px;margin-top:12px;font-weight:700;cursor:pointer}.catalog-add:disabled{opacity:.55;cursor:not-allowed}
+
+/* Catalogue manager */
+.manager-page { max-width: 850px; margin: 0 auto; padding: 2rem 1rem 5rem; }
+.manager-page label { display: grid; gap: .4rem; margin-block: 1rem; }
+.manager-page input:not([type=checkbox]), .manager-page select, .manager-page textarea { width: 100%; padding: .7rem; border: 1px solid #aaa; border-radius: .4rem; font: inherit; background: white; color: #222; }
+.manager-page fieldset { min-width: 0; margin-block: 1rem; padding: 1rem; border: 1px solid #bbb; border-radius: .5rem; }
+.manager-page legend { font-weight: 700; padding-inline: .4rem; }
+.manager-page .manager-check { display: flex; align-items: center; gap: .6rem; }
+.manager-page button { cursor: pointer; padding: .7rem 1rem; }
+.manager-page button:disabled { cursor: wait; opacity: .65; }
+.manager-size { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; }

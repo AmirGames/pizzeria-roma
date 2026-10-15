@@ -4,7 +4,7 @@ import { evaluateCartFulfillment } from './fulfillment.mjs';
 
 const MAX_CART_LINES = 30;
 const MAX_EXTRAS_PER_LINE = 20;
-const selectionKeys = new Set(['productId', 'sizeId', 'extraIds', 'quantity']);
+const selectionKeys = new Set(['productId', 'sizeId', 'extraIds', 'removedIngredients', 'quantity']);
 
 function validateSelection(selection) {
   if (!selection || typeof selection !== 'object' || Array.isArray(selection) ||
@@ -19,7 +19,10 @@ function validateSelection(selection) {
       !extraIds.every(id => typeof id === 'string' && id.length > 0 && id.length <= 128)) {
     throw new Error('INVALID_EXTRAS');
   }
-  return { ...selection, extraIds };
+  const removedIngredients = selection.removedIngredients ?? [];
+  if (!Array.isArray(removedIngredients) || removedIngredients.length > 30 || new Set(removedIngredients).size !== removedIngredients.length ||
+      !removedIngredients.every(id => typeof id === 'string' && id.length > 0 && id.length <= 128)) throw new Error('INVALID_REMOVALS');
+  return { ...selection, extraIds, removedIngredients };
 }
 
 function validateExtras(product, extraIds) {
@@ -77,6 +80,7 @@ export function previewCatalogCart(products, rawSelections, fulfillment) {
       sizeLabel = size.label;
       fulfillmentLine = { category: 'pizza', sizeCm, unitCents: quoted.unitCents, quantity: quoted.quantity };
     } else {
+      if (selection.removedIngredients.length) throw new Error('INVALID_REMOVALS');
       if (product.choiceLabel !== null && product.choiceLabel !== undefined &&
           (typeof product.choiceLabel !== 'string' || !product.choiceLabel.trim())) throw new Error('CATALOG_INVALID');
       if (product.choiceLabel) {
@@ -116,6 +120,7 @@ export function previewCatalogCart(products, rawSelections, fulfillment) {
       quantity: quoted.quantity,
       ...(sizeLabel ? { sizeLabel } : {}),
       extraIds: [...selection.extraIds],
+      removedIngredients: [...selection.removedIngredients],
       extraLabels: extras.map(extra => typeof extra.nameFr === 'string' ? extra.nameFr : 'Supplément'),
       unitCents: quoted.unitCents,
       totalCents: lineTotalCents,

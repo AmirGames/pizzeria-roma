@@ -44,3 +44,7 @@ L’interface de zones actuelle est un aperçu : choisir une zone ne prouve pas 
 Ces jalons demandent des validations commerciales et opérationnelles. Tant qu’elles ne sont pas acquises, l’application reste en prévisualisation : aucun checkout, commande réelle ou paiement ne doit être activé. Ne pas modifier la règle des desserts sans confirmation.
 
 À chaque PR : ajouter les tests appropriés, exécuter le typecheck et le build, et mettre à jour le README, le changelog et la documentation fonctionnelle concernée.
+
+## Proposition du 15/10/2026
+
+Personnalisation interactive et espace gérant avec accès privé : voir [MANAGER.md](MANAGER.md) et [PIZZA_CUSTOMIZATION.md](PIZZA_CUSTOMIZATION.md). Ces changements sont préparés pour revue et ne sont pas encore fusionnés ni déployés. Les compositions et tarifs des suppléments restent à fournir ; les migrations doivent être appliquées explicitement.

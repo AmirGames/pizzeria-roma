@@ -37,7 +37,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const selections = input.items as Array<{ productId: string; sizeId?: string; extraIds?: string[]; quantity: number }>;
+    const selections = input.items as Array<{ productId: string; sizeId?: string; extraIds?: string[]; removedIngredients?: string[]; quantity: number }>;
     const productIds = [...new Set(selections.map(item => item.productId))];
     const products = await prisma.product.findMany({
       where: { id: { in: productIds }, active: true },
@@ -45,12 +45,12 @@ export async function POST(request: Request) {
         id: true,
         nameFr: true,
         active: true,
-        baseCents: true,
+        baseCents: true, removableIngredients: true,
         choiceLabel: true,
         extraSelectionMode: true,
         category: { select: { fulfillmentCategory: true } },
         sizes: { orderBy: [{ priceCents: 'asc' }, { label: 'asc' }], select: { id: true, label: true, priceCents: true, active: true } },
-        extras: { select: { id: true, nameFr: true, priceCents: true, active: true } },
+        extras: { select: { id: true, nameFr: true, priceCents: true, sizePrices: true, active: true } },
       },
     });
     const preview = previewCatalogCart(products, selections, {
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
     return Response.json(preview);
   } catch (error) {
     const code = error instanceof Error ? error.message : '';
-    if (['INVALID_CART', 'INVALID_EXTRAS', 'INVALID_SIZE', 'INVALID_COUNT', 'INVALID_MODE', 'UNKNOWN_ZONE', 'INVALID_PRICE', 'PRICE_OVERFLOW'].includes(code)) {
+    if (['INVALID_CART', 'INVALID_REMOVALS', 'INVALID_EXTRAS', 'INVALID_SIZE', 'INVALID_COUNT', 'INVALID_MODE', 'UNKNOWN_ZONE', 'INVALID_PRICE', 'PRICE_OVERFLOW'].includes(code)) {
       return jsonError(400, code);
     }
     if (code === 'PRODUCT_UNAVAILABLE') return jsonError(404, code);
