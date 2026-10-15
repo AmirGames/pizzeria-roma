@@ -1,4 +1,5 @@
 const MAX_LINES = 30;
+export const CATALOG_CART_STORAGE_KEY = 'pizzeria-roma-catalog-cart-v1';
 const MAX_EXTRAS = 20;
 const allowedKeys = new Set(['productId', 'sizeId', 'extraIds', 'removedIngredients', 'quantity']);
 

@@ -4,13 +4,15 @@
 
 - Carnet d’adresses client privé, adresse par défaut et préremplissage des livraisons simulées, avec contrôle des modifications concurrentes.
 
-- Proposition suivante : vérification e-mail, récupération du mot de passe et Mailpit local, avec liens à usage unique, expiration et révocation des accès précédents.
+- Reprise d’un essai depuis l’historique client avec vérification des options et tarifs actuels, puis ajout confirmé au panier existant.
 
-- Proposition suivante : coordonnées du profil client et changement de mot de passe avec rotation et révocation des sessions, y compris face aux connexions concurrentes.
+- vérification e-mail, récupération du mot de passe et Mailpit local, avec liens à usage unique, expiration et révocation des accès précédents.
 
-- Proposition suivante : espace client protégé, inscription/connexion locale, commandes de test séparées, historique, confirmation et suivi professionnel simulé.
+- coordonnées du profil client et changement de mot de passe avec rotation et révocation des sessions, y compris face aux connexions concurrentes.
 
-- Proposition suivante : modification des recettes depuis le panier, validation serveur, fusion des recettes identiques et tests Chromium.
+- espace client protégé, inscription/connexion locale, commandes de test séparées, historique, confirmation et suivi professionnel simulé.
+
+- modification des recettes depuis le panier, validation serveur, fusion des recettes identiques et tests Chromium.
 - PR #20 fusionnée : personnalisation interactive et espace gérant avec création de pizzas en brouillon.
 
 - Personnalisation interactive : retraits sans remise, suppléments par format, recettes conservées dans le panier et contrôle serveur.

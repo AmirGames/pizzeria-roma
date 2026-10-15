@@ -2,10 +2,8 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
-import { readCatalogCart } from './catalog-cart.mjs';
+import { CATALOG_CART_STORAGE_KEY as STORAGE_KEY, readCatalogCart } from './catalog-cart.mjs';
 import type { CatalogCartLine } from './catalog-cart.mjs';
-
-const STORAGE_KEY = 'pizzeria-roma-catalog-cart-v1';
 
 export function useCatalogCart(): {
   items: CatalogCartLine[];
