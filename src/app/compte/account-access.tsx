@@ -18,7 +18,7 @@ export default function AccountAccess({ returnTo }: { returnTo: string }) {
     finally { setBusy(false); }
   }
   return <section aria-label="Accès client"><div className="customer-actions"><button type="button" aria-pressed={action === 'login'} onClick={() => { setAction('login'); setError(''); }}>Se connecter</button><button type="button" aria-pressed={action === 'register'} onClick={() => { setAction('register'); setError(''); }}>Créer un compte</button></div>
-    <form onSubmit={submit}><fieldset disabled={busy}><legend>{action === 'register' ? 'Inscription' : 'Connexion'}</legend>
+    <form method="post" onSubmit={submit}><fieldset disabled={busy}><legend>{action === 'register' ? 'Inscription' : 'Connexion'}</legend>
       {action === 'register' && <label>Votre nom<input name="name" required maxLength={128} autoComplete="name" /></label>}
       <label>Adresse e-mail<input name="email" type="email" required maxLength={320} autoComplete="email" /></label>
       <label>Mot de passe<input name="password" type="password" required minLength={12} maxLength={128} autoComplete={action === 'register' ? 'new-password' : 'current-password'} /></label>

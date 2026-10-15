@@ -22,7 +22,7 @@ export default function EmailLinkForm({ reset = false }: { reset?: boolean }) {
     finally { setBusy(false); }
   }
   if (done) return <><p role="status">{reset ? 'Votre mot de passe a été réinitialisé. Les anciennes sessions sont déconnectées. Connectez-vous avec votre nouveau mot de passe.' : 'Votre adresse e-mail est vérifiée.'}</p><Link href="/compte">Retour à mon espace client</Link></>;
-  return <form onSubmit={submit}><fieldset disabled={busy}>
+  return <form method="post" onSubmit={submit}><fieldset disabled={busy}>
     <legend>{reset ? 'Choisir un nouveau mot de passe' : 'Confirmer mon adresse'}</legend>
     <label>Code privé<input type="password" autoComplete="off" value={token} onChange={event => setToken(event.target.value)} required /></label>
     {reset && <><label>Nouveau mot de passe<input name="newPassword" type="password" required minLength={12} maxLength={128} autoComplete="new-password" /></label><label>Confirmer le nouveau mot de passe<input name="confirmation" type="password" required minLength={12} maxLength={128} autoComplete="new-password" /></label></>}

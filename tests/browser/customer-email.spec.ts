@@ -25,7 +25,11 @@ test('a customer verifies their email and recovers their password using the loca
   await page.getByRole('button', { name: 'Se déconnecter' }).click();
   await page.getByRole('link', { name: 'Mot de passe oublié ?' }).click();
   await page.getByLabel('Adresse e-mail').fill(email);
-  await page.getByRole('button', { name: 'Demander un lien de réinitialisation' }).click();
+  const [recovery] = await Promise.all([
+    page.waitForResponse(response => response.url().endsWith('/api/customer/email/request') && response.request().method() === 'POST'),
+    page.getByRole('button', { name: 'Demander un lien de réinitialisation' }).click(),
+  ]);
+  expect(recovery.status(), JSON.stringify({ result: await recovery.json(), origin: recovery.request().headers().origin, form: await page.locator('form').innerText() })).toBe(200);
   await expect(page.getByText('Si un compte peut recevoir cet e-mail', { exact: false })).toBeVisible();
   await page.goto(await capturedLink(email, '/compte/reinitialiser'));
   await expect(page).toHaveURL(/\/compte\/reinitialiser$/);

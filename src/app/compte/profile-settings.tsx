@@ -36,13 +36,13 @@ export default function ProfileSettings({ name, phone }: { name: string; phone: 
     finally { setBusy(false); }
   }
   return <details className="customer-settings"><summary>Mes coordonnées et mon mot de passe</summary>
-    <form onSubmit={saveProfile} onChange={() => setProfileSuccess('')}><fieldset disabled={busy}><legend>Mes coordonnées</legend>
+    <form method="post" onSubmit={saveProfile} onChange={() => setProfileSuccess('')}><fieldset disabled={busy}><legend>Mes coordonnées</legend>
       <label>Nom du profil<input name="name" required maxLength={128} defaultValue={name} autoComplete="name" /></label>
       <label>Téléphone du profil<input name="phone" type="tel" maxLength={30} defaultValue={phone} autoComplete="tel" /></label>
       <p>Le téléphone est facultatif dans le profil. Ces données préremplissent les prochains essais ; les coordonnées des commandes précédentes sont conservées.</p>
       <button type="submit">Enregistrer mes coordonnées</button>
     </fieldset>{profileError && <p role="alert">{profileError}</p>}{profileSuccess && <p role="status">{profileSuccess}</p>}</form>
-    <form onSubmit={savePassword} onChange={() => setPasswordSuccess('')}><fieldset disabled={busy}><legend>Changer mon mot de passe</legend>
+    <form method="post" onSubmit={savePassword} onChange={() => setPasswordSuccess('')}><fieldset disabled={busy}><legend>Changer mon mot de passe</legend>
       <label>Mot de passe actuel<input type="password" name="currentPassword" required minLength={12} maxLength={128} autoComplete="current-password" /></label>
       <label>Nouveau mot de passe<input type="password" name="newPassword" required minLength={12} maxLength={128} autoComplete="new-password" /></label>
       <label>Confirmer le nouveau mot de passe<input type="password" name="confirmation" required minLength={12} maxLength={128} autoComplete="new-password" /></label>

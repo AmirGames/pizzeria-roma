@@ -1,6 +1,8 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 export default function EmailRequest({ verify = false }: { verify?: boolean }) {
+  const [ready, setReady] = useState(false);
+  useEffect(() => setReady(true), []);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -16,7 +18,7 @@ export default function EmailRequest({ verify = false }: { verify?: boolean }) {
     } catch { setError('Connexion interrompue. Réessayez.'); }
     finally { setBusy(false); }
   }
-  return <form onSubmit={submit}><fieldset disabled={busy}><legend>{verify ? 'Vérifier mon adresse e-mail' : 'Récupérer mon accès'}</legend>
+  return <form method="post" onSubmit={submit}><fieldset disabled={busy || !ready}><legend>{verify ? 'Vérifier mon adresse e-mail' : 'Récupérer mon accès'}</legend>
     {!verify && <label>Adresse e-mail<input type="email" name="email" required maxLength={320} autoComplete="email" /></label>}
     <button type="submit">{busy ? 'Envoi…' : verify ? 'Renvoyer le lien de vérification' : 'Demander un lien de réinitialisation'}</button>
   </fieldset>{message && <p role="status">{message}</p>}{error && <p role="alert">{error}</p>}</form>;
