@@ -23,7 +23,7 @@ Le lien est un secret temporaire : ne pas le publier dans GitHub ou dans des jou
 
 L'écran et l'API vérifient `catalog:write` à partir du rôle relu en base. Les mutations exigent une origine identique et du JSON ; le navigateur ne fournit jamais le rôle. Chaque identifiant d'option doit appartenir au produit modifié. Une erreur de base ne contourne pas les contrôles d'accès.
 
-Cet accès par terminal permet d'utiliser l'éditeur sans service d'e-mail ni mot de passe partagé. La gestion des invitations depuis l'interface, le MFA, l'audit détaillé des modifications et la connexion client restent à développer. Aucune commande réelle ni paiement n'est activé.
+Cet accès par terminal permet d'utiliser l'éditeur sans service d'e-mail ni mot de passe partagé. La gestion des invitations depuis l'interface, le MFA, l'audit détaillé des modifications et les exigences d’exploitation avant ouverture publique restent à préparer. L’espace client de test est décrit dans [CUSTOMER_TESTS.md](CUSTOMER_TESTS.md). Aucune commande réelle ni paiement n'est activé.
 
 Le seed du menu est un import explicite : le relancer réapplique les noms, prix et disponibilités du menu source et remplace les options qui lui appartiennent. Ne pas le relancer sur une carte modifiée sans vouloir restaurer ces données. Les ingrédients retirables et les suppléments créés par le gérant sont préservés.
 
@@ -32,3 +32,13 @@ Le seed du menu est un import explicite : le relancer réapplique les noms, prix
 `npm test` couvre les règles de prix, les retraits, la validation des modifications, l'origine des requêtes et les jetons à usage unique. La CI crée PostgreSQL 16 dans une base jetable `roma_test`, applique toutes les migrations, valide Prisma, vérifie TypeScript, compile Next.js puis lance `npm run test:integration`. Ce test utilise les vraies routes et contrôle la connexion, le refus des accès anonymes et des origines étrangères, les mises à jour concurrentes, les options publiées, les devis par format, le changement de rôle et la déconnexion. Il ne s'exécute qu'avec `RUN_DATABASE_TESTS=1` et une base dont le nom finit par `_test`.
 
 Le test d’intégration couvre aussi la création protégée d’un brouillon, le refus d’une catégorie étrangère au type PIZZA et sa publication explicite.
+
+## File gérant/cuisine des essais
+
+Avec `ENABLE_TEST_ORDERS=true`, `/gerant/commandes-test` exige `orders:read` (MANAGER/KITCHEN). Les mutations de statut exigent toujours `orders:update-status`, une origine JSON identique et la révision courante. Les sessions désactivées ou révoquées perdent l’accès. Le catalogue reste réservé à MANAGER ; les filtres de cette file ne modifient aucun rôle.
+
+La vue par défaut affiche les statuts PENDING, ACCEPTED, PREPARING, READY et OUT_FOR_DELIVERY, dans l’ordre `placedAt ASC, id ASC`. « Tous les statuts » inclut aussi les essais terminés, refusés et annulés. La recherche par référence est insensible à la casse et combinable avec le statut et le mode. Le tri inverse est disponible. Chaque page contient au maximum 20 essais, sans limite globale à 100. Les paramètres sont validés ; un filtre invalide rétablit la file à traiter par défaut avec un message. Une page trop grande est ramenée à la dernière disponible.
+
+Le compte des résultats et les articles sont lus dans une transaction PostgreSQL cohérente. La page est dynamique et réservée aux professionnels, sans cache partagé. La pagination peut évoluer si d’autres sessions ajoutent des essais ou changent leur statut entre deux lectures. « Actualiser la liste » conserve les filtres ; les boutons par essai gardent le contrôle de révision. Un conflit demande une actualisation avant une nouvelle décision.
+
+Les tests utilisent 126 essais pour vérifier pagination, dates identiques, tri, filtres, droits gérant/cuisine, refus client/anonyme, compte désactivé et mode désactivé. Chromium couvre pagination, acceptation depuis une liste filtrée, conflit avec une autre session, actualisation, recherche et remise à zéro. Aucun essai ne doit déclencher de préparation réelle.

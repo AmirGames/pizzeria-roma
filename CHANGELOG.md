@@ -2,6 +2,8 @@
 
 ## 2026-10-15
 
+- File professionnelle des essais paginée et filtrable, priorité aux plus anciens essais à traiter, avec actualisation de la liste.
+
 - Historique client paginé et recherche par référence/statut, avec accès aux anciens essais au-delà des 50 derniers.
 
 - Carnet d’adresses client privé, adresse par défaut et préremplissage des livraisons simulées, avec contrôle des modifications concurrentes.
