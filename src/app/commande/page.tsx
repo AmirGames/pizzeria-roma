@@ -86,7 +86,7 @@ export default function FulfillmentPage() {
             <div className="roma-hours-row"><span>Samedi</span><strong>18h00–22h00</strong></div>
             <div className="roma-hours-row"><span>Dimanche</span><strong>Fermé</strong></div>
             <div className="roma-slot-note"><h3>Créneaux horaires</h3><p>Les créneaux de livraison et de retrait seront activés lorsque la gestion des commandes et des disponibilités sera opérationnelle.</p></div>
-            <button type="button" className="roma-checkout" disabled>Continuer — bientôt disponible</button>
+            <Link href="/commande/test" className="roma-checkout">Essayer une commande de test →</Link>
             <Link href="/panier" className="roma-fulfillment-back">← Retour au panier</Link>
           </aside>
         </div>

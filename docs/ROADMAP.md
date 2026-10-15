@@ -52,3 +52,7 @@ Personnalisation interactive et espace gérant avec accès privé : voir [MANAGE
 ## Proposition suivante — édition du panier
 
 Modification du format, des suppléments et des retraits directement depuis le panier, avec validation serveur et conservation des quantités. Les recettes identiques sont regroupées ; un changement externe du panier bloque une édition devenue obsolète. Tests du parcours dans Chromium.
+
+## Proposition — espace client et commandes locales
+
+Comptes clients et workflow de test explicites : inscription/connexion, coordonnées fictives, confirmation, historique et statut simulé gérant/cuisine. La prise de commandes commerciales, les paiements et la validation réelle des adresses restent désactivés. Voir [CUSTOMER_TESTS.md](CUSTOMER_TESTS.md).
