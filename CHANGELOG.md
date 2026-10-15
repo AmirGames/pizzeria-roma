@@ -2,6 +2,8 @@
 
 ## 2026-10-15
 
+- Carnet d’adresses client privé, adresse par défaut et préremplissage des livraisons simulées, avec contrôle des modifications concurrentes.
+
 - Proposition suivante : vérification e-mail, récupération du mot de passe et Mailpit local, avec liens à usage unique, expiration et révocation des accès précédents.
 
 - Proposition suivante : coordonnées du profil client et changement de mot de passe avec rotation et révocation des sessions, y compris face aux connexions concurrentes.

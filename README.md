@@ -15,6 +15,7 @@ Le projet peut être essayé en local. **Les commandes commerciales et les paiem
 - Panier catalogue : modification des recettes, conservation des quantités et regroupement des recettes identiques, avec contrôle serveur des prix et options.
 - Espace gérant : recherche des articles, gestion des prix/disponibilités/options et création de pizzas en brouillon avant publication explicite.
 - En mode test : inscription/connexion client, profil nom/téléphone, changement de mot de passe, confirmation, historique privé et annulation des essais en attente.
+- Carnet privé de dix adresses en mode test : ajout, modification, suppression, adresse par défaut et sélection au checkout.
 - Suivi simulé des commandes côté gérant/cuisine, avec transitions de statut et contrôle des permissions.
 - Aperçu des zones et minima de livraison, du retrait et des horaires dans le fuseau `Europe/Brussels`.
 
@@ -151,7 +152,7 @@ npm run build
 
 Les tests d’intégration (`npm run test:integration`) et navigateur (`npm run test:browser`) nécessitent un build, les migrations appliquées, `RUN_DATABASE_TESTS=1`, `ENABLE_TEST_ORDERS=true` et une base dédiée dont le nom finit par `_test`. Pour Chromium, installer au préalable le navigateur avec `npx playwright install chromium`. Ne pas utiliser une base contenant des données réelles.
 
-La CI fournit PostgreSQL 16 dans une base jetable, valide/applique les migrations, vérifie TypeScript, lance les tests unitaires et d’intégration, compile Next.js puis teste six parcours dans Chromium avec Mailpit. Les trois PR fusionnées ont passé ces contrôles.
+La CI fournit PostgreSQL 16 dans une base jetable, valide/applique les migrations, vérifie TypeScript, lance les tests unitaires et d’intégration, compile Next.js puis teste sept parcours dans Chromium avec Mailpit. Les trois PR fusionnées ont passé ces contrôles.
 
 ## Documentation
 
@@ -170,3 +171,11 @@ Avec Mailpit démarré et `LOCAL_MAIL_URL` configurée, une inscription tente d�
 Ouvrir [Mailpit](http://localhost:8025) pour lire les messages : les liens de vérification durent 24 heures et ceux de récupération 15 minutes. Un nouveau lien remplace le précédent du même type. Leur ouverture ne consomme rien : confirmer dans le formulaire. Les jetons sont retirés de l’URL affichée et seuls leurs hash sont stockés en base.
 
 Le mot de passe oublié donne une réponse générique, que le compte existe ou non. Après réinitialisation, se reconnecter avec le nouveau mot de passe ; toutes les anciennes sessions sont invalidées. Un changement de mot de passe depuis le profil invalide aussi les anciens liens de récupération. Aucune nouvelle session n’est créée automatiquement après un lien de récupération.
+
+## Adresses enregistrées
+
+Dans `/compte`, « Mes adresses » permet d’ajouter jusqu’à dix adresses fictives avec un libellé (domicile, travail…) et une zone. La première devient l’adresse par défaut. Il est possible de choisir une autre adresse par défaut, de modifier une adresse ou de confirmer sa suppression. Supprimer l’adresse par défaut sélectionne automatiquement la plus ancienne adresse restante.
+
+En livraison simulée, `/commande/test` préremplit l’adresse par défaut et sa zone. Choisir une adresse dans la liste remplit les deux champs ; une saisie ponctuelle ne modifie pas le carnet. Les adresses sont privées à chaque compte et ne sont pas enregistrées dans le stockage local du navigateur. Une modification ou une suppression ne change pas l’adresse conservée dans les anciens essais. La zone reste déclarative : aucune vérification géographique ni réservation de livraison.
+
+Cette évolution nécessite la migration `20261015120000_customer_addresses`, en suivant les commandes de mise à jour locale ci-dessus ; aucun seed supplémentaire. Deux modifications concurrentes ne s’écrasent pas : un conflit demande d’actualiser la liste.

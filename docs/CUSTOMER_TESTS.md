@@ -69,3 +69,13 @@ La consommation est atomique et un lien ne peut être utilisé qu’une fois, m�
 La demande de récupération ne révèle pas si un compte existe : même réponse pour une adresse inconnue, désactivée ou non éligible. Une panne de livraison pour un compte existant conserve cette réponse générique. Consulter Mailpit et réessayer si le message n’apparaît pas. Les messages restent dans la boîte de test jusqu’à leur suppression ou leur expiration selon la configuration de Mailpit ; ils contiennent des liens privés à ne pas partager.
 
 La CI démarre une boîte Mailpit jetable. Les tests vérifient la réception, les types de liens, l’expiration, les consommations simultanées, l’invalidation après changement de mot de passe, la révocation des sessions et le parcours dans Chromium.
+
+## Carnet d’adresses privé
+
+Le compte client peut conserver dix adresses fictives au maximum (libellé, adresse complète et zone déclarée). Les API `/api/customer/addresses` et `/api/customer/addresses/[id]` exigent une session CUSTOMER active et le mode test ; les mutations exigent du JSON de même origine. L’identité du propriétaire vient exclusivement de la session. Un identifiant d’un autre client renvoie 404. Les réponses privées utilisent `Cache-Control: no-store`.
+
+La première adresse est définie par défaut ; une suppression de l’adresse par défaut promeut la plus ancienne restante. Les mutations verrouillent la ligne du propriétaire dans une transaction afin de sérialiser les changements de défaut et la limite de dix adresses. Un index unique partiel PostgreSQL interdit plusieurs adresses par défaut pour le même propriétaire. Une révision est exigée pour modifier ou supprimer une adresse ; une révision obsolète renvoie 409. Le bouton d’actualisation récupère l’état courant avant une nouvelle décision.
+
+Le checkout charge uniquement les adresses du client connecté. Les champs de livraison sont préremplis avec le défaut, puis restent modifiables pour cet essai. La confirmation transmet les valeurs visibles et conserve leur instantané dans `TestOrder`, sans référence mutable au carnet. Le mode retrait reste disponible sans adresse. Aucun géocodage ni envoi externe n’est ajouté. Utiliser des données fictives.
+
+Les tests couvrent l’isolation des comptes, les rôles, le mode désactivé, les origines étrangères, les révisions obsolètes, les créations concurrentes, l’unicité du défaut, la limite, la suppression en cascade et le parcours Chromium jusqu’à la confirmation d’une livraison simulée. L’adresse historique reste identique après suppression du carnet.
