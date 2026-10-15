@@ -1,66 +1,159 @@
 # Pizzeria Roma
 
-Application de commande en ligne indépendante pour Pizzeria Roma (Namur).
+Application Next.js / TypeScript pour Pizzeria Roma à Namur, avec PostgreSQL et Prisma.
 
-## État
+## État du projet
 
-Le catalogue du menu communiqué le 14/10/2026 et un panier de prévisualisation sont en place. Un espace client et des commandes simulées sont disponibles après activation explicite du mode test. La livraison et le retrait restent des aperçus : aucune commande réelle, aucun paiement ni lancement de production n'est activé.
+Les PR [#21](https://github.com/AmirGames/pizzeria-roma/pull/21), [#22](https://github.com/AmirGames/pizzeria-roma/pull/22) et [#23](https://github.com/AmirGames/pizzeria-roma/pull/23) sont fusionnées dans `main`, dans cet ordre : édition du panier, espace client et commandes de test, puis coordonnées du profil et changement du mot de passe.
 
-## Objectifs
+Le projet peut être essayé en local. **Les commandes commerciales et les paiements restent désactivés.** Les essais sont enregistrés dans `TestOrder`, séparément de `Order` ; aucun e-mail, ordre de préparation réelle ou réservation de créneau n’est envoyé. La fusion du code n’applique aucune migration à votre base et ne déploie pas le site.
 
-- Site client responsive et PWA, français et anglais.
-- Catalogue et personnalisation des pizzas.
-- Livraison par zones et retrait sur place.
-- Paiement en ligne sécurisé et acceptation manuelle, après validation juridique et opérationnelle.
-- Espace gérant et cuisine.
+## Fonctionnalités disponibles
 
-## Méthode
+- Catalogue du menu du 14/10/2026, avec formats, choix de pâtes, desserts et suppléments configurés.
+- Personnalisation d’une pizza prédéfinie : retrait d’ingrédients autorisés **sans réduction du prix**, et suppléments à prix fixe ou selon le format.
+- Panier catalogue : modification des recettes, conservation des quantités et regroupement des recettes identiques, avec contrôle serveur des prix et options.
+- Espace gérant : recherche des articles, gestion des prix/disponibilités/options et création de pizzas en brouillon avant publication explicite.
+- En mode test : inscription/connexion client, profil nom/téléphone, changement de mot de passe, confirmation, historique privé et annulation des essais en attente.
+- Suivi simulé des commandes côté gérant/cuisine, avec transitions de statut et contrôle des permissions.
+- Aperçu des zones et minima de livraison, du retrait et des horaires dans le fuseau `Europe/Brussels`.
 
-Développement par pull requests avec tests, revue et mise à jour de la documentation. Voir [`docs/`](docs/) pour les exigences, règles et jalons.
+Les compositions des pizzas, les tarifs individuels des suppléments pizza et les allergènes restent à confirmer/renseigner. Ils ne sont pas déduits des noms des produits ni inventés par le seed.
 
-## Confidentialité
+## Démarrer en local
 
-Ne jamais committer de secrets, clés API, coordonnées bancaires ou données réelles de clients.
+Prérequis : **Node.js 22**, npm, Git et Docker avec Docker Compose. Démarrer Docker avant les commandes de base de données.
 
-## Développement local (préparation)
+### 1. Récupérer le projet
 
-- Node.js 22, npm et Docker requis.
-- `npm install`, `npm run typecheck`, `npm test`, `npm run build`.
-- Pour préparer PostgreSQL : définir `POSTGRES_PASSWORD` et `DATABASE_URL` localement, puis `docker compose up -d db` et `npm run db:validate`.
-- Ne pas exécuter de migration en production avant revue et validation.
+```bash
+git clone https://github.com/AmirGames/pizzeria-roma.git
+cd pizzeria-roma
+```
 
-L’espace gérant permet de créer des pizzas en brouillon, de gérer les prix et options et de rechercher un article. Un accès privé par lien à usage unique est disponible après configuration du serveur. La connexion client et l’inscription sont disponibles uniquement dans le mode test explicite.
+### 2. Configurer `.env`
 
-## Authentification
+Créer un fichier `.env` à la racine. Exemple réservé au développement local :
 
-L’espace `/gerant/carte` utilise des sessions vérifiées côté serveur et une connexion par lien privé généré depuis un terminal de confiance. Voir [la configuration gérant](docs/MANAGER.md). Aucun accès gérant n’est créé automatiquement au déploiement. Le mode `ENABLE_TEST_ORDERS=true` ajoute les comptes clients de test, avec inscription/connexion par mot de passe ; voir [CUSTOMER_TESTS.md](docs/CUSTOMER_TESTS.md).
+```env
+POSTGRES_PASSWORD=roma_local_dev
+DATABASE_URL=postgresql://roma:roma_local_dev@localhost:5432/roma?schema=public
+APP_ORIGIN=http://localhost:3000
+ENABLE_TEST_ORDERS=true
+```
 
-## Catalogue du menu 2026
+Le mot de passe PostgreSQL doit correspondre dans les deux premières lignes. Ne jamais committer `.env` ni des identifiants réels. Voir [`.env.example`](.env.example).
 
-La carte datée du 14/10/2026 est transcrite dans [`docs/RESTAURANT_MENU_SOURCE.md`](docs/RESTAURANT_MENU_SOURCE.md) et structurée dans `prisma/menu-2026-10-14.mjs`. Après migration, `npm run db:seed` charge explicitement les produits sur la base pointée par `DATABASE_URL` ; le seed n'est jamais exécuté automatiquement. La fusion du code ne signifie pas que la base d'un environnement particulier a été amorcée.
+`ENABLE_TEST_ORDERS=true` active explicitement les comptes clients et les commandes simulées. Sans cette valeur, le mode est désactivé. Utiliser des coordonnées fictives pour les essais.
 
-Les formes de pâtes, la majoration tagliatelle, le choix de dessert et le supplément fromage exclusif sont tarifés côté serveur. Les suppléments pizza restent absents faute de liste et de prix individuels. Les allergènes ne sont pas déclarés ni déduits. Voir [`docs/CATALOG.md`](docs/CATALOG.md).
+### 3. Installer et préparer la base locale
 
-## Aperçu du menu
+```bash
+npm install
+npm run db:generate
+docker compose up -d db
+npx prisma migrate deploy
+```
 
-Démarrer avec `npm run dev` puis ouvrir `http://localhost:3000/menu`. La page affiche les produits, tailles et suppléments actifs publiés dans le catalogue Prisma. Les données du menu du 14/10/2026 ne sont visibles qu'après exécution explicite de `npm run db:seed` sur la base configurée. Si aucun produit n'a été publié ou si le catalogue est indisponible, la page affiche un état explicite. Aucun allergène n'est inventé et aucun achat n'est possible.
+Le conteneur PostgreSQL conserve les données dans un volume Docker et expose son port uniquement sur `127.0.0.1:5432`. Attendre que la base soit prête si la première migration rencontre une erreur de connexion.
 
-## Personnalisation des pizzas
+### 4. Charger la carte initiale, une seule fois si nécessaire
 
-La carte permet de retirer les ingrédients configurés sans réduction de prix et de sélectionner des suppléments avec prix fixe ou par format. Le panier conserve les recettes distinctes et le serveur recalcule les montants. Les compositions et tarifs des suppléments restent à renseigner dans l’espace gérant ; aucune commande n’est envoyée. Voir [`docs/PIZZA_CUSTOMIZATION.md`](docs/PIZZA_CUSTOMIZATION.md).
+```bash
+npm run db:seed
+```
 
-## Panier
+Le seed charge explicitement la carte dans la base pointée par `DATABASE_URL`. Il n’est exécuté ni au build ni automatiquement au démarrage. **Le relancer réapplique des noms, prix et disponibilités du menu source et remplace les options qu’il gère** : ne pas le relancer après personnalisation sans vouloir restaurer ces données.
 
-Ouvrir `/panier` pour tester le panier de démonstration, avec son article et son tarif fictifs, ses quantités, sa suppression et son commentaire local. Il reste séparé du panier catalogue. Les recettes peuvent être modifiées directement depuis le panier catalogue, avec validation serveur et conservation des quantités. Les articles du menu peuvent être ajoutés à ce dernier sous forme d'identifiants ; l'API serveur relit les prix, options et règles. Aucune commande ni aucun paiement n'est créé. Voir [`docs/CART.md`](docs/CART.md).
+### 5. Démarrer le site
 
-## Livraison et retrait (aperçu)
+```bash
+npm run dev
+```
 
-La page `/commande` présente les règles selon le mode livraison/retrait et la zone choisie. Avec une sélection catalogue, les prix et l'éligibilité sont recalculés côté serveur. Le panier de démonstration reste une simulation locale. La route `POST /api/cart/preview` relit les produits et prix depuis Prisma ; `GET /api/catalog` ne retourne que les données actives. Un indicateur informatif d'ouverture suit les horaires habituels et le service 18h–22h des jours fériés légaux belges dans le fuseau `Europe/Brussels` ; le dimanche reste fermé. Les éventuels jours de remplacement ou exceptions propres au restaurant doivent être confirmés. L’indicateur ne réserve aucun créneau et ne rend pas les commandes disponibles.
+Ouvrir [http://localhost:3000/menu](http://localhost:3000/menu).
 
-**Règle confirmée :** seules les pizzas et les pâtes comptent dans le minimum de plats par zone. Namur centre = 1 plat ; Belgrade, Erpent et Saint-Servais = 2 plats. La livraison est gratuite. Une pizza maxi 50 cm compte pour 2 plats ; une pizza 33 cm compte pour 2 à partir de 18 € par pizza, suppléments inclus ; les pâtes comptent pour 1. Salades, boissons et desserts restent exclus. La règle concernant les desserts est inchangée.
+## Mettre à jour une installation locale existante
 
-Le choix d'une zone n'est pas une validation d'adresse. Les frontières géographiques, horaires, créneaux et capacités restent à confirmer avant tout checkout. Voir [`docs/FULFILLMENT.md`](docs/FULFILLMENT.md) et la [`roadmap`](docs/ROADMAP.md).
+Depuis le dépôt, après avoir sauvegardé ou committé vos modifications locales :
 
-## Espace client et commandes de test
+```bash
+git switch main
+git pull --ff-only origin main
+npm install
+npm run db:generate
+docker compose up -d db
+npx prisma migrate deploy
+npm run dev
+```
 
-En local, ajouter `ENABLE_TEST_ORDERS=true` et `APP_ORIGIN=http://localhost:3000` dans `.env`, appliquer les migrations puis démarrer `npm run dev`. Utiliser `/compte` pour s’inscrire, modifier son nom/téléphone et changer son mot de passe, `/commande/test` pour confirmer un essai et `/gerant/commandes-test` pour simuler son suivi côté professionnel. Les essais sont stockés séparément des commandes commerciales. Aucun paiement, e-mail ou ordre de préparation réelle n’est envoyé. Les compositions et suppléments doivent être configurés dans la carte. Voir [le guide du mode test](docs/CUSTOMER_TESTS.md).
+Arrêter l’ancien serveur de développement avant de le relancer. Conserver votre `.env` et ajouter `ENABLE_TEST_ORDERS=true` pour essayer l’espace client. **Aucun nouveau seed n’est nécessaire pour ces mises à jour.** Vérifier que `DATABASE_URL` désigne bien la base locale souhaitée avant toute migration.
+
+## Accès gérant
+
+Depuis un deuxième terminal dans le dossier du projet, remplacer l’adresse d’exemple par celle du compte gérant souhaité :
+
+```bash
+npm run manager:access -- --email gerant@example.be --origin http://localhost:3000
+```
+
+Ouvrir le lien privé affiché puis confirmer la connexion. Le lien expire après 15 minutes et ne sert qu’une fois. Le script crée un compte `MANAGER` s’il n’existe pas ; il refuse de promouvoir automatiquement un compte client existant. Aucun compte gérant n’est créé au seed ou au déploiement, et aucun e-mail n’est envoyé.
+
+Garder ce lien privé. Utiliser des comptes distincts pour les parcours client et professionnel. Voir [le guide gérant](docs/MANAGER.md).
+
+## Pages principales
+
+| Page | Utilisation |
+| --- | --- |
+| `/menu` | Carte et personnalisation avant ajout au panier |
+| `/panier` | Sélection catalogue et modification des recettes ; démonstration fictive séparée si aucun article catalogue |
+| `/commande` | Aperçu livraison/retrait, zones et horaires |
+| `/compte` | Inscription, connexion, profil et historique client en mode test |
+| `/commande/test` | Confirmation d’un essai pour un client connecté |
+| `/compte/commandes/[id]` | Détail et suivi d’un essai appartenant au client |
+| `/gerant/connexion` | Connexion par lien privé |
+| `/gerant/carte` | Édition de la carte, réservée au gérant |
+| `/gerant/commandes-test` | Suivi simulé, réservé au gérant et à la cuisine |
+
+## Parcours de test conseillé
+
+1. Avec le compte gérant, renseigner les ingrédients retirables et les suppléments/prix d’une pizza.
+2. Avec un compte client distinct créé sur `/compte`, composer une pizza et l’ajouter au panier.
+3. Modifier sa recette depuis `/panier`, puis confirmer un essai sur `/commande/test`.
+4. Consulter son détail et son historique dans l’espace client.
+5. Avec le compte professionnel, simuler les étapes de préparation dans `/gerant/commandes-test`, puis actualiser le suivi client.
+
+Le changement de mot de passe demande le mot de passe actuel et une confirmation. Il crée une nouvelle session pour le navigateur courant et déconnecte les autres sessions, y compris face à une connexion concurrente. Les coordonnées modifiées préremplissent les prochains essais et ne réécrivent pas l’historique.
+
+## Livraison, retrait et limites actuelles
+
+La livraison est gratuite. Seules les pizzas et les pâtes comptent pour le minimum : Namur centre = 1 plat ; Belgrade, Erpent et Saint-Servais = 2 plats. Une pizza 50 cm compte pour 2 ; une pizza 33 cm compte pour 2 à partir de 18 € par pizza, suppléments inclus ; les pâtes comptent pour 1. Salades, boissons et desserts sont exclus. Le retrait n’a pas de minimum de plats.
+
+Choisir une zone ne vérifie pas une adresse. Les frontières de livraison, créneaux, capacités et exceptions d’horaires restent à confirmer avant des commandes réelles. Les jours fériés légaux belges affichent un service informatif 18h–22h, sauf dimanche fermé.
+
+La vérification e-mail, la récupération du mot de passe, la suppression/export du compte et les exigences d’exploitation restent à traiter avant l’ouverture publique de l’espace client. La PWA, la traduction complète et les paiements sont des objectifs, pas des fonctions annoncées comme terminées.
+
+## Vérifications
+
+Après installation et génération du client Prisma :
+
+```bash
+npm run db:validate
+npm run typecheck
+npm test
+npm run build
+```
+
+Les tests d’intégration (`npm run test:integration`) et navigateur (`npm run test:browser`) nécessitent un build, les migrations appliquées, `RUN_DATABASE_TESTS=1`, `ENABLE_TEST_ORDERS=true` et une base dédiée dont le nom finit par `_test`. Pour Chromium, installer au préalable le navigateur avec `npx playwright install chromium`. Ne pas utiliser une base contenant des données réelles.
+
+La CI fournit PostgreSQL 16 dans une base jetable, valide/applique les migrations, vérifie TypeScript, lance les tests unitaires et d’intégration, compile Next.js puis teste cinq parcours dans Chromium. Les trois PR fusionnées ont passé ces contrôles.
+
+## Documentation
+
+- [Catalogue et prix](docs/CATALOG.md) · [source du menu](docs/RESTAURANT_MENU_SOURCE.md)
+- [Personnalisation](docs/PIZZA_CUSTOMIZATION.md) · [panier](docs/CART.md)
+- [Espace gérant](docs/MANAGER.md) · [espace client et essais](docs/CUSTOMER_TESTS.md)
+- [Livraison et retrait](docs/FULFILLMENT.md) · [sécurité](docs/SECURITY.md)
+- [Roadmap](docs/ROADMAP.md) · [changelog](CHANGELOG.md)
+
+Développement par pull requests avec revue et vérifications. Ne jamais publier de secrets, de clés API ou de données réelles de clients dans le dépôt.
