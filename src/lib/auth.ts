@@ -31,6 +31,7 @@ export async function getCurrentUser() {
     email: session!.user.email,
     name: session!.user.name,
     phone: session!.user.phone,
+    emailVerified: session!.user.emailVerified,
     role: session!.user.role,
   };
 }

@@ -13,3 +13,9 @@ export function validatePasswordChange(input) {
   if (input.newPassword !== input.confirmation || input.newPassword === input.currentPassword) invalid();
   return { currentPassword: input.currentPassword, newPassword: input.newPassword };
 }
+
+export function validatePasswordReset(input) {
+  if (!input || typeof input !== 'object' || Array.isArray(input) || Object.keys(input).some(key => !['token', 'newPassword', 'confirmation'].includes(key)) ||
+      typeof input.token !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(input.token) || typeof input.newPassword !== 'string' || input.newPassword.length < 12 || Buffer.byteLength(input.newPassword, 'utf8') > 256 || input.newPassword !== input.confirmation) invalid();
+  return { token: input.token, newPassword: input.newPassword };
+}

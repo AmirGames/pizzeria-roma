@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import Link from 'next/link';
 export default function AccountAccess({ returnTo }: { returnTo: string }) {
   const [action, setAction] = useState<'login' | 'register'>('login');
   const [busy, setBusy] = useState(false);
@@ -21,8 +22,8 @@ export default function AccountAccess({ returnTo }: { returnTo: string }) {
       {action === 'register' && <label>Votre nom<input name="name" required maxLength={128} autoComplete="name" /></label>}
       <label>Adresse e-mail<input name="email" type="email" required maxLength={320} autoComplete="email" /></label>
       <label>Mot de passe<input name="password" type="password" required minLength={12} maxLength={128} autoComplete={action === 'register' ? 'new-password' : 'current-password'} /></label>
-      <p>12 caractères minimum. Cet espace est réservé aux essais ; aucun e-mail de vérification n’est envoyé.</p>
+      <p>12 caractères minimum. Cet espace est réservé aux essais ; les e-mails sont capturés dans la boîte mail locale si elle est configurée.</p>
       <button type="submit">{busy ? 'Patientez…' : action === 'register' ? 'Créer mon compte de test' : 'Ouvrir mon espace'}</button>
-    </fieldset>{error && <p role="alert">{error}</p>}</form>
+    </fieldset><Link href="/compte/mot-de-passe-oublie">Mot de passe oublié ?</Link>{error && <p role="alert">{error}</p>}</form>
   </section>;
 }

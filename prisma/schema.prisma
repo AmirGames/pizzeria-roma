@@ -55,6 +55,7 @@ model User {
   managerAccessTokens ManagerAccessToken[]
   customerCredential CustomerCredential?
   testOrders TestOrder[]
+  customerEmailTokens CustomerEmailToken[]
 }
 
 model Session {
@@ -156,6 +157,7 @@ model ManagerAccessToken {
 }
 
 model CustomerCredential {
+  version Int @default(0)
   userId String @id
   passwordHash String
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -189,4 +191,22 @@ model TestOrder {
   @@unique([userId, requestKey])
   @@index([userId, placedAt])
   @@index([status, placedAt])
+}
+
+enum CustomerEmailPurpose {
+  VERIFY_EMAIL
+  RESET_PASSWORD
+}
+
+model CustomerEmailToken {
+  tokenHash String @id @db.Char(64)
+  userId String
+  email String @db.VarChar(320)
+  purpose CustomerEmailPurpose
+  credentialVersion Int
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId, purpose])
+  @@index([expiresAt])
 }

@@ -7,9 +7,10 @@ Cette évolution s’appuie sur l’édition du panier (PR #21). Après installa
 ```env
 ENABLE_TEST_ORDERS=true
 APP_ORIGIN=http://localhost:3000
+LOCAL_MAIL_URL=http://127.0.0.1:8025
 ```
 
-Démarrer avec `npm run dev`. `/compte` propose inscription et connexion ; `/commande/test` permet de confirmer un essai à partir du panier catalogue. Utiliser des coordonnées fictives. Aucun e-mail n’est envoyé et aucun paiement n’est demandé. Le mode est désactivé par défaut ; les nouvelles API renvoient 404 si la variable ne vaut pas exactement `true`. La déconnexion reste disponible même après désactivation.
+Démarrer Mailpit avec `docker compose up -d db mailpit`, appliquer la nouvelle migration et régénérer Prisma, puis démarrer avec `npm run dev`. La boîte est consultable sur `http://localhost:8025`. `/compte` propose inscription et connexion ; `/commande/test` permet de confirmer un essai à partir du panier catalogue. Utiliser des coordonnées fictives. Les e-mails sont capturés dans Mailpit ; aucun e-mail externe ni paiement n’est envoyé. Le mode est désactivé par défaut ; les nouvelles API renvoient 404 si la variable ne vaut pas exactement `true`. La déconnexion reste disponible même après désactivation.
 
 ## Compte client
 
@@ -17,7 +18,7 @@ Un compte inscrit publiquement reçoit toujours le rôle CUSTOMER. Le navigateur
 
 La session utilise le mécanisme existant : jeton aléatoire, seul son hash en base, cookie HttpOnly/SameSite=Lax, Secure hors développement. Elle dure sept jours ; une déconnexion supprime la session en base. Les mutations exigent du JSON de même origine. La connexion et l’inscription sont limitées en base à 10 tentatives par e-mail et 100 au total sur une fenêtre de 15 minutes. Les rôles, comptes désactivés et sessions révoquées sont contrôlés sur chaque accès.
 
-Le client voit son nom, son e-mail, ses 50 derniers tests et leur détail. La consultation d’un test appartenant à une autre personne est refusée, même avec son identifiant. La vérification e-mail, la récupération du mot de passe et la suppression/export du compte restent à développer avant un espace client public. Pour les essais locaux, créer un autre compte fictif si nécessaire ; ne pas utiliser de données réelles.
+Le client voit son nom, son e-mail, ses 50 derniers tests et leur détail. La consultation d’un test appartenant à une autre personne est refusée, même avec son identifiant. La vérification e-mail et la récupération du mot de passe utilisent la boîte locale. Un service d’envoi externe ainsi que la suppression/export du compte restent à préparer avant un espace client public. Pour les essais locaux, créer un autre compte fictif si nécessaire ; ne pas utiliser de données réelles.
 
 ## Enregistrement d’un test
 
@@ -53,3 +54,18 @@ Le changement du mot de passe exige le mot de passe actuel, un nouveau mot de pa
 La connexion verrouille le hash qu’elle vient de vérifier jusqu’à la création de sa session. Une connexion concurrente avec l’ancien mot de passe ne peut donc pas recréer une session valide après la rotation. Deux changements concurrents ne peuvent pas s’écraser silencieusement : le hash attendu fait partie du contrôle de mise à jour.
 
 Les tests PostgreSQL vérifient l’isolation du profil, la conservation de l’historique, la révocation des autres sessions, une connexion concurrente, le refus de l’ancien mot de passe et l’utilisation du nouveau. Un test Chromium couvre les formulaires, la confirmation, la persistance des coordonnées et une seconde session révoquée.
+
+
+## Vérification e-mail et récupération locale
+
+L’envoi utilise exclusivement l’API HTTP de Mailpit sur une adresse de boucle locale (`localhost`, `127.0.0.1` ou `::1`). L’origine des liens est prise dans `APP_ORIGIN`, jamais dans un en-tête fourni par le navigateur. L’hôte de la boîte Mailpit n’est pas configurable depuis les formulaires. Les cookies, limites de tentatives et contrôles d’origine existants restent appliqués.
+
+Une inscription tente un premier envoi de vérification si la boîte locale est configurée. Une panne de Mailpit n’annule pas le compte : il est possible de renvoyer le lien depuis la session client. L’adresse vérifiée est affichée dans le compte, sans bloquer les commandes simulées des clients non vérifiés.
+
+Les deux types de liens sont distincts. Un lien de vérification expire après 24 heures ; un lien de récupération après 15 minutes. Seul le hash du jeton aléatoire de 256 bits est enregistré dans `CustomerEmailToken`. Les liens transportent le jeton dans le fragment de l’URL, absent des requêtes HTTP ; le formulaire retire ce fragment de l’historique puis demande une confirmation explicite. Aucun GET ne modifie le compte.
+
+La consommation est atomique et un lien ne peut être utilisé qu’une fois, même avec deux requêtes simultanées. Un renvoi remplace le lien précédent du même type. La réinitialisation du mot de passe incrémente la version du secret, invalide les liens de récupération et révoque les sessions, puis demande une reconnexion. Le changement du mot de passe depuis le profil invalide aussi les liens de récupération en attente.
+
+La demande de récupération ne révèle pas si un compte existe : même réponse pour une adresse inconnue, désactivée ou non éligible. Une panne de livraison pour un compte existant conserve cette réponse générique. Consulter Mailpit et réessayer si le message n’apparaît pas. Les messages restent dans la boîte de test jusqu’à leur suppression ou leur expiration selon la configuration de Mailpit ; ils contiennent des liens privés à ne pas partager.
+
+La CI démarre une boîte Mailpit jetable. Les tests vérifient la réception, les types de liens, l’expiration, les consommations simultanées, l’invalidation après changement de mot de passe, la révocation des sessions et le parcours dans Chromium.
