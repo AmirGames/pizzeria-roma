@@ -8,17 +8,17 @@
 - Une commande invitée ne doit pas être accessible à partir de sa seule référence publique.
 
 ## Non implémenté — bloquant avant toute mise en production
-- Connexion et vérification e-mail réelles, émission/validation/révocation des sessions.
-- Cookies HttpOnly, Secure, SameSite ; protection CSRF, limitation des tentatives.
+- Connexion et vérification e-mail des clients.
+- Limitation des tentatives pour les futurs accès par mot de passe et flux d’e-mail.
 - MFA des gérants, réinitialisation de compte et journal d'audit.
 - Vérification des autorisations sur chaque endpoint et accès aux commandes par propriétaire.
 - Gestion RGPD, suppression/export, politique de conservation.
 - Migrations appliquées et testées sur PostgreSQL, sauvegarde et restauration.
 
-Ne pas utiliser ce squelette comme un système d'authentification opérationnel.
+Le périmètre d’accès gérant actuel est décrit ci-dessous ; les comptes clients et la prise de commandes restent hors de ce périmètre.
 
 ## PR-02b : lecture des sessions
 - Vérification serveur d'une session par hash, expiration, révocation et désactivation de l'utilisateur.
 - Permissions vérifiées à partir du rôle lu en base.
 - Politique de cookie HttpOnly/Secure/SameSite testée.
-- **Il n'existe toujours pas d'endpoint de connexion, d'inscription ni d'émission de cookie.** Le cookie doit être défini seulement par un futur flux serveur sécurisé.
+- Une connexion gérant par jeton temporaire à usage unique et une déconnexion serveur sont disponibles. Voir [MANAGER.md](MANAGER.md). Le jeton de 256 bits est généré depuis un terminal administrateur, dure 15 minutes et est stocké uniquement sous forme de hash. La consommation du lien et la création de session sont atomiques. Les mutations exigent du JSON de même origine. Aucun mot de passe partagé, inscription publique ou compte client connecté n’est introduit.

@@ -22,3 +22,14 @@ test('rejects price/category fields and malformed selections from browser storag
   assert.deepEqual(readCatalogCart(JSON.stringify([{ productId: 'pizza', quantity: 1, extraIds: ['x', 'x'] }])), []);
   assert.throws(() => addCatalogCartItem([], { productId: 'pizza', quantity: 100 }), /INVALID_CART/);
 });
+
+test('preserves removals after storage and separates recipes while merging reordered removals', () => {
+  const original = { productId: 'pizza', sizeId: '33', extraIds: [] };
+  let lines = addCatalogCartItem([], original);
+  lines = addCatalogCartItem(lines, { ...original, removedIngredients: ['Mozzarella', 'Tomate'] });
+  lines = addCatalogCartItem(lines, { ...original, removedIngredients: ['Tomate', 'Mozzarella'] });
+  assert.deepEqual(lines.map(line => line.quantity), [1, 2]);
+  assert.deepEqual(readCatalogCart(JSON.stringify(lines)), lines);
+  assert.deepEqual(setCatalogCartQuantity(lines, 1, 3)[1].removedIngredients, ['Mozzarella', 'Tomate']);
+  assert.throws(() => addCatalogCartItem([], { ...original, removedIngredients: ['Tomate', 'Tomate'] }), /INVALID_CART/);
+});

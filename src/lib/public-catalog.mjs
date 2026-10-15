@@ -1,3 +1,5 @@
+import { validateSizePrices } from './extra-pricing.mjs';
+
 const allowedCategories = new Set(['PIZZA', 'PASTA', 'OTHER']);
 
 function assertPrice(value) {
@@ -24,10 +26,11 @@ export function buildPublicCatalog(categories) {
           id: product.id,
           nameFr: product.nameFr,
           baseCents: assertPrice(product.baseCents),
+          ...(category.fulfillmentCategory === 'PIZZA' ? { removableIngredients: Array.isArray(product.removableIngredients) ? product.removableIngredients : [] } : {}),
           choiceLabel: typeof product.choiceLabel === 'string' && product.choiceLabel.trim() ? product.choiceLabel : null,
           extraSelectionMode: product.extraSelectionMode === 'SINGLE' ? 'SINGLE' : 'MULTIPLE',
           sizes: (Array.isArray(product.sizes) ? product.sizes : []).filter(size => size && size.active === true).map(size => ({ id: size.id, label: size.label, priceCents: assertPrice(size.priceCents) })),
-          extras: (Array.isArray(product.extras) ? product.extras : []).filter(extra => extra && extra.active === true).map(extra => ({ id: extra.id, nameFr: extra.nameFr, priceCents: assertPrice(extra.priceCents) })),
+          extras: (Array.isArray(product.extras) ? product.extras : []).filter(extra => extra && extra.active === true).map(extra => ({ id: extra.id, nameFr: extra.nameFr, priceCents: assertPrice(extra.priceCents), ...(extra.sizePrices != null ? { sizePrices: validateSizePrices(extra.sizePrices) } : {}) })),
           };
         }).sort((a, b) => a.nameFr.localeCompare(b.nameFr, 'fr')),
     }))

@@ -114,3 +114,23 @@ test('exclusive dessert choice remains OTHER for delivery counting', () => {
   assert.equal(result.fulfillment.dishCount, 0);
   assert.equal(result.fulfillment.eligible, false);
 });
+
+test('validates recipe removals on server and never discounts the pizza', () => {
+  const pizza = { ...catalog[0], removableIngredients: ['Tomate', 'Mozzarella'] };
+  const selection = { productId: pizza.id, sizeId: 's33', extraIds: ['extra-cheese'], quantity: 2 };
+  const standard = previewCatalogCart([pizza], [selection], { mode: 'pickup' });
+  const modified = previewCatalogCart([pizza], [{ ...selection, removedIngredients: ['Tomate'] }], { mode: 'pickup' });
+  assert.equal(modified.subtotalCents, standard.subtotalCents);
+  assert.deepEqual(modified.items[0].removedIngredients, ['Tomate']);
+  for (const removedIngredients of [['unknown'], ['Tomate', 'Tomate'], 'Tomate', [1]]) {
+    assert.throws(() => previewCatalogCart([pizza], [{ ...selection, removedIngredients }], { mode: 'pickup' }), /INVALID_REMOVALS/);
+  }
+  assert.throws(() => previewCatalogCart(catalog, [{ productId: 'pasta-roma', quantity: 1, removedIngredients: ['Tomate'] }], { mode: 'pickup' }), /INVALID_REMOVALS/);
+});
+
+test('server preview applies size-specific supplement prices rather than browser amounts', () => {
+  const pizza = { ...catalog[0], extras: [{ id: 'cheese', nameFr: 'Fromage', active: true, priceCents: 0, sizePrices: { s33: 150, s50: 300 } }] };
+  const selection = { productId: pizza.id, extraIds: ['cheese'], quantity: 2 };
+  assert.equal(previewCatalogCart([pizza], [{ ...selection, sizeId: 's33' }], { mode: 'pickup' }).subtotalCents, 2700);
+  assert.equal(previewCatalogCart([pizza], [{ ...selection, sizeId: 's50' }], { mode: 'pickup' }).subtotalCents, 4000);
+});

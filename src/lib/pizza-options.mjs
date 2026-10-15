@@ -1,3 +1,5 @@
+import { extraPriceForSize } from './extra-pricing.mjs';
+
 /**
  * Validate selection IDs against a trusted server-side product catalog.
  * Prices never come from the submitted selection.
@@ -18,7 +20,7 @@ export function resolvePizzaSelection(product, selection) {
   const extras = ids.map(id => {
     const extra = product.extras.find(item => item.id === id && item.active);
     if (!extra) throw new Error('INVALID_EXTRAS');
-    return extra;
+    return { ...extra, priceCents: extraPriceForSize(extra, size.id) };
   });
   const removedIngredients = selection.removedIngredients ?? [];
   if (!Array.isArray(removedIngredients) || removedIngredients.length > 30 ||

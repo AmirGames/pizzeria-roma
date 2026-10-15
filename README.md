@@ -29,11 +29,11 @@ Ne jamais committer de secrets, clés API, coordonnées bancaires ou données r�
 - Pour préparer PostgreSQL : définir `POSTGRES_PASSWORD` et `DATABASE_URL` localement, puis `docker compose up -d db` et `npm run db:validate`.
 - Ne pas exécuter de migration en production avant revue et validation.
 
-**Attention :** les comptes et les sessions ne sont pas encore utilisables. Les fichiers Prisma et les règles d'autorisation sont uniquement des fondations.
+L’espace gérant permet de créer des pizzas en brouillon, de gérer les prix et options et de rechercher un article. Un accès privé par lien à usage unique est disponible après configuration du serveur. La connexion client et l’inscription restent indisponibles.
 
 ## Authentification
 
-La vérification de session côté serveur est en cours de construction. Aucun formulaire de connexion ou inscription n'est actif. Ne pas considérer les comptes comme prêts pour la production.
+L’espace `/gerant/carte` utilise des sessions vérifiées côté serveur et une connexion par lien privé généré depuis un terminal de confiance. Voir [la configuration gérant](docs/MANAGER.md). Aucun accès n’est créé automatiquement au déploiement ; aucune connexion client ni inscription publique n’est activée.
 
 ## Catalogue du menu 2026
 
@@ -45,9 +45,9 @@ Les formes de pâtes, la majoration tagliatelle, le choix de dessert et le suppl
 
 Démarrer avec `npm run dev` puis ouvrir `http://localhost:3000/menu`. La page affiche les produits, tailles et suppléments actifs publiés dans le catalogue Prisma. Les données du menu du 14/10/2026 ne sont visibles qu'après exécution explicite de `npm run db:seed` sur la base configurée. Si aucun produit n'a été publié ou si le catalogue est indisponible, la page affiche un état explicite. Aucun allergène n'est inventé et aucun achat n'est possible.
 
-## Personnalisation des pizzas (préparation)
+## Personnalisation des pizzas
 
-La page `/menu/personnaliser` présente les options prévues. Les modules de validation et de devis sont testés séparément. Le panier catalogue permet de revoir des sélections, mais n'envoie aucune commande. Voir [`docs/PIZZA_CUSTOMIZATION.md`](docs/PIZZA_CUSTOMIZATION.md).
+La carte permet de retirer les ingrédients configurés sans réduction de prix et de sélectionner des suppléments avec prix fixe ou par format. Le panier conserve les recettes distinctes et le serveur recalcule les montants. Les compositions et tarifs des suppléments restent à renseigner dans l’espace gérant ; aucune commande n’est envoyée. Voir [`docs/PIZZA_CUSTOMIZATION.md`](docs/PIZZA_CUSTOMIZATION.md).
 
 ## Panier
 

@@ -1,6 +1,6 @@
 const MAX_LINES = 30;
 const MAX_EXTRAS = 20;
-const allowedKeys = new Set(['productId', 'sizeId', 'extraIds', 'quantity']);
+const allowedKeys = new Set(['productId', 'sizeId', 'extraIds', 'removedIngredients', 'quantity']);
 
 function validateLine(line) {
   if (!line || typeof line !== 'object' || Array.isArray(line) ||
@@ -15,11 +15,14 @@ function validateLine(line) {
       !extraIds.every(id => typeof id === 'string' && id.length > 0 && id.length <= 128)) {
     throw new Error('INVALID_CART');
   }
-  return { productId: line.productId, ...(line.sizeId ? { sizeId: line.sizeId } : {}), extraIds: [...extraIds].sort(), quantity: line.quantity };
+  const removedIngredients = line.removedIngredients ?? [];
+  if (!Array.isArray(removedIngredients) || removedIngredients.length > 30 || new Set(removedIngredients).size !== removedIngredients.length ||
+      !removedIngredients.every(id => typeof id === 'string' && id.length > 0 && id.length <= 128)) throw new Error('INVALID_CART');
+  return { ...(removedIngredients.length ? { removedIngredients: [...removedIngredients].sort() } : {}), productId: line.productId, ...(line.sizeId ? { sizeId: line.sizeId } : {}), extraIds: [...extraIds].sort(), quantity: line.quantity };
 }
 
 function lineKey(line) {
-  return JSON.stringify([line.productId, line.sizeId ?? null, line.extraIds]);
+  return JSON.stringify([line.productId, line.sizeId ?? null, line.extraIds, line.removedIngredients ?? []]);
 }
 
 export function readCatalogCart(raw) {

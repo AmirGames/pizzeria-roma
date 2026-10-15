@@ -1,0 +1,2 @@
+ALTER TABLE "Product" ADD COLUMN "catalogRevision" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "ProductExtra" ADD COLUMN "sizePrices" JSONB;
