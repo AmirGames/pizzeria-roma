@@ -77,3 +77,14 @@ export function replaceCatalogCartItem(items, original, replacement) {
   }
   return lines.map((line, i) => i === index ? next : line);
 }
+
+/** Remove only submitted quantities after confirmation, preserving new additions. */
+export function consumeCatalogCartItems(items, submitted) {
+  if (!Array.isArray(items) || !Array.isArray(submitted) || items.length > MAX_LINES || submitted.length > MAX_LINES) throw new Error('INVALID_CART');
+  const amounts = new Map();
+  for (const item of submitted.map(validateLine)) amounts.set(lineKey(item), (amounts.get(lineKey(item)) ?? 0) + item.quantity);
+  return items.map(validateLine).flatMap(item => {
+    const quantity = item.quantity - (amounts.get(lineKey(item)) ?? 0);
+    return quantity > 0 ? [{ ...item, quantity }] : [];
+  });
+}

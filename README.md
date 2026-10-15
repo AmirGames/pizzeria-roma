@@ -4,7 +4,7 @@ Application de commande en ligne indépendante pour Pizzeria Roma (Namur).
 
 ## État
 
-Le catalogue du menu communiqué le 14/10/2026 et un panier de prévisualisation sont en place. La livraison et le retrait restent des aperçus : aucune commande réelle, aucun paiement ni lancement de production n'est activé.
+Le catalogue du menu communiqué le 14/10/2026 et un panier de prévisualisation sont en place. Un espace client et des commandes simulées sont disponibles après activation explicite du mode test. La livraison et le retrait restent des aperçus : aucune commande réelle, aucun paiement ni lancement de production n'est activé.
 
 ## Objectifs
 
@@ -29,11 +29,11 @@ Ne jamais committer de secrets, clés API, coordonnées bancaires ou données r�
 - Pour préparer PostgreSQL : définir `POSTGRES_PASSWORD` et `DATABASE_URL` localement, puis `docker compose up -d db` et `npm run db:validate`.
 - Ne pas exécuter de migration en production avant revue et validation.
 
-L’espace gérant permet de créer des pizzas en brouillon, de gérer les prix et options et de rechercher un article. Un accès privé par lien à usage unique est disponible après configuration du serveur. La connexion client et l’inscription restent indisponibles.
+L’espace gérant permet de créer des pizzas en brouillon, de gérer les prix et options et de rechercher un article. Un accès privé par lien à usage unique est disponible après configuration du serveur. La connexion client et l’inscription sont disponibles uniquement dans le mode test explicite.
 
 ## Authentification
 
-L’espace `/gerant/carte` utilise des sessions vérifiées côté serveur et une connexion par lien privé généré depuis un terminal de confiance. Voir [la configuration gérant](docs/MANAGER.md). Aucun accès n’est créé automatiquement au déploiement ; aucune connexion client ni inscription publique n’est activée.
+L’espace `/gerant/carte` utilise des sessions vérifiées côté serveur et une connexion par lien privé généré depuis un terminal de confiance. Voir [la configuration gérant](docs/MANAGER.md). Aucun accès gérant n’est créé automatiquement au déploiement. Le mode `ENABLE_TEST_ORDERS=true` ajoute les comptes clients de test, avec inscription/connexion par mot de passe ; voir [CUSTOMER_TESTS.md](docs/CUSTOMER_TESTS.md).
 
 ## Catalogue du menu 2026
 
@@ -60,3 +60,7 @@ La page `/commande` présente les règles selon le mode livraison/retrait et la 
 **Règle confirmée :** seules les pizzas et les pâtes comptent dans le minimum de plats par zone. Namur centre = 1 plat ; Belgrade, Erpent et Saint-Servais = 2 plats. La livraison est gratuite. Une pizza maxi 50 cm compte pour 2 plats ; une pizza 33 cm compte pour 2 à partir de 18 € par pizza, suppléments inclus ; les pâtes comptent pour 1. Salades, boissons et desserts restent exclus. La règle concernant les desserts est inchangée.
 
 Le choix d'une zone n'est pas une validation d'adresse. Les frontières géographiques, horaires, créneaux et capacités restent à confirmer avant tout checkout. Voir [`docs/FULFILLMENT.md`](docs/FULFILLMENT.md) et la [`roadmap`](docs/ROADMAP.md).
+
+## Espace client et commandes de test
+
+En local, ajouter `ENABLE_TEST_ORDERS=true` et `APP_ORIGIN=http://localhost:3000` dans `.env`, appliquer les migrations puis démarrer `npm run dev`. Utiliser `/compte` pour s’inscrire, `/commande/test` pour confirmer un essai et `/gerant/commandes-test` pour simuler son suivi côté professionnel. Les essais sont stockés séparément des commandes commerciales. Aucun paiement, e-mail ou ordre de préparation réelle n’est envoyé. Les compositions et suppléments doivent être configurés dans la carte. Voir [le guide du mode test](docs/CUSTOMER_TESTS.md).

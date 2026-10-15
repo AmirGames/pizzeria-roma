@@ -2,6 +2,8 @@
 
 ## 2026-10-15
 
+- Proposition suivante : espace client protégé, inscription/connexion locale, commandes de test séparées, historique, confirmation et suivi professionnel simulé.
+
 - Proposition suivante : modification des recettes depuis le panier, validation serveur, fusion des recettes identiques et tests Chromium.
 - PR #20 fusionnée : personnalisation interactive et espace gérant avec création de pizzas en brouillon.
 

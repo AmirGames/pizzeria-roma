@@ -1,0 +1,46 @@
+import { test, expect } from '@playwright/test';
+import { PrismaClient } from '@prisma/client';
+import { randomUUID } from 'node:crypto';
+const prisma = new PrismaClient();
+let categoryId: string;
+let email: string;
+test.afterEach(async () => {
+  if (email) await prisma.user.deleteMany({ where: { email } });
+  if (categoryId) { await prisma.product.deleteMany({ where: { categoryId } }); await prisma.menuCategory.delete({ where: { id: categoryId } }); }
+});
+test.afterAll(async () => prisma.$disconnect());
+test('a customer registers, confirms a test and finds it again after signing in', async ({ page }) => {
+  if (process.env.RUN_DATABASE_TESTS !== '1' || !new URL(process.env.DATABASE_URL!).pathname.endsWith('_test')) throw new Error('Dedicated test database required');
+  const category = await prisma.menuCategory.create({ data: { nameFr: 'Client navigateur', nameEn: 'Customer browser', fulfillmentCategory: 'PIZZA' } });
+  categoryId = category.id;
+  const product = await prisma.product.create({ data: { categoryId, nameFr: 'Pizza espace client', nameEn: 'Customer pizza', baseCents: 0, removableIngredients: ['Tomate'], sizes: { create: { label: '33 cm', priceCents: 1200 } }, extras: { create: { nameFr: 'Chèvre', nameEn: 'Cheese', priceCents: 150 } } }, include: { sizes: true, extras: true } });
+  const initial = [{ productId: product.id, sizeId: product.sizes[0].id, extraIds: [product.extras[0].id], removedIngredients: ['Tomate'], quantity: 1 }];
+  await page.addInitScript(initial => { if (!sessionStorage.getItem('seeded-client-cart')) { localStorage.setItem('pizzeria-roma-catalog-cart-v1', JSON.stringify(initial)); sessionStorage.setItem('seeded-client-cart', '1'); } }, initial);
+  email = `browser-client-${randomUUID()}@example.test`;
+  await page.goto('/compte');
+  await page.getByRole('button', { name: 'Créer un compte', exact: true }).click();
+  await page.getByLabel('Votre nom').fill('Client navigateur');
+  await page.getByLabel('Adresse e-mail').fill(email);
+  await page.getByLabel('Mot de passe').fill('Browser-customer-password');
+  await page.getByRole('button', { name: 'Créer mon compte de test' }).click();
+  await expect(page.getByRole('heading', { name: 'Bonjour Client navigateur' })).toBeVisible();
+  await page.getByRole('link', { name: 'Passer une commande de test' }).click();
+  await page.getByLabel('Téléphone fictif').fill('081 00 00 00');
+  await page.getByLabel('Commentaire').fill('Essai navigateur');
+  await expect(page.getByText('Total du test :')).toContainText('13,50');
+  await page.getByRole('button', { name: 'Confirmer la commande de test' }).click();
+  await expect(page.getByRole('heading', { name: 'Commande de test enregistrée' })).toBeVisible();
+  await expect(page.getByText('Supplément Chèvre · Sans Tomate', { exact: false })).toBeVisible();
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('pizzeria-roma-catalog-cart-v1')!))).toEqual([]);
+  const order = await prisma.testOrder.findFirstOrThrow({ where: { user: { email } } });
+  expect(order.totalCents).toBe(1350);
+  await page.getByRole('link', { name: 'Mon espace client', exact: true }).click();
+  await expect(page.getByRole('link', { name: order.publicReference })).toBeVisible();
+  await page.getByRole('button', { name: 'Se déconnecter' }).click();
+  await page.getByLabel('Adresse e-mail').fill(email);
+  await page.getByLabel('Mot de passe').fill('Browser-customer-password');
+  await page.getByRole('button', { name: 'Ouvrir mon espace' }).click();
+  await page.getByRole('link', { name: order.publicReference }).click();
+  await page.getByRole('button', { name: 'Annuler ce test' }).click();
+  await expect(page.getByRole('heading', { name: 'Suivi : Test annulé' })).toBeVisible();
+});

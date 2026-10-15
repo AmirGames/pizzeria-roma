@@ -22,3 +22,7 @@ Le périmètre d’accès gérant actuel est décrit ci-dessous ; les comptes cl
 - Permissions vérifiées à partir du rôle lu en base.
 - Politique de cookie HttpOnly/Secure/SameSite testée.
 - Une connexion gérant par jeton temporaire à usage unique et une déconnexion serveur sont disponibles. Voir [MANAGER.md](MANAGER.md). Le jeton de 256 bits est généré depuis un terminal administrateur, dure 15 minutes et est stocké uniquement sous forme de hash. La consommation du lien et la création de session sont atomiques. Les mutations exigent du JSON de même origine. Aucun mot de passe partagé, inscription publique ou compte client connecté n’est introduit.
+
+## Proposition — comptes clients et commandes simulées
+
+Le mode explicite `ENABLE_TEST_ORDERS=true` ajoute l’inscription et la connexion CUSTOMER par mot de passe scrypt, sessions serveur et protection d’origine. La limitation en base couvre chaque adresse e-mail et le total des tentatives. Les essais sont isolés dans `TestOrder` ; leur consultation exige la propriété côté serveur et les actions professionnelles vérifient les permissions existantes. Ce mode n’active aucune commande commerciale. La vérification e-mail, la récupération de compte et les obligations d’exploitation restent à traiter avant publication du service client. Voir [CUSTOMER_TESTS.md](CUSTOMER_TESTS.md).
