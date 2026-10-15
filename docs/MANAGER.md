@@ -42,3 +42,13 @@ La vue par défaut affiche les statuts PENDING, ACCEPTED, PREPARING, READY et OU
 Le compte des résultats et les articles sont lus dans une transaction PostgreSQL cohérente. La page est dynamique et réservée aux professionnels, sans cache partagé. La pagination peut évoluer si d’autres sessions ajoutent des essais ou changent leur statut entre deux lectures. « Actualiser la liste » conserve les filtres ; les boutons par essai gardent le contrôle de révision. Un conflit demande une actualisation avant une nouvelle décision.
 
 Les tests utilisent 126 essais pour vérifier pagination, dates identiques, tri, filtres, droits gérant/cuisine, refus client/anonyme, compte désactivé et mode désactivé. Chromium couvre pagination, acceptation depuis une liste filtrée, conflit avec une autre session, actualisation, recherche et remise à zéro. Aucun essai ne doit déclencher de préparation réelle.
+
+## Tableau de bord des essais
+
+`/gerant` exige le mode test et la permission `reports:read` (MANAGER). La cuisine conserve `orders:read` et sa file, mais ne reçoit pas cette permission de rapport. Les sessions sont relues côté serveur ; une révocation, désactivation ou perte du rôle coupe l’accès. La page est dynamique et sans cache partagé. Les liens apparaissent dans la gestion de carte et, pour le gérant, dans la file.
+
+Les compteurs actifs portent sur toutes les dates et reprennent les mêmes statuts que la file « À traiter ». Chaque compteur ouvre un filtre de la liste existante. Le résumé du jour concerne les essais dont `placedAt` est supérieur ou égal au minuit local et strictement inférieur au minuit suivant, en `Europe/Brussels`. Les deux minuits sont convertis séparément en UTC pour gérer les changements d’heure. Un essai ancien encore actif figure dans la file, mais pas dans le résumé du jour.
+
+Le total quotidien comprend tous les statuts, distingue livraison/retrait et compte les essais actuellement CANCELLED/REJECTED. Il ne mesure pas les actions effectuées aujourd’hui ni un revenu. Les agrégats sont lus dans une transaction cohérente et aucune coordonnée client ni détail d’article n’est chargé par cette page. L’heure de lecture est affichée, avec une actualisation manuelle. Aucun changement de statut n’est effectué par le tableau lui-même.
+
+Les tests couvrent hiver, été, journées de 23/25 heures et changement d’année ; permissions, mode désactivé et absence de données personnelles ; exactitude des bornes quotidiennes, navigation vers les filtres, mise à jour depuis la file et actualisation du résumé. Aucune migration supplémentaire.

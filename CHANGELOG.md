@@ -2,6 +2,8 @@
 
 ## 2026-10-15
 
+- Tableau de bord gérant des essais : compteurs actifs, liens filtrés et résumé quotidien dans le fuseau de Bruxelles.
+
 - File professionnelle des essais paginée et filtrable, priorité aux plus anciens essais à traiter, avec actualisation de la liste.
 
 - Historique client paginé et recherche par référence/statut, avec accès aux anciens essais au-delà des 50 derniers.

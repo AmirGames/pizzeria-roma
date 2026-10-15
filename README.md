@@ -19,6 +19,7 @@ Le projet peut être essayé en local. **Les commandes commerciales et les paiem
 
 - Historique client paginé : recherche par référence, filtre par statut et accès aux anciens essais au-delà des 50 derniers.
 - Reprise d’une ancienne sélection depuis l’historique, avec prix actuels et ajout confirmé au panier existant.
+- Tableau de bord gérant : compteurs des essais actifs, liens vers les files et résumé du jour en heure de Bruxelles.
 - File gérant/cuisine paginée : essais à traiter par ancienneté, recherche par référence, filtres par statut et livraison/retrait, transitions de statut et contrôle des permissions.
 - Aperçu des zones et minima de livraison, du retrait et des horaires dans le fuseau `Europe/Brussels`.
 
@@ -121,6 +122,7 @@ Garder ce lien privé. Utiliser des comptes distincts pour les parcours client e
 | `/commande/test` | Confirmation d’un essai pour un client connecté |
 | `/compte/commandes/[id]` | Détail et suivi d’un essai appartenant au client |
 | `/gerant/connexion` | Connexion par lien privé |
+| `/gerant` | Tableau de bord des essais, réservé au gérant |
 | `/gerant/carte` | Édition de la carte, réservée au gérant |
 | `/gerant/commandes-test` | Suivi simulé, réservé au gérant et à la cuisine |
 
@@ -155,7 +157,7 @@ npm run build
 
 Les tests d’intégration (`npm run test:integration`) et navigateur (`npm run test:browser`) nécessitent un build, les migrations appliquées, `RUN_DATABASE_TESTS=1`, `ENABLE_TEST_ORDERS=true` et une base dédiée dont le nom finit par `_test`. Pour Chromium, installer au préalable le navigateur avec `npx playwright install chromium`. Ne pas utiliser une base contenant des données réelles.
 
-La CI fournit PostgreSQL 16 dans une base jetable, valide/applique les migrations, vérifie TypeScript, lance les tests unitaires et d’intégration, compile Next.js puis teste dix parcours dans Chromium avec Mailpit. Les contrôles sont exécutés sur chaque PR, puis sur `main` après fusion.
+La CI fournit PostgreSQL 16 dans une base jetable, valide/applique les migrations, vérifie TypeScript, lance les tests unitaires et d’intégration, compile Next.js puis teste onze parcours dans Chromium avec Mailpit. Les contrôles sont exécutés sur chaque PR, puis sur `main` après fusion.
 
 ## Documentation
 
@@ -204,3 +206,11 @@ En mode test, `/gerant/commandes-test` affiche par défaut les essais à traiter
 Rechercher une référence, choisir un statut (y compris « Tous les statuts »), le mode livraison/retrait et l’ordre de tri. Les liens de pagination gardent ces filtres ; une nouvelle recherche revient à la première page. Le bouton « Actualiser la liste » relit les données sans changer les filtres. Après une transition, un essai qui ne correspond plus au filtre quitte la liste.
 
 L’accès exige une session professionnelle MANAGER ou KITCHEN ; un client ou une URL ne peut pas s’attribuer ces droits. Les transitions et révisions existantes restent contrôlées côté serveur. Il s’agit uniquement de simulations : aucune préparation réelle ni livraison n’est déclenchée. Aucune migration ni nouveau seed.
+
+## Tableau de bord gérant
+
+En mode test, `/gerant` est réservé aux comptes MANAGER (`reports:read`). Les compteurs couvrent les essais actifs de toutes dates : à traiter, à accepter, acceptés, en préparation, prêts et en livraison simulée. Chaque carte ouvre la file professionnelle avec le filtre correspondant.
+
+Le résumé quotidien compte les essais enregistrés entre deux minuits en `Europe/Brussels`, y compris les journées de 23 ou 25 heures. Il distingue retraits, livraisons et essais actuellement annulés/refusés. Il se fonde sur la date d’enregistrement et le statut courant, sans montant commercial. « Actualiser le tableau de bord » relit les compteurs. Le tableau est accessible depuis la gestion de la carte et la file pour le gérant ; la cuisine conserve sa file de suivi.
+
+Aucune migration ni nouveau seed. Les essais restent des simulations locales sans préparation réelle, paiement ou hébergement.
