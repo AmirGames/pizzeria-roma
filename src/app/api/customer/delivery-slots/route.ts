@@ -30,7 +30,7 @@ export async function GET(request: Request) {
       _sum: { pizzaCount: true },
     });
     const usedBySlot = Object.fromEntries(groups.map(group => [group.scheduledFor.toISOString(), group._sum.pizzaCount ?? 0]));
-    const slots = availableSlots({ date, mode, pizzaCount, usedBySlot, pickupLeadMinutes: config.pickupLeadMinutes, slotPizzaCapacity: config.slotPizzaCapacity });
+    const slots = availableSlots({ date, mode, pizzaCount, usedBySlot, leadTimeMinutes: config.leadTimeMinutes, slotPizzaCapacity: config.slotPizzaCapacity });
     return Response.json({ dates: listBookableDates(), slots, slotMinutes: 15 }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     const code = error instanceof Error ? error.message : '';

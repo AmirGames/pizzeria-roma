@@ -35,7 +35,7 @@ La page `/commande` affiche un statut informatif calculé dans le fuseau `Europe
 
 - [x] Le client saisit son adresse sans placer de repère ; ICAR (Géoportail de Wallonie) fournit une position, éventuellement approximative sur la rue, et le serveur calcule la zone depuis les frontières dessinées par le gérant.
 - [x] Le gérant peut dessiner les frontières des zones sur `/gerant/livraison`.
-- [x] Créneaux de 15 minutes pendant les heures d’ouverture, jusqu’à 7 jours à l’avance ; capacité initiale de 7 pizzas par créneau et délai de retrait initial de 30 minutes modifiables par pas de 15 minutes.
+- [x] Créneaux de 15 minutes pendant les heures d’ouverture, jusqu’à 7 jours à l’avance ; capacité initiale de 7 pizzas par créneau et délai minimum initial de 30 minutes pour le retrait et la livraison modifiables par pas de 15 minutes.
 - [ ] Confirmer les frontières concrètes, horaires d’exception et valeurs opérationnelles avant une éventuelle ouverture commerciale.
 - [ ] Concevoir la création et le suivi des commandes avec autorisation serveur et processus de cuisine.
 - [ ] Étudier les paiements et remboursements après validation juridique, contractuelle et opérationnelle.

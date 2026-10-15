@@ -46,14 +46,14 @@ function windowsForDate(dateKey) {
 }
 
 /** Build bookable 15-minute slots for a Brussels local calendar day. */
-export function availableSlots({ date, mode, now = new Date(), pizzaCount = 0, usedBySlot = {}, pickupLeadMinutes = 30, slotPizzaCapacity = 7 }) {
+export function availableSlots({ date, mode, now = new Date(), pizzaCount = 0, usedBySlot = {}, leadTimeMinutes = 30, slotPizzaCapacity = 7 }) {
   if (!['pickup', 'delivery'].includes(mode) || !(now instanceof Date) || !Number.isFinite(now.getTime()) ||
-      !Number.isSafeInteger(pizzaCount) || pizzaCount < 0 || !Number.isSafeInteger(pickupLeadMinutes) ||
-      pickupLeadMinutes < 15 || pickupLeadMinutes > 240 || pickupLeadMinutes % 15 !== 0 ||
+      !Number.isSafeInteger(pizzaCount) || pizzaCount < 0 || !Number.isSafeInteger(leadTimeMinutes) ||
+      leadTimeMinutes < 15 || leadTimeMinutes > 240 || leadTimeMinutes % 15 !== 0 ||
       !Number.isSafeInteger(slotPizzaCapacity) || slotPizzaCapacity < 1 || slotPizzaCapacity > 70) throw new Error('INVALID_SLOT_REQUEST');
   const today = brusselsDateKey(now);
   if (dateOrdinal(date) < dateOrdinal(today) || dateOrdinal(date) > dateOrdinal(today) + 7) throw new Error('INVALID_SLOT_DATE');
-  const earliest = now.getTime() + (mode === 'pickup' ? pickupLeadMinutes * 60_000 : 0);
+  const earliest = now.getTime() + leadTimeMinutes * 60_000;
   const slots = [];
   for (const window of windowsForDate(date)) {
     const [startHour, startMinute] = window.start.split(':').map(Number);

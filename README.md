@@ -23,7 +23,7 @@ Le projet peut être essayé en local. **Les commandes commerciales et les paiem
 - File gérant/cuisine paginée : essais à traiter par ancienneté, recherche par référence, filtres par statut et livraison/retrait, transitions de statut et contrôle des permissions.
 - Aperçu des zones et minima de livraison, du retrait et des horaires dans le fuseau `Europe/Brussels`.
 - En mode test : vérification des adresses avec ICAR (Géoportail de Wallonie), zone déduite des frontières dessinées par le gérant et conservation de l’adresse complète pour le livreur.
-- En mode test : créneaux de 15 minutes pendant les heures d’ouverture jusqu’à 7 jours à l’avance, capacité initiale de 7 pizzas et délai de retrait initial de 30 minutes réglables par le gérant.
+- En mode test : créneaux de 15 minutes pendant les heures d’ouverture jusqu’à 7 jours à l’avance, capacité initiale de 7 pizzas et délai minimum initial de 30 minutes pour le retrait et la livraison réglables par le gérant.
 
 Les compositions des pizzas, les tarifs individuels des suppléments pizza et les allergènes restent à confirmer/renseigner. Ils ne sont pas déduits des noms des produits ni inventés par le seed.
 
@@ -145,7 +145,7 @@ La livraison est gratuite. Seules les pizzas et les pâtes comptent pour le mini
 
 En mode test, le client saisit son adresse sans placer de repère. ICAR renvoie une position de maison, y compris estimée sur la rue si le numéro exact est introuvable ; le serveur détermine la zone depuis les frontières enregistrées par le gérant. L’adresse complète saisie est conservée pour le livreur. Le gérant doit dessiner les zones sur `/gerant/livraison` avant d’essayer une livraison.
 
-Les créneaux simulés durent 15 minutes et sont proposés pendant les horaires d’ouverture, jusqu’à 7 jours à l’avance. La configuration initiale limite chaque créneau à 7 pizzas ; le délai de retrait initial est de 30 minutes. Le gérant peut modifier ces valeurs, par pas de 15 minutes pour le délai. Les jours fériés légaux belges affichent un service informatif 18h–22h, sauf dimanche fermé.
+Les créneaux simulés durent 15 minutes et sont proposés pendant les horaires d’ouverture, jusqu’à 7 jours à l’avance. La configuration initiale limite chaque créneau à 7 pizzas ; le délai minimum initial est de 30 minutes pour le retrait et la livraison. Le gérant peut modifier ces valeurs, par pas de 15 minutes pour le délai. Les jours fériés légaux belges affichent un service informatif 18h–22h, sauf dimanche fermé.
 
 La vérification e-mail et la récupération du mot de passe sont disponibles avec Mailpit en local. Un service d’envoi externe, la suppression/export du compte et les exigences d’exploitation restent à préparer avant l’ouverture publique de l’espace client. La PWA, la traduction complète et les paiements sont des objectifs, pas des fonctions annoncées comme terminées.
 

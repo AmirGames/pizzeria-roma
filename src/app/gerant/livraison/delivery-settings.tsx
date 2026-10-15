@@ -7,11 +7,11 @@ import ZoneMap from './zone-map';
 type Position = [number, number];
 type Polygon = { type: 'Polygon'; coordinates: Position[][] };
 type StoredZone = { zoneId: string; geometry: Polygon; revision: number };
-type Config = { pickupLeadMinutes: number; slotPizzaCapacity: number; revision: number };
+type Config = { leadTimeMinutes: number; slotPizzaCapacity: number; revision: number };
 
 export default function DeliverySettings({ initialConfig, initialZones }: { initialConfig: Config; initialZones: StoredZone[] }) {
   const [config, setConfig] = useState(initialConfig);
-  const [pickupLead, setPickupLead] = useState(initialConfig.pickupLeadMinutes);
+  const [leadTime, setLeadTime] = useState(initialConfig.leadTimeMinutes);
   const [capacity, setCapacity] = useState(initialConfig.slotPizzaCapacity);
   const [zones, setZones] = useState(initialZones);
   const [zoneId, setZoneId] = useState(DELIVERY_ZONES[0].id);
@@ -26,7 +26,7 @@ export default function DeliverySettings({ initialConfig, initialZones }: { init
   async function saveConfig(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault(); setBusy(true); setMessage('');
     try {
-      const response = await fetch('/api/manager/delivery', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pickupLeadMinutes: pickupLead, slotPizzaCapacity: capacity, revision: config.revision }) });
+      const response = await fetch('/api/manager/delivery', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ leadTimeMinutes: leadTime, slotPizzaCapacity: capacity, revision: config.revision }) });
       if (response.status === 409) throw new Error('Un autre changement a été enregistré. Actualisez la page et réessayez.');
       if (!response.ok) throw new Error('Impossible d’enregistrer les réglages.');
       const result = await response.json() as { config: Config };
@@ -52,9 +52,9 @@ export default function DeliverySettings({ initialConfig, initialZones }: { init
   return <div className="delivery-settings">
     <section aria-labelledby="delivery-rules-title"><h2 id="delivery-rules-title">Délais et capacité</h2>
       <form onSubmit={saveConfig} className="delivery-settings-form">
-        <label>Délai de retrait initial (minutes)<input type="number" min={15} max={240} step={15} value={pickupLead} onChange={event => setPickupLead(Number(event.target.value))} required /></label>
+        <label>Délai minimum avant le créneau (minutes)<input type="number" min={15} max={240} step={15} value={leadTime} onChange={event => setLeadTime(Number(event.target.value))} required /></label>
         <label>Capacité pizzas par créneau de 15 minutes<input type="number" min={1} max={70} step={1} value={capacity} onChange={event => setCapacity(Number(event.target.value))} required /></label>
-        <p>Valeurs initiales : 30 minutes de préparation et 7 pizzas par créneau. Les précommandes seront proposées jusqu’à 7 jours à l’avance pendant les horaires d’ouverture.</p>
+        <p>Valeurs initiales : 30 minutes de délai minimum pour le retrait et la livraison, et 7 pizzas par créneau. Les précommandes seront proposées jusqu’à 7 jours à l’avance pendant les horaires d’ouverture.</p>
         <button type="submit" disabled={busy}>Enregistrer les réglages</button>
       </form>
     </section>

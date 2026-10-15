@@ -20,15 +20,15 @@ export async function PUT(request: Request) {
   try {
     await requirePermission('delivery:write');
     if (!isSameOriginMutation(request, process.env.APP_ORIGIN)) return Response.json({ error: 'FORBIDDEN' }, { status: 403 });
-    const input = await readJson(request, 2048) as { pickupLeadMinutes?: unknown; slotPizzaCapacity?: unknown; revision?: unknown };
-    if (!input || typeof input !== 'object' || Object.keys(input).some(key => !['pickupLeadMinutes', 'slotPizzaCapacity', 'revision'].includes(key)) ||
-        !Number.isSafeInteger(input.pickupLeadMinutes) || (input.pickupLeadMinutes as number) < 15 || (input.pickupLeadMinutes as number) > 240 || (input.pickupLeadMinutes as number) % 15 !== 0 ||
+    const input = await readJson(request, 2048) as { leadTimeMinutes?: unknown; slotPizzaCapacity?: unknown; revision?: unknown };
+    if (!input || typeof input !== 'object' || Object.keys(input).some(key => !['leadTimeMinutes', 'slotPizzaCapacity', 'revision'].includes(key)) ||
+        !Number.isSafeInteger(input.leadTimeMinutes) || (input.leadTimeMinutes as number) < 15 || (input.leadTimeMinutes as number) > 240 || (input.leadTimeMinutes as number) % 15 !== 0 ||
         !Number.isSafeInteger(input.slotPizzaCapacity) || (input.slotPizzaCapacity as number) < 1 || (input.slotPizzaCapacity as number) > 70 ||
         !Number.isSafeInteger(input.revision) || (input.revision as number) < 0) return Response.json({ error: 'INVALID_SETTINGS' }, { status: 400 });
     const current = await prisma.deliveryConfiguration.findUnique({ where: { id: 'global' } });
     if (!current || current.revision !== input.revision) return Response.json({ error: 'SETTINGS_CONFLICT' }, { status: 409 });
     const changed = await prisma.deliveryConfiguration.updateMany({ where: { id: 'global', revision: input.revision as number }, data: {
-      pickupLeadMinutes: input.pickupLeadMinutes as number,
+      leadTimeMinutes: input.leadTimeMinutes as number,
       slotPizzaCapacity: input.slotPizzaCapacity as number,
       revision: { increment: 1 },
     } });

@@ -198,7 +198,7 @@ model TestOrder {
 
 model DeliveryConfiguration {
   id String @id @default("global")
-  pickupLeadMinutes Int @default(30)
+  leadTimeMinutes Int @default(30)
   slotPizzaCapacity Int @default(7)
   revision Int @default(0)
   updatedAt DateTime @updatedAt

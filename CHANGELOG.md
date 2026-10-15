@@ -2,7 +2,7 @@
 
 ## 2026-10-15
 
-- Ajout en mode test du dessin des zones, de la vérification ICAR avec adresse approximative acceptée, des créneaux de 15 minutes et du réglage de capacité/délai de retrait. Aucun traitement réel n’est activé.
+- Ajout en mode test du dessin des zones, de la vérification ICAR avec adresse approximative acceptée, des créneaux de 15 minutes et du réglage de capacité/délai minimum de retrait et livraison. Aucun traitement réel n’est activé.
 
 - Tableau de bord gérant des essais : compteurs actifs, liens filtrés et résumé quotidien dans le fuseau de Bruxelles.
 

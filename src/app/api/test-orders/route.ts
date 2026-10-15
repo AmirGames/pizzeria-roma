@@ -46,7 +46,7 @@ export async function POST(request: Request) {
           _sum: { pizzaCount: true },
         });
         const usedBySlot = Object.fromEntries(reservations.map(row => [row.scheduledFor.toISOString(), row._sum.pizzaCount ?? 0]));
-        const available = availableSlots({ date, mode: input.mode, now: new Date(), pizzaCount, usedBySlot, pickupLeadMinutes: config.pickupLeadMinutes, slotPizzaCapacity: config.slotPizzaCapacity });
+        const available = availableSlots({ date, mode: input.mode, now: new Date(), pizzaCount, usedBySlot, leadTimeMinutes: config.leadTimeMinutes, slotPizzaCapacity: config.slotPizzaCapacity });
         if (!available.some(slot => slot.value === scheduledFor.toISOString())) throw new Error('SLOT_UNAVAILABLE');
         return tx.testOrder.create({ data: {
           userId: user.id, requestKey: input.requestKey, requestHash, publicReference: `TEST-${randomUUID().replaceAll('-', '').slice(0, 20).toUpperCase()}`,
