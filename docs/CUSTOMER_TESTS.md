@@ -34,6 +34,8 @@ Les tests sont conservés dans `TestOrder`, séparément de `Order`. Les prix, l
 
 `/gerant/commandes-test` est réservé aux rôles disposant de `orders:read` (MANAGER/KITCHEN). L’accès utilise la session professionnelle existante ; le client doit utiliser un compte distinct. Les actions exigent `orders:update-status`.
 
+La file professionnelle est paginée, avec recherche par référence et filtres de statut/mode. Elle affiche par défaut les essais encore à traiter, du plus ancien au plus récent. Voir [MANAGER.md](MANAGER.md).
+
 États simulés : enregistré → accepté → préparation → prêt → terminé pour un retrait ; une étape livraison simulée s’ajoute pour la livraison. Un test en attente peut être refusé ou annulé par son propriétaire ; un test accepté peut être annulé par le professionnel. Les transitions invalides et révisions obsolètes sont refusées. Les écrans précisent qu’aucune préparation réelle ne doit être lancée. Le suivi s’actualise via le bouton dédié.
 
 ## Tests
