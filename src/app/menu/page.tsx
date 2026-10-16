@@ -15,9 +15,6 @@ export default function MenuPage() {
       </section>
       <section className="menu-live-catalog" id="carte" aria-label="Carte des plats">
         <p className="menu-notice">La carte présente les catégories et les plats publiés. Les prix et allergènes seront publiés après validation. Pour le moment, aucune commande ni paiement disponible.</p>
-        <nav className="menu-category-index" aria-label="Catégories de la carte">
-          {['Pizzas', 'Pâtes', 'Entrées', 'Salades', 'Desserts', 'Boissons'].map(category => <span key={category}>{category}</span>)}
-        </nav>
         <CatalogProducts />
       </section>
     </main>
