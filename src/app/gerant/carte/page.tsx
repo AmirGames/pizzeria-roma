@@ -10,11 +10,12 @@ export default async function ManagerCatalogPage() {
   try { await requirePermission('catalog:write'); }
   catch (error) {
     if (!(error instanceof Error) || error.message !== 'FORBIDDEN') throw error;
-    return <main className="manager-page"><h1>Espace gérant</h1><p>Une session gérant est nécessaire pour gérer la carte. Utilisez votre lien privé de connexion.</p><Link href="/gerant/connexion">Se connecter</Link></main>;
+    return <main className="manager-page"><p className="manager-eyebrow">PIZZERIA ROMA · ESPACE PROFESSIONNEL</p><h1>Espace gérant</h1><p>Une session gérant est nécessaire pour gérer la carte. Utilisez votre lien privé de connexion.</p><Link className="manager-button-link" href="/gerant/connexion">Se connecter</Link></main>;
   }
   try {
-    const pizzaCategories = await prisma.menuCategory.findMany({ where: { fulfillmentCategory: 'PIZZA' }, select: { id: true, nameFr: true }, orderBy: { position: 'asc' } });
+    const categories = await prisma.menuCategory.findMany({ orderBy: [{ position: 'asc' }, { nameFr: 'asc' }] });
+    const ingredients = await prisma.ingredient.findMany({ orderBy: { nameFr: 'asc' } });
     const products = await prisma.product.findMany({ orderBy: [{ categoryId: 'asc' }, { nameFr: 'asc' }], include: { category: true, sizes: { orderBy: { priceCents: 'asc' } }, extras: { orderBy: { nameFr: 'asc' } } } });
-    return <main className="manager-page"><Link href="/menu">← Voir la carte</Link><Link href="/gerant">Tableau de bord gérant</Link><Link href="/gerant/livraison">Livraison et créneaux</Link><Link href="/gerant/commandes-test">Commandes de test</Link><h1>Gérer la carte</h1><p>Modifiez les prix, les disponibilités et les options. Les changements enregistrés sont publiés sur la carte.</p><CatalogEditor initialProducts={products} pizzaCategories={pizzaCategories} /></main>;
-  } catch { return <main className="manager-page"><Link href="/gerant">Tableau de bord gérant</Link><Link href="/gerant/livraison">Livraison et créneaux</Link><Link href="/gerant/commandes-test">Commandes de test</Link><h1>Gérer la carte</h1><p role="alert">La carte est indisponible pour le moment. Réessayez plus tard.</p></main>; }
+    return <main className="manager-page"><p className="manager-eyebrow">MENU · PRODUITS ET PRIX</p><h1>Gérer la carte</h1><p className="manager-lede">Gérez les catégories, le catalogue central d’ingrédients et les plats.</p><CatalogEditor initialProducts={products} initialCategories={categories} initialIngredients={ingredients} /></main>;
+  } catch { return <main className="manager-page"><p className="manager-eyebrow">MENU · PRODUITS ET PRIX</p><h1>Gérer la carte</h1><p role="alert">La carte est indisponible pour le moment. Réessayez plus tard.</p></main>; }
 }

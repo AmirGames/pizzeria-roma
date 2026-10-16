@@ -3,6 +3,52 @@ const size = (productSlug, slug, label, priceCents) => ({ id: `${menuId}-size-${
 const extra = (slug, nameFr) => ({ id: `${menuId}-extra-${slug}`, nameFr, nameEn: nameFr, priceCents: 250, active: true });
 const pastaExtras = [extra('parmesan', 'Parmesan'), extra('gruyere', 'Gruyère')];
 
+const pizzaIngredients = {
+  margherita: ['Tomates', 'Mozzarella'],
+  salami: ['Tomates', 'Mozzarella', 'Salami ou chorizo'],
+  chorizo: ['Tomates', 'Mozzarella', 'Salami ou chorizo'],
+  napoli: ['Tomates', 'Mozzarella', 'Câpres', 'Anchois'],
+  prosciutto: ['Tomates', 'Mozzarella', 'Jambon'],
+  funghi: ['Tomates', 'Mozzarella', 'Champignons'],
+  bolognese: ['Bolognaise', 'Mozzarella'],
+  'sole-mio': ['Tomates', 'Mozzarella', 'Jambon', 'Œufs'],
+  hawai: ['Tomates', 'Mozzarella', 'Jambon', 'Ananas'],
+  regina: ['Tomates', 'Mozzarella', 'Jambon', 'Champignons'],
+  chevre: ['Tomates', 'Mozzarella', 'Fromage de chèvre', 'Miel'],
+  viennese: ['Tomates', 'Mozzarella', 'Saucisses viennoises', 'Oignons'],
+  calzone: ['Tomates', 'Mozzarella', 'Jambon', 'Champignons', 'Œufs', 'Ail'],
+  capricciosa: ['Tomates', 'Mozzarella', 'Jambon', 'Champignons', 'Olives', 'Anchois'],
+  '4-stagioni': ['Tomates', 'Mozzarella', 'Jambon', 'Champignons', 'Salami', 'Artichauts'],
+  '4-formaggi': ['Tomates', 'Mozzarella', 'Bel Paese', 'Gorgonzola', 'Taleggio'],
+  'al-capone': ['Tomates', 'Mozzarella', 'Jambon', 'Poivrons', 'Œufs durs', 'Ail', 'Anchois'],
+  ortolana: ['Tomates', 'Mozzarella', 'Aubergines', 'Oignons', 'Parmesan'],
+  brocoli: ['Tomates', 'Mozzarella', 'Brocolis', 'Lardons', 'Oignons', 'Ail'],
+  roma: ['Tomates', 'Mozzarella', 'Jambon', 'Salami', 'Œufs', 'Oignons'],
+  colosseo: ['Tomates', 'Mozzarella', 'Jambon', 'Épinards', 'Oignons'],
+  vegetarienne: ['Tomates', 'Mozzarella', 'Champignons', 'Artichauts', 'Poivrons', 'Olives', 'Oignons'],
+  maria: ['Crème', 'Mozzarella', '4 fromages', 'Oignons', 'Anchois'],
+  forestiere: ['Tomates', 'Mozzarella', 'Champignons', 'Lardons', 'Oignons', 'Ail'],
+  merguez: ['Tomates', 'Mozzarella', 'Poivrons', 'Merguez'],
+  'hamburger-cheese': ['Mozzarella', 'Hamburger', 'Oignons frits', 'Sauce barbecue', 'Cheese'],
+  'mamma-mia': ['Tomates fraîches', 'Mozzarella en tranches', 'Basilic', 'Huile de basilic'],
+  'san-daniele': ['Tomates', 'Mozzarella', 'Jambon de Parme', '4 fromages'],
+  rucola: ['Tomates', 'Mozzarella', 'Jambon de Parme', 'Tomates cerises', 'Roquette', 'Parmesan'],
+  exotic: ['Tomates', 'Mozzarella', 'Poulet', 'Maïs', 'Ananas'],
+  carpaccio: ['Tomates', 'Mozzarella', 'Huile d’olive', 'Viande de bœuf', 'Parmesan'],
+  tartiflette: ['Pommes de terre', 'Mozzarella', 'Crème', 'Lardons', 'Oignons', 'Reblochon'],
+  thai: ['Tomates', 'Mozzarella', 'Poulet', 'Poivrons', 'Oignons frits', 'Sauce sucrée piquante'],
+  'al-tonno': ['Tomates', 'Mozzarella', 'Thon', 'Oignons', 'Ail'],
+  salmone: ['Tomates', 'Mozzarella', 'Saumon', 'Ail'],
+  'frutti-di-mare': ['Tomates', 'Mozzarella', 'Cocktail de fruits de mer', 'Ail'],
+  scampi: ['Tomates', 'Mozzarella', 'Scampis', 'Ail'],
+  'mare-e-monte': ['Tomates', 'Mozzarella', 'Fruits de mer', 'Champignons', 'Ail'],
+  royale: ['Tomates', 'Mozzarella', 'Langoustines', 'Scampis', 'Saumon', 'Ail'],
+  'burrata-pesto': ['Tomates', 'Mozzarella', 'Parme', 'Burrata', 'Roquette', 'Huile pesto'],
+  'burrata-balsamique': ['Tomates', 'Mozzarella', 'Parme', 'Burrata', 'Roquette', 'Crème balsamique'],
+  'burrata-truffe': ['Tomates', 'Mozzarella', 'Parme', 'Burrata', 'Roquette', 'Huile de truffe'],
+  truffe: ['Crème à la truffe', 'Mozzarella', 'Champignons', 'Pancetta'],
+};
+
 const pizzas = [
   ['margherita','Margherita',1000,2250], ['salami','Salami',1150,2550], ['chorizo','Chorizo',1150,2550],
   ['napoli','Napoli',1150,2550], ['prosciutto','Prosciutto',1150,2550], ['funghi','Funghi',1150,2550],
@@ -21,6 +67,7 @@ const pizzas = [
   ['burrata-truffe','Burrata à l’huile de truffe',1950,4100], ['truffe','Truffe',1950,4100],
 ].map(([slug, nameFr, price33, price50]) => ({
   id: `${menuId}-pizza-${slug}`, nameFr, nameEn: nameFr, baseCents: 0, active: true,
+  ingredients: pizzaIngredients[slug] ?? [],
   sizes: [size(slug, '33cm', '33 cm', price33), ...(price50 === null ? [] : [size(slug, '50cm', '50 cm', price50)])],
   extras: [],
 }));
@@ -35,8 +82,26 @@ const pastaRows = [
   ['tortellini-jambon-creme','Tortellini jambon, crème',1500,false], ['lasagne','Lasagne',1550,false],
   ['cannelloni','Cannelloni',1550,false], ['tortelli','Tortelli',1850,false],
 ];
+const pastaIngredients = {
+  scampis: ['Scampis'],
+  'al-salmone': ['Saumon'],
+  '4-formaggi': ['4 fromages'],
+  'jambon-creme': ['Jambon', 'Crème'],
+  'tomate-creme': ['Tomate', 'Crème'],
+  'al-forno': ['Bolognaise', 'Œufs', 'Jambon', 'Gratiné'],
+  tonnata: ['Sauce tomate', 'Olives', 'Thon'],
+  'ravioles-champignons': ['Ravioles fraîches farcies aux cèpes', 'Crème à la truffe', 'Roquette', 'Pancetta'],
+  strozzapreti: ['Pâtes fraîches', 'Sauce tomate', 'Aubergines', 'Pancetta', 'Ail', 'Parmesan de ricotta salée'],
+  maison: ['Sauce tomate', 'Lardons', 'Aubergines', 'Ail'],
+  pesto: ['Crème', 'Pesto'],
+  primavera: ['Champignons', 'Haricots', 'Choux-fleurs', 'Brocolis', 'Tomate', 'Ail'],
+  'fruits-de-mer': ['Fruits de mer'],
+  'tortellini-jambon-creme': ['Tortellini', 'Jambon', 'Crème'],
+  tortelli: ['Pâtes fraîches farcies à la mozzarella di bufala campana', 'Tomate basilic', 'Pesto genovese', 'Roquette', 'Pignons de pin grillés'],
+};
 const pastas = pastaRows.map(([slug, nameFr, priceCents, hasShapeChoice]) => ({
   id: `${menuId}-pasta-${slug}`, nameFr, nameEn: nameFr, baseCents: priceCents, active: true,
+  ingredients: pastaIngredients[slug] ?? [],
   choiceLabel: hasShapeChoice ? 'Type de pâtes' : null,
   extraSelectionMode: 'SINGLE',
   sizes: hasShapeChoice ? [
@@ -89,3 +154,6 @@ export const menu20261014 = [
   { id:`${menuId}-cat-boissons`, nameFr:'Boissons', nameEn:'Drinks', fulfillmentCategory:'OTHER', position:60, products:drinks },
   { id:`${menuId}-cat-desserts`, nameFr:'Desserts', nameEn:'Desserts', fulfillmentCategory:'OTHER', position:70, products:desserts },
 ];
+
+export const ingredientsCatalog = [...new Set([...Object.values(pizzaIngredients).flat(), ...Object.values(pastaIngredients).flat()])].sort((a, b) => a.localeCompare(b, 'fr'));
+export const pizzaSupplementNames = new Set(Object.values(pizzaIngredients).flat());

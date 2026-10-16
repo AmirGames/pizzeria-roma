@@ -7,7 +7,7 @@ import { useCart } from '../../lib/use-cart';
 import { useCatalogCart } from '../../lib/use-catalog-cart';
 
 type Mode = 'delivery' | 'pickup';
-type CatalogPreview = { fulfillment: { eligible: boolean; minimum: number; dishCount: number; deliveryFeeCents: number } };
+type CatalogPreview = { fulfillment: { eligible: boolean; minimum: number; dishCount: number; deliveryFeeCents: number }; promotion?: { name: string } | null; discountCents?: number; loyaltyDiscountCents?: number };
 
 export default function FulfillmentPage() {
   const { items, ready } = useCart();
@@ -75,6 +75,8 @@ export default function FulfillmentPage() {
           </section>
           <aside className="roma-fulfillment-card">
             <h2>Horaires prévus</h2>
+            {catalogPreview?.discountCents ? <p className="roma-policy-ok">Promotion active : {catalogPreview.promotion?.name} · remise de {(catalogPreview.discountCents / 100).toLocaleString('fr-BE', { style: 'currency', currency: 'EUR' })} appliquée au récapitulatif de commande test.</p> : null}
+            {catalogPreview?.loyaltyDiscountCents ? <p className="roma-policy-ok">Carte de fidélité : un plat est offert, soit {(catalogPreview.loyaltyDiscountCents / 100).toLocaleString('fr-BE', { style: 'currency', currency: 'EUR' })} de remise au récapitulatif.</p> : null}
             <p role="status" className={serviceOpen ? 'roma-policy-ok' : 'roma-policy-warning'}>{serviceOpen === null ? 'Vérification des horaires…' : serviceOpen ? 'Ouvert selon les horaires publiés' : 'Fermé selon les horaires publiés'}</p>
             <p className="roma-policy-caveat">Calcul informatif selon Europe/Brussels et les jours fériés légaux belges : 18h–22h, sauf dimanche fermé. Les jours de remplacement ou exceptions propres au restaurant ne sont pas intégrés. Aucun créneau n’est réservé.</p>
             <div className="roma-hours-row"><span>Lundi – vendredi</span><strong>11h30–14h00<br/>18h00–22h00</strong></div>

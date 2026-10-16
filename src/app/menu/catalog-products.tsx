@@ -47,7 +47,7 @@ function ProductCard({ product, onAdd, index, isPizza }: { product: CatalogProdu
   const [customizing, setCustomizing] = useState(false);
   const photoIndex = isPizza ? thumbnailIndex(product.nameFr, index) : index % 6;
   const position = `${(photoIndex % 3) * 50}% ${photoIndex < 3 ? 0 : 100}%`;
-  const ingredients = recipes[product.nameFr] ?? (product.removableIngredients?.length ? product.removableIngredients.join(', ') : '');
+  const ingredients = product.ingredients?.length ? product.ingredients.join(', ') : recipes[product.nameFr] ?? (product.removableIngredients?.length ? product.removableIngredients.join(', ') : '');
   const sizes = product.sizes.map(size => size.label).join(' · ');
   return <article className="catalog-product" onChange={() => setAdded(false)}>
     <div className="catalog-product-art" aria-hidden="true" style={{ backgroundImage: `url('${isPizza ? '/roma-pizzas.png' : '/roma-categories-portrait.png'}')`, backgroundPosition: position }} />

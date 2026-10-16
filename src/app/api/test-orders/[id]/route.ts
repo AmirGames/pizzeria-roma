@@ -21,7 +21,10 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     const input = await readJson(request, 1024) as { revision?: number };
     if (!input || typeof input !== 'object' || Array.isArray(input) || Object.keys(input).some(key => key !== 'revision') || !Number.isSafeInteger(input.revision)) return Response.json({ error: 'INVALID_REQUEST' }, { status: 400 });
     const { id } = await context.params;
-    const result = await prisma.testOrder.updateMany({ where: { id, userId: user.id, status: 'PENDING', revision: input.revision }, data: { status: 'CANCELLED', revision: { increment: 1 } } });
+    const result = await prisma.$transaction(async tx => {
+      await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${user.id} FOR UPDATE`;
+      return tx.testOrder.updateMany({ where: { id, userId: user.id, status: 'PENDING', revision: input.revision }, data: { status: 'CANCELLED', revision: { increment: 1 } } });
+    });
     return Response.json({ ok: result.count === 1 }, { status: result.count === 1 ? 200 : 409 });
   } catch (error) { return Response.json({ error: 'UNAVAILABLE' }, { status: error instanceof Error && error.message === 'UNAUTHORIZED' ? 401 : error instanceof Error && error.message === 'INVALID_REQUEST' ? 400 : 503 }); }
 }

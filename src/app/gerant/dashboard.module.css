@@ -1,7 +1,0 @@
-.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-block: 1rem 2rem; }
-.card { padding: 1rem; border: 1px solid #c9cec7; border-radius: .6rem; background: #fafbf7; color: #1d382b; text-decoration: none; }
-a.card:hover { background: #eef3e9; }
-a.card:focus-visible { outline: 3px solid #1d382b; outline-offset: 3px; }
-.card h3, .card p, .card dd { margin: 0; }
-.card p, .card dd { margin-top: .5rem; font-size: 2rem; font-weight: 700; }
-.card dt { font-weight: 600; }

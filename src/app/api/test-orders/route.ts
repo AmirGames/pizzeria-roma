@@ -9,6 +9,12 @@ import { previewCatalogCart } from '../../../lib/catalog-cart-preview.mjs';
 import { readJson } from '../../../lib/http-json';
 import { resolveWalloniaDeliveryAddress } from '../../../lib/wallonia-delivery';
 import { brusselsDayWindow } from '../../../lib/staff-dashboard.mjs';
+// @ts-ignore JavaScript module
+import { selectPromotion } from '../../../lib/promotions.mjs';
+// @ts-ignore JavaScript module
+import { calculateLoyaltyReward } from '../../../lib/loyalty.mjs';
+// @ts-ignore JavaScript module
+import { attachGlobalPizzaIngredients } from '../../../lib/global-pizza-ingredients.mjs';
 // @ts-ignore JavaScript module; covered by unit tests
 import { availableSlots, brusselsDateKey, validateScheduledFor } from '../../../lib/delivery-slots.mjs';
 
@@ -30,13 +36,33 @@ export async function POST(request: Request) {
       const order = await prisma.$transaction(async tx => {
         // Serialize slot reservations so concurrent requests cannot take the same remaining capacity.
         await tx.$queryRaw`SELECT "id" FROM "DeliveryConfiguration" WHERE "id" = 'global' FOR UPDATE`;
+        await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${user.id} FOR UPDATE`;
         const config = await tx.deliveryConfiguration.findUnique({ where: { id: 'global' } });
         if (!config) throw new Error('DELIVERY_CONFIGURATION_MISSING');
-        const products = await tx.product.findMany({ where: { id: { in: input.items.map(item => item.productId) }, active: true }, include: { category: true, sizes: true, extras: true } });
+        const [catalogProducts, ingredients] = await Promise.all([
+          tx.product.findMany({ where: { id: { in: input.items.map(item => item.productId) }, active: true }, include: { category: true, sizes: true, extras: true } }),
+          tx.ingredient.findMany({ where: { active: true } }),
+        ]);
+        const products = attachGlobalPizzaIngredients(catalogProducts, ingredients);
         const preview = previewCatalogCart(products, input.items, { mode: input.mode, zoneId: trustedZoneId });
         if (!preview.fulfillment.eligible) throw new Error('MINIMUM_NOT_MET');
         if (preview.subtotalCents > 2147483647) throw new Error('INVALID_TEST_ORDER');
-        if (preview.subtotalCents !== input.expectedTotalCents) throw new Error('PRICE_CHANGED');
+        const [completed, reserved] = await Promise.all([
+          tx.testOrder.aggregate({ where: { userId: user.id, status: 'COMPLETED' }, _sum: { loyaltyPaidDishCount: true } }),
+          tx.testOrder.aggregate({ where: { userId: user.id, status: { notIn: ['CANCELLED', 'REJECTED'] }, loyaltyFreeDishCount: { gt: 0 } }, _sum: { loyaltyFreeDishCount: true } }),
+        ]);
+        const loyalty = calculateLoyaltyReward(products, preview.items, completed._sum.loyaltyPaidDishCount ?? 0, reserved._sum.loyaltyFreeDishCount ?? 0);
+        const [automatic, codePromotion] = await Promise.all([
+          tx.promotion.findFirst({ where: { kind: 'AUTOMATIC', active: true }, orderBy: { updatedAt: 'desc' } }),
+          input.promoCode ? tx.promotion.findUnique({ where: { code: input.promoCode } }) : Promise.resolve(null),
+        ]);
+        const discount = selectPromotion({ automatic, codePromotion, code: input.promoCode, subtotalCents: preview.subtotalCents - loyalty.loyaltyDiscountCents });
+        if (discount.totalCents !== input.expectedTotalCents) throw new Error('PRICE_CHANGED');
+        if (discount.codeError) throw new Error('PROMO_CODE_INVALID');
+        if (discount.promotion) {
+          const usage = await tx.promotion.updateMany({ where: { id: discount.promotion.id, active: true, ...(discount.promotion.code ? { code: discount.promotion.code } : {}), OR: [{ usageLimit: null }, { usageCount: { lt: (automatic?.id === discount.promotion.id ? automatic.usageLimit : codePromotion?.usageLimit) ?? 2147483647 } }] }, data: { usageCount: { increment: 1 } } });
+          if (usage.count !== 1) throw new Error('PROMOTION_UNAVAILABLE');
+        }
         const pizzaCount = input.items.reduce((count, item) => count + (products.find(product => product.id === item.productId)?.category.fulfillmentCategory === 'PIZZA' ? item.quantity : 0), 0);
         const date = brusselsDateKey(scheduledFor);
         const day = brusselsDayWindow(new Date(`${date}T12:00:00.000Z`));
@@ -52,7 +78,10 @@ export async function POST(request: Request) {
           userId: user.id, requestKey: input.requestKey, requestHash, publicReference: `TEST-${randomUUID().replaceAll('-', '').slice(0, 20).toUpperCase()}`,
           fulfillment: input.mode === 'delivery' ? 'DELIVERY' : 'PICKUP', zoneId: trustedZoneId, scheduledFor, pizzaCount,
           contactName: input.contactName, phone: input.phone, address: input.address, comment: input.comment,
-          totalCents: preview.subtotalCents, itemsSnapshot: JSON.parse(JSON.stringify(preview.items)) as Prisma.InputJsonValue,
+          subtotalCents: preview.subtotalCents, discountCents: discount.discountCents, loyaltyDiscountCents: loyalty.loyaltyDiscountCents, totalCents: discount.totalCents,
+          loyaltyPaidDishCount: loyalty.loyaltyPaidDishCount, loyaltyFreeDishCount: loyalty.loyaltyFreeDishCount,
+          promotionId: discount.promotion?.id, promotionCode: discount.promotion?.code, promotionName: discount.promotion?.name,
+          itemsSnapshot: JSON.parse(JSON.stringify(preview.items.map((item, index) => ({ ...item, loyaltyFreeQuantity: loyalty.loyaltyFreeByLine[index] ?? 0 })))) as Prisma.InputJsonValue,
         } });
       });
       return Response.json({ id: order.id }, { status: 201, headers: { 'Cache-Control': 'no-store' } });
@@ -67,7 +96,7 @@ export async function POST(request: Request) {
     }
   } catch (error) {
     const code = error instanceof Error ? error.message : '';
-    const status = code === 'UNAUTHORIZED' ? 401 : ['PRICE_CHANGED', 'SLOT_UNAVAILABLE'].includes(code) ? 409 : code === 'ADDRESS_OUTSIDE_DELIVERY' || code === 'ADDRESS_NOT_FOUND' ? 422 : ['INVALID_REQUEST', 'INVALID_TEST_ORDER', 'INVALID_CART', 'INVALID_EXTRAS', 'INVALID_SIZE', 'INVALID_REMOVALS', 'PRODUCT_UNAVAILABLE', 'MINIMUM_NOT_MET', 'UNKNOWN_ZONE', 'INVALID_SLOT'].includes(code) ? 400 : 503;
+    const status = code === 'UNAUTHORIZED' ? 401 : ['PRICE_CHANGED', 'SLOT_UNAVAILABLE', 'PROMOTION_UNAVAILABLE'].includes(code) ? 409 : code === 'PROMO_CODE_INVALID' ? 400 : code === 'ADDRESS_OUTSIDE_DELIVERY' || code === 'ADDRESS_NOT_FOUND' ? 422 : ['INVALID_REQUEST', 'INVALID_TEST_ORDER', 'INVALID_CART', 'INVALID_EXTRAS', 'INVALID_SIZE', 'INVALID_REMOVALS', 'PRODUCT_UNAVAILABLE', 'MINIMUM_NOT_MET', 'UNKNOWN_ZONE', 'INVALID_SLOT'].includes(code) ? 400 : 503;
     return Response.json({ error: status === 503 ? code || 'SERVICE_UNAVAILABLE' : code }, { status });
   }
 }

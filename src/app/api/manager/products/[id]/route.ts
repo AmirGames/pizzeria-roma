@@ -16,10 +16,14 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     const product = await prisma.$transaction(async tx => {
       const current = await tx.product.findUnique({ where: { id }, include: { category: true, sizes: true, extras: true } });
       if (!current) throw new Error('PRODUCT_NOT_FOUND');
-      const edit = validateCatalogEdit(input, current);
+      const categoryId = input && typeof input === 'object' ? (input as { categoryId?: unknown }).categoryId : null;
+      const category = typeof categoryId === 'string' ? await tx.menuCategory.findUnique({ where: { id: categoryId } }) : null;
+      if (!category) throw new Error('INVALID_CATALOG_EDIT');
+      const edit = validateCatalogEdit(input, { ...current, category });
+      if (category.fulfillmentCategory !== 'PIZZA' && edit.removableIngredients.length) throw new Error('INVALID_CATALOG_EDIT');
       const updated = await tx.product.updateMany({ where: { id, catalogRevision: edit.revision }, data: {
-        nameFr: edit.nameFr, active: edit.active, baseCents: edit.baseCents,
-        removableIngredients: edit.removableIngredients, catalogRevision: { increment: 1 },
+        categoryId: edit.categoryId, nameFr: edit.nameFr, nameEn: edit.nameEn, active: edit.active, baseCents: edit.baseCents,
+        ingredients: edit.ingredients, removableIngredients: edit.removableIngredients, catalogRevision: { increment: 1 },
       } });
       if (updated.count !== 1) throw new Error('CATALOG_CONFLICT');
       for (const size of edit.sizes) await tx.productSize.update({ where: { id: size.id, productId: id }, data: { priceCents: size.priceCents, active: size.active } });

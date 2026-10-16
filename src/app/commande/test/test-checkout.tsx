@@ -13,6 +13,7 @@ function brusselsToday() {
   return `${parts.year}-${parts.month}-${parts.day}`;
 }
 type Slot = { value: string; time: string; remainingPizzas: number };
+const money = (cents: number) => new Intl.NumberFormat('fr-BE', { style: 'currency', currency: 'EUR' }).format(cents / 100);
 
 export default function TestCheckout({ name, phone, addresses }: { name: string; phone: string; addresses: SavedCustomerAddress[] }) {
   const cart = useCatalogCart();
@@ -30,6 +31,8 @@ export default function TestCheckout({ name, phone, addresses }: { name: string;
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [slotError, setSlotError] = useState('');
   const [preview, setPreview] = useState<CatalogCartPreview | null>(null);
+  const [promoInput, setPromoInput] = useState('');
+  const [appliedPromoCode, setAppliedPromoCode] = useState('');
   const [checking, setChecking] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -41,13 +44,13 @@ export default function TestCheckout({ name, phone, addresses }: { name: string;
     setPreview(null); setChecking(true);
     if (!cart.ready || !cart.items.length) { setChecking(false); return () => controller.abort(); }
     if (mode === 'delivery' && !resolvedAddress) { setChecking(false); setError(''); return () => controller.abort(); }
-    fetch('/api/cart/preview', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items: cart.items, mode, ...(mode === 'delivery' && resolvedAddress ? { zoneId: resolvedAddress.zoneId } : {}) }), signal: controller.signal })
+    fetch('/api/cart/preview', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items: cart.items, mode, ...(mode === 'delivery' && resolvedAddress ? { zoneId: resolvedAddress.zoneId } : {}), ...(appliedPromoCode ? { promoCode: appliedPromoCode } : {}) }), signal: controller.signal })
       .then(async response => { if (!response.ok) throw new Error(); return response.json() as Promise<CatalogCartPreview>; })
       .then(result => { setPreview(result); setError(''); })
       .catch(error => { if (error.name !== 'AbortError') setError('Impossible de vérifier ce panier. Vérifiez les options depuis le panier puis réessayez.'); })
       .finally(() => { if (!controller.signal.aborted) setChecking(false); });
     return () => controller.abort();
-  }, [cart.items, cart.ready, mode, resolvedAddress?.zoneId, retry]);
+  }, [cart.items, cart.ready, mode, resolvedAddress?.zoneId, appliedPromoCode, retry]);
 
   useEffect(() => {
     if (!preview) return;
@@ -78,7 +81,7 @@ export default function TestCheckout({ name, phone, addresses }: { name: string;
     if (pending.current || !preview || checking) return;
     const fields = new FormData(event.currentTarget);
     const submitted = cart.items;
-    const data = { items: submitted, mode, scheduledFor: slotValue, ...(mode === 'delivery' ? { zoneId: resolvedAddress?.zoneId, address: fields.get('address') } : {}), contactName: fields.get('contactName'), phone: fields.get('phone'), comment: fields.get('comment'), expectedTotalCents: preview.subtotalCents };
+    const data = { items: submitted, mode, scheduledFor: slotValue, ...(mode === 'delivery' ? { zoneId: resolvedAddress?.zoneId, address: fields.get('address') } : {}), ...(appliedPromoCode ? { promoCode: appliedPromoCode } : {}), contactName: fields.get('contactName'), phone: fields.get('phone'), comment: fields.get('comment'), expectedTotalCents: preview.totalCents ?? preview.subtotalCents };
     const signature = JSON.stringify(data);
     if (requestKey.current?.signature !== signature) requestKey.current = { signature, key: crypto.randomUUID() };
     pending.current = true; setBusy(true); setError('');
@@ -86,7 +89,7 @@ export default function TestCheckout({ name, phone, addresses }: { name: string;
       const response = await fetch('/api/test-orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...data, requestKey: requestKey.current.key }) });
       if (!response.ok) {
         const result = await response.json() as { error?: string };
-        setError(result.error === 'PRICE_CHANGED' ? 'Le prix a changé. Actualisez le récapitulatif et vérifiez-le avant de confirmer à nouveau.' : response.status === 401 ? 'La session a expiré. Reconnectez-vous depuis votre espace client.' : response.status === 422 ? 'L’adresse ne semble pas être dans les zones de livraison configurées.' : 'Enregistrement refusé. Vérifiez les coordonnées, les options et le minimum de plats.');
+        setError(result.error === 'PRICE_CHANGED' ? 'Le prix a changé. Actualisez le récapitulatif et vérifiez-le avant de confirmer à nouveau.' : result.error === 'PROMO_CODE_INVALID' ? 'Ce code promo n’est pas valide pour ce panier.' : response.status === 401 ? 'La session a expiré. Reconnectez-vous depuis votre espace client.' : response.status === 422 ? 'L’adresse ne semble pas être dans les zones de livraison configurées.' : 'Enregistrement refusé. Vérifiez les coordonnées, les options et le minimum de plats.');
         return;
       }
       const result = await response.json() as { id: string };
@@ -117,8 +120,13 @@ export default function TestCheckout({ name, phone, addresses }: { name: string;
     <label>Nom<input name="contactName" required maxLength={128} defaultValue={name} autoComplete="name" /></label>
     <label>Téléphone fictif<input name="phone" type="tel" required minLength={7} maxLength={30} defaultValue={phone} autoComplete="off" placeholder="Ex. 081 00 00 00" /></label>
     <label>Commentaire<textarea name="comment" maxLength={500} rows={3} /></label>
-    <h2>Récapitulatif</h2>{checking ? <p role="status">Vérification du prix…</p> : preview && <><TestOrderSummary items={preview.items} totalCents={preview.subtotalCents} />{!preview.fulfillment.eligible && <p role="alert">Minimum de livraison non atteint : {preview.fulfillment.dishCount} plat(s), minimum {preview.fulfillment.minimum}.</p>}</>}
+    <label htmlFor="test-promo-code">Code promo<input id="test-promo-code" maxLength={32} value={promoInput} onChange={event => setPromoInput(event.target.value.toUpperCase())} placeholder="Saisir un code" /></label>
+    <button type="button" onClick={() => { setError(''); setAppliedPromoCode(promoInput.trim()); }}>Appliquer le code</button>{appliedPromoCode && <button type="button" onClick={() => { setPromoInput(''); setAppliedPromoCode(''); setError(''); }}>Retirer le code</button>}
+    <h2>Récapitulatif</h2>{checking ? <p role="status">Vérification du prix…</p> : preview && <><TestOrderSummary items={preview.items} subtotalCents={preview.subtotalCents} loyaltyDiscountCents={preview.loyaltyDiscountCents} discountCents={preview.discountCents} promotionName={preview.promotion?.name} promotionCode={preview.promotion?.code} totalCents={preview.totalCents ?? preview.subtotalCents} />
+      {preview.codeError && <p role="alert">{preview.codeError === 'CODE_INVALIDE' ? 'Code promo introuvable.' : preview.codeError === 'CODE_EPUISE' ? 'Ce code a atteint sa limite d’utilisations.' : preview.codeError === 'CODE_PAS_ENCORE_VALIDE' ? 'Ce code n’est pas encore valable.' : preview.codeError === 'CODE_EXPIRE' ? 'Ce code promo a expiré.' : preview.codeError === 'CODE_HORS_HORAIRE' ? 'Ce code n’est pas valable à cette heure ou ce jour.' : preview.codeError === 'MONTANT_MINIMUM_NON_ATTEINT' ? 'Le panier minimum pour ce code n’est pas atteint.' : 'Ce code promo n’est pas actif.'}</p>}
+      {preview.codeNotSelected && <p role="status">Une promotion automatique plus avantageuse a été appliquée à la place du code saisi.</p>}
+      {!preview.fulfillment.eligible && <p role="alert">Minimum de livraison non atteint : {preview.fulfillment.dishCount} plat(s), minimum {preview.fulfillment.minimum}.</p>}</>}
     <button type="button" onClick={() => setRetry(current => current + 1)}>Actualiser le récapitulatif</button>
-    <button type="submit" disabled={checking || loadingSlots || !slotValue || !preview?.fulfillment.eligible || (mode === 'delivery' && !resolvedAddress)}>{busy ? 'Enregistrement…' : 'Confirmer la commande de test'}</button>
+    <button type="submit" disabled={checking || loadingSlots || !slotValue || !preview?.fulfillment.eligible || !!preview?.codeError || (mode === 'delivery' && !resolvedAddress)}>{busy ? 'Enregistrement…' : 'Confirmer la commande de test'}</button>
   </fieldset>{error && <p role="alert">{error}</p>}</form>;
 }

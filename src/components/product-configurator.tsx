@@ -19,6 +19,7 @@ export default function ProductConfigurator({ product, initial, onSubmit, submit
   const [extraIds, setExtraIds] = useState<string[]>(defaults.extraIds);
   const [removedIngredients, setRemovedIngredients] = useState<string[]>(defaults.removedIngredients);
   const availableExtras = product.extras.filter(extra => !extra.sizePrices || Object.hasOwn(extra.sizePrices, sizeId));
+  const includedIngredients = new Set((product.ingredients ?? []).map(name => name.toLocaleLowerCase('fr')));
   const extraPrice = (extra: CatalogProduct['extras'][number]) => extra.sizePrices ? extra.sizePrices[sizeId] : extra.priceCents;
   const unitCents = (product.sizes.find(size => size.id === sizeId)?.priceCents ?? product.baseCents) + availableExtras.filter(extra => extraIds.includes(extra.id)).reduce((sum, extra) => sum + extraPrice(extra), 0);
   function toggleExtra(id: string) {
@@ -40,11 +41,11 @@ export default function ProductConfigurator({ product, initial, onSubmit, submit
       {availableExtras.length === 0 && <p>Aucun supplément disponible pour ce format.</p>}
     </>}
     {availableExtras.length > 0 && <fieldset className="catalog-extra-options"><legend>{product.extraSelectionMode === 'SINGLE' ? 'Supplément (au choix)' : 'Suppléments'}</legend>
-      {product.extraSelectionMode === 'SINGLE' ? <>
+        {product.extraSelectionMode === 'SINGLE' ? <>
         <label><input type="radio" name={`extras-${groupId}`} checked={extraIds.length === 0} onChange={() => { setExtraIds([]); }} /> Aucun</label>
-        {availableExtras.map(extra => <label key={extra.id}><input type="radio" name={`extras-${groupId}`} checked={extraIds[0] === extra.id} onChange={() => { setExtraIds([extra.id]); }} /> {extra.nameFr} (+{euros(extraPrice(extra))})</label>)}
+        {availableExtras.map(extra => <label key={extra.id}><input type="radio" name={`extras-${groupId}`} checked={extraIds[0] === extra.id} onChange={() => { setExtraIds([extra.id]); }} /> {extra.nameFr}{includedIngredients.has(extra.nameFr.toLocaleLowerCase('fr')) ? ' — déjà inclus, portion en plus' : ''} (+{euros(extraPrice(extra))})</label>)}
       </> : availableExtras.map(extra =>
-        <label key={extra.id}><input type="checkbox" checked={extraIds.includes(extra.id)} onChange={() => toggleExtra(extra.id)} /> {extra.nameFr} (+{euros(extraPrice(extra))})</label>
+        <label key={extra.id}><input type="checkbox" checked={extraIds.includes(extra.id)} onChange={() => toggleExtra(extra.id)} /> {extra.nameFr}{includedIngredients.has(extra.nameFr.toLocaleLowerCase('fr')) ? ' — déjà inclus, portion en plus' : ''} (+{euros(extraPrice(extra))})</label>
       )}
     </fieldset>}
     <p aria-live="polite"><strong>Prix : {euros(unitCents)}</strong></p>

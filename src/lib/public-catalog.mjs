@@ -26,6 +26,7 @@ export function buildPublicCatalog(categories) {
           id: product.id,
           nameFr: product.nameFr,
           baseCents: assertPrice(product.baseCents),
+          ...(Array.isArray(product.ingredients) && product.ingredients.length ? { ingredients: product.ingredients } : {}),
           ...(category.fulfillmentCategory === 'PIZZA' ? { removableIngredients: Array.isArray(product.removableIngredients) ? product.removableIngredients : [] } : {}),
           choiceLabel: typeof product.choiceLabel === 'string' && product.choiceLabel.trim() ? product.choiceLabel : null,
           extraSelectionMode: product.extraSelectionMode === 'SINGLE' ? 'SINGLE' : 'MULTIPLE',

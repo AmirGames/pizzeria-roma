@@ -4,6 +4,8 @@ import { isSameOriginMutation } from '../../../../../lib/catalog-management.mjs'
 import { testOrdersEnabled } from '../../../../../lib/test-mode';
 import { readJson } from '../../../../../lib/http-json';
 import { prepareCustomerReorder } from '../../../../../lib/customer-reorder.mjs';
+// @ts-ignore JavaScript module
+import { attachGlobalPizzaIngredients } from '../../../../../lib/global-pizza-ingredients.mjs';
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   if (!testOrdersEnabled()) return Response.json({ error: 'NOT_FOUND' }, { status: 404 });
   try {
@@ -17,7 +19,11 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     const snapshot = order.itemsSnapshot;
     if (!Array.isArray(snapshot) || !snapshot.length || snapshot.length > 30) throw new Error('REORDER_UNAVAILABLE');
     const ids = snapshot.flatMap(line => line && typeof line === 'object' && !Array.isArray(line) && typeof line.productId === 'string' ? [line.productId] : []);
-    const products = await prisma.product.findMany({ where: { id: { in: ids } }, include: { category: true, sizes: true, extras: true } });
+    const [catalogProducts, ingredients] = await Promise.all([
+      prisma.product.findMany({ where: { id: { in: ids } }, include: { category: true, sizes: true, extras: true } }),
+      prisma.ingredient.findMany({ where: { active: true } }),
+    ]);
+    const products = attachGlobalPizzaIngredients(catalogProducts, ingredients);
     return Response.json({ ...prepareCustomerReorder(products, snapshot), previousTotalCents: order.totalCents }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     const code = error instanceof Error ? error.message : '';

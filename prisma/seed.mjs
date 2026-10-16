@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { menu20261014 } from './menu-2026-10-14.mjs';
+import { menu20261014, ingredientsCatalog, pizzaSupplementNames } from './menu-2026-10-14.mjs';
 
 const prisma = new PrismaClient();
 
@@ -33,6 +33,7 @@ async function main() {
             nameEn: product.nameEn,
             active: product.active,
             baseCents: product.baseCents,
+            ingredients: product.ingredients ?? [],
             choiceLabel: product.choiceLabel ?? null,
             extraSelectionMode: product.extraSelectionMode ?? 'MULTIPLE',
           },
@@ -42,6 +43,7 @@ async function main() {
             nameEn: product.nameEn,
             active: product.active,
             baseCents: product.baseCents,
+            ingredients: product.ingredients ?? [],
             choiceLabel: product.choiceLabel ?? null,
             extraSelectionMode: product.extraSelectionMode ?? 'MULTIPLE',
           },
@@ -61,6 +63,13 @@ async function main() {
           });
         }
       }
+    }
+    for (const nameFr of ingredientsCatalog) {
+      await tx.ingredient.upsert({
+        where: { nameFr },
+        create: { nameFr, nameEn: nameFr, price33Cents: 150, price50Cents: 300, active: pizzaSupplementNames.has(nameFr) },
+        update: { nameEn: nameFr },
+      });
     }
   });
   console.log(`Menu 2026-10-14 synchronisé : ${menu20261014.reduce((sum, category) => sum + category.products.length, 0)} produits.`);

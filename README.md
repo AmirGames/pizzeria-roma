@@ -10,10 +10,12 @@ Le projet peut être essayé en local. **Les commandes commerciales et les paiem
 
 ## Fonctionnalités disponibles
 
-- Catalogue du menu du 14/10/2026, avec formats, choix de pâtes, desserts et suppléments configurés.
+- Catalogue du menu du 14/10/2026, avec les compositions de pizzas et les compositions explicitement décrites pour les pâtes relevées depuis les photos du menu, ainsi que les formats, choix de pâtes, desserts et suppléments configurés.
 - Personnalisation d’une pizza prédéfinie : retrait d’ingrédients autorisés **sans réduction du prix**, et suppléments à prix fixe ou selon le format.
 - Panier catalogue : modification des recettes, conservation des quantités et regroupement des recettes identiques, avec contrôle serveur des prix et options.
-- Espace gérant : recherche des articles, gestion des prix/disponibilités/options et création de pizzas en brouillon avant publication explicite.
+- Espace gérant : création et classement des catégories, création de plats avec formats et prix, gestion de leur composition, des ingrédients retirables, des suppléments et des disponibilités. Les nouveaux plats restent en brouillon jusqu’à publication explicite.
+- Promotions gérant : remises automatiques et codes promo en pourcentage ou montant fixe, avec période, jours, heures de validité, minimum de panier et plafond d’utilisations. Les remises sont calculées côté serveur et enregistrées sur les essais.
+- Carte de fidélité client : une pizza ou des pâtes terminées ajoutent un crédit ; après 10 plats payés, le plat éligible le moins cher est offert. Les annulations et refus ne donnent aucun crédit.
 - En mode test : inscription/connexion client, profil nom/téléphone, changement de mot de passe, confirmation, historique privé et annulation des essais en attente.
 - Carnet privé de dix adresses en mode test : ajout, modification, suppression, adresse par défaut et sélection au checkout.
 
@@ -75,7 +77,7 @@ Le conteneur PostgreSQL conserve les données dans un volume Docker et expose so
 npm run db:seed
 ```
 
-Le seed charge explicitement la carte dans la base pointée par `DATABASE_URL`. Il n’est exécuté ni au build ni automatiquement au démarrage. **Le relancer réapplique des noms, prix et disponibilités du menu source et remplace les options qu’il gère** : ne pas le relancer après personnalisation sans vouloir restaurer ces données.
+Le seed charge explicitement la carte dans la base pointée par `DATABASE_URL`. Il n’est exécuté ni au build ni automatiquement au démarrage. **Le relancer réapplique les noms, prix, compositions, disponibilités et options du menu source** : ne pas le relancer après personnalisation sans vouloir restaurer ces données.
 
 ### 5. Démarrer le site
 
@@ -120,7 +122,7 @@ Garder ce lien privé. Utiliser des comptes distincts pour les parcours client e
 | `/menu` | Carte et personnalisation avant ajout au panier |
 | `/panier` | Sélection catalogue et modification des recettes ; démonstration fictive séparée si aucun article catalogue |
 | `/commande` | Aperçu livraison/retrait, zones et horaires |
-| `/compte` | Inscription, connexion, profil, statut e-mail et historique client en mode test |
+| `/compte` | Inscription, connexion, profil, carte de fidélité et historique client en mode test |
 | `/compte/mot-de-passe-oublie` | Demande d’un lien de récupération dans Mailpit |
 | `/compte/verifier` et `/compte/reinitialiser` | Confirmation des liens à usage unique reçus localement |
 | `/commande/test` | Confirmation d’un essai pour un client connecté |
@@ -128,6 +130,7 @@ Garder ce lien privé. Utiliser des comptes distincts pour les parcours client e
 | `/gerant/connexion` | Connexion par lien privé |
 | `/gerant` | Tableau de bord des essais, réservé au gérant |
 | `/gerant/carte` | Édition de la carte, réservée au gérant |
+| `/gerant/promotions` | Création et activation des promotions et codes promo, réservée au gérant |
 | `/gerant/commandes-test` | Suivi simulé, réservé au gérant et à la cuisine |
 | `/gerant/livraison` | Réglage des créneaux et dessin des zones, réservé au gérant |
 
@@ -137,7 +140,7 @@ Garder ce lien privé. Utiliser des comptes distincts pour les parcours client e
 2. Avec un compte client distinct créé sur `/compte`, composer une pizza et l’ajouter au panier.
 3. Modifier sa recette depuis `/panier`, puis confirmer un essai sur `/commande/test`.
 4. Consulter son détail et son historique dans l’espace client.
-5. Avec le compte professionnel, simuler les étapes de préparation dans `/gerant/commandes-test`, puis actualiser le suivi client.
+5. Avec le compte professionnel, simuler les étapes de préparation jusqu’à « Test terminé » dans `/gerant/commandes-test`, puis vérifier les crédits de fidélité dans l’espace client.
 
 Le changement de mot de passe demande le mot de passe actuel et une confirmation. Il crée une nouvelle session pour le navigateur courant et déconnecte les autres sessions, y compris face à une connexion concurrente. Les coordonnées modifiées préremplissent les prochains essais et ne réécrivent pas l’historique.
 
@@ -148,6 +151,24 @@ La livraison est gratuite. Seules les pizzas et les pâtes comptent pour le mini
 En mode test, le client saisit son adresse sans placer de repère. ICAR renvoie une position de maison, y compris estimée sur la rue si le numéro exact est introuvable ; le serveur détermine la zone depuis les frontières enregistrées par le gérant. L’adresse complète saisie est conservée pour le livreur. Le gérant doit dessiner les zones sur `/gerant/livraison` avant d’essayer une livraison.
 
 Les créneaux simulés durent 15 minutes et sont proposés pendant les horaires d’ouverture, jusqu’à 7 jours à l’avance. La configuration initiale limite chaque créneau à 7 pizzas ; le délai minimum initial est de 30 minutes pour le retrait et la livraison. Le gérant peut modifier ces valeurs, par pas de 15 minutes pour le délai. Les jours fériés légaux belges affichent un service informatif 18h–22h, sauf dimanche fermé.
+
+## Promotions et codes promo
+
+Dans `/gerant/promotions`, un compte MANAGER peut créer une remise automatique ou un code à saisir au checkout. La remise peut être un pourcentage entier ou un montant fixe en euros. Chaque offre peut avoir une date de début et de fin inclusives, un ou plusieurs jours de la semaine, une plage horaire, un minimum de panier et un nombre maximum d’utilisations. Sans période de dates, l’offre n’a pas de borne de date ; sans plage horaire, elle est valable toute la journée. Les horaires et jours sont évalués en `Europe/Brussels` ; l’heure de fin est exclue (par exemple 12h00–13h00 s’arrête à 13h00).
+
+Une seule promotion automatique peut être active à la fois. Si un code saisi et une promotion automatique sont tous deux applicables, une seule remise est appliquée : la plus avantageuse. Les prix et la remise sont recalculés côté serveur à l’aperçu et à l’enregistrement. Le plafond d’utilisations est réservé de façon atomique avec l’essai ; le code, le montant de la remise et le total sont conservés sur `TestOrder`.
+
+Les promotions, la fidélité et le catalogue central d’ingrédients nécessitent la migration `20261016100000_promotions`, à appliquer avec `npx prisma migrate deploy`, puis la génération du client Prisma avec `npm run db:generate`. Pour charger la liste initiale d’ingrédients avec le menu, lancer `npm run db:seed` après la migration. Les promotions s’appliquent actuellement aux commandes de test uniquement : les commandes commerciales et les paiements restent désactivés.
+
+## Carte de fidélité
+
+La carte est visible dans `/compte` pour le client connecté. Les pizzas et pâtes d’un essai sont créditées uniquement lorsque son statut devient terminé. À chaque groupe de 10 plats payés, le client obtient un plat éligible offert ; si plusieurs plats sont dans le panier, le moins cher est déduit. Le crédit peut être réservé au checkout, mais il n’est consommé qu’à la fin de l’essai : un essai annulé ou refusé libère le crédit. Une remise de fidélité peut s’ajouter à une promotion ou un code promo ; l’offre promotionnelle est calculée sur le sous-total restant après le plat offert.
+
+La fidélité utilise les commandes de test car les ventes réelles sont désactivées. Le nombre de pizzas et pâtes des essais déjà enregistrés est repris par la migration `20261016100000_promotions`. Cette migration ajoute aussi le champ de composition des plats. Aucun seed supplémentaire n’est requis.
+
+## Gestion des catégories et des plats
+
+Dans `/gerant/carte`, le gérant peut ajouter ou renommer une catégorie, définir son type (pizzas, pâtes ou autres plats) et son ordre d’affichage. Le catalogue central « Ingrédients & suppléments » gère chaque ingrédient une seule fois, son activation comme supplément et ses tarifs 33/50 cm (1,50 €/3,00 € par défaut, modifiables). Les ingrédients actifs sont proposés sur toutes les pizzas. À la création d’une pizza, le gérant coche sa composition ; ces ingrédients sont affichés au client et peuvent être retirés. Le client peut aussi ajouter une portion d’un ingrédient déjà inclus, au tarif du format choisi. Renommer un ingrédient répercute le nouveau nom dans les compositions enregistrées. Les plats de pâtes gardent leur propre composition. Les plats existants peuvent changer de catégorie et leur prix, formats, suppléments spécifiques et disponibilité restent modifiables depuis cette page.
 
 La vérification e-mail et la récupération du mot de passe sont disponibles avec Mailpit en local. Un service d’envoi externe, la suppression/export du compte et les exigences d’exploitation restent à préparer avant l’ouverture publique de l’espace client. La PWA, la traduction complète et les paiements sont des objectifs, pas des fonctions annoncées comme terminées.
 

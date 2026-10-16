@@ -7,7 +7,7 @@ import CartItemEditor from './cart-item-editor';
 import { replaceCatalogCartItem, setCatalogCartQuantity } from '../../lib/catalog-cart.mjs';
 import type { CatalogCartLine } from '../../lib/catalog-cart.mjs';
 
-type Preview = { items: Array<{ productId: string; label: string; quantity: number; sizeLabel?: string; extraIds: string[]; extraLabels: string[]; removedIngredients: string[]; unitCents: number; totalCents: number }>; subtotalCents: number };
+type Preview = { items: Array<{ productId: string; label: string; quantity: number; sizeLabel?: string; extraIds: string[]; extraLabels: string[]; removedIngredients: string[]; unitCents: number; totalCents: number; loyaltyFreeQuantity?: number }>; subtotalCents: number; totalCents?: number; discountCents?: number; loyaltyDiscountCents?: number; promotion?: { name: string } | null };
 const money = (cents: number) => new Intl.NumberFormat('fr-BE', { style: 'currency', currency: 'EUR' }).format(cents / 100);
 
 export default function CatalogCartPanel({ items, setItems }: {
@@ -67,13 +67,15 @@ export default function CatalogCartPanel({ items, setItems }: {
               <p>{[item.sizeLabel, ...item.extraLabels.map(label => `Supplément ${label}`), ...item.removedIngredients.map(label => `Sans ${label}`)].filter(Boolean).join(' · ') || 'Article du menu'}</p>
               <button type="button" disabled={!!editing} onClick={() => setEditing({ ...items[index] })} aria-label={`Modifier les options de ${item.label}`}>Modifier les options</button>
               <div className="roma-qty" aria-label={`Quantité pour ${item.label}`}><button type="button" disabled={!!editing} onClick={() => changeQuantity(index, items[index].quantity - 1)} aria-label="Diminuer la quantité">−</button><output aria-live="polite">{item.quantity}</output><button type="button" disabled={!!editing} onClick={() => changeQuantity(index, items[index].quantity + 1)} aria-label="Augmenter la quantité">+</button></div>
-            </div><div className="roma-item-end"><strong>{money(item.totalCents)}</strong><button type="button" className="roma-remove" disabled={!!editing} onClick={() => changeQuantity(index, 0)} aria-label={`Supprimer ${item.label}`}>Supprimer</button></div>
+            </div><div className="roma-item-end"><strong>{money(item.totalCents - item.unitCents * (item.loyaltyFreeQuantity ?? 0))}</strong><button type="button" className="roma-remove" disabled={!!editing} onClick={() => changeQuantity(index, 0)} aria-label={`Supprimer ${item.label}`}>Supprimer</button></div>
           </li>)}</ul>}
       </section>
       <aside className="roma-summary" aria-label="Récapitulatif du panier"><h2>Récapitulatif vérifié</h2>
         <div><span>Sous-total</span><strong>{status === 'ready' && preview ? money(preview.subtotalCents) : '—'}</strong></div>
+        {preview?.loyaltyDiscountCents ? <div className="roma-summary-promo"><span>Carte fidélité — plat offert</span><strong>−{money(preview.loyaltyDiscountCents)}</strong></div> : null}
+        {preview?.discountCents ? <div className="roma-summary-promo"><span>{preview.promotion?.name ?? 'Promotion'}</span><strong>−{money(preview.discountCents)}</strong></div> : null}
         <div><span>Livraison</span><span>À calculer selon le mode choisi</span></div>
-        <div className="roma-summary-total"><span>Total</span><strong>{status === 'ready' && preview ? money(preview.subtotalCents) : '—'}</strong></div>
+        <div className="roma-summary-total"><span>Total</span><strong>{status === 'ready' && preview ? money(preview.totalCents ?? preview.subtotalCents) : '—'}</strong></div>
         <Link href="/commande" className="roma-checkout">Prévisualiser livraison ou retrait →</Link>
         <p>Les prix et le sous-total proviennent du serveur. Ce récapitulatif ne crée ni commande ni paiement.</p>
       </aside>

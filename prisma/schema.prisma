@@ -40,6 +40,16 @@ enum ExtraSelectionMode {
   SINGLE
 }
 
+enum PromotionKind {
+  AUTOMATIC
+  CODE
+}
+
+enum PromotionDiscountType {
+  PERCENT
+  FIXED
+}
+
 model User {
   id            String    @id @default(cuid())
   email         String    @unique @db.VarChar(320)
@@ -86,6 +96,7 @@ model Product {
   nameEn     String
   active     Boolean      @default(true)
   baseCents  Int
+  ingredients String[] @default([])
   removableIngredients String[] @default([])
   catalogRevision Int @default(0)
   choiceLabel String?
@@ -148,6 +159,17 @@ model ProductExtra {
   @@index([productId, active])
 }
 
+model Ingredient {
+  id String @id @default(cuid())
+  nameFr String @unique @db.VarChar(128)
+  nameEn String @db.VarChar(128)
+  price33Cents Int @default(150)
+  price50Cents Int @default(300)
+  active Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model ManagerAccessToken {
   tokenHash String @id @db.Char(64)
   userId String
@@ -186,14 +208,47 @@ model TestOrder {
   comment String? @db.VarChar(500)
   status OrderStatus @default(PENDING)
   revision Int @default(0)
+  subtotalCents Int @default(0)
+  discountCents Int @default(0)
+  loyaltyDiscountCents Int @default(0)
+  loyaltyPaidDishCount Int @default(0)
+  loyaltyFreeDishCount Int @default(0)
   totalCents Int
+  promotionId String?
+  promotionCode String?
+  promotionName String?
   itemsSnapshot Json
   placedAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  promotion Promotion? @relation(fields: [promotionId], references: [id], onDelete: SetNull)
   @@unique([userId, requestKey])
   @@index([userId, placedAt])
+  @@index([userId, status])
   @@index([status, placedAt])
+}
+
+model Promotion {
+  id String @id @default(cuid())
+  name String @db.VarChar(100)
+  kind PromotionKind
+  code String? @unique @db.VarChar(32)
+  discountType PromotionDiscountType
+  value Int
+  minimumSubtotalCents Int @default(0)
+  validFrom DateTime? @db.Date
+  validUntil DateTime? @db.Date
+  weekdays Int[] @default([1, 2, 3, 4, 5, 6, 7])
+  startTime String? @db.VarChar(5)
+  endTime String? @db.VarChar(5)
+  usageLimit Int?
+  usageCount Int @default(0)
+  active Boolean @default(false)
+  revision Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  testOrders TestOrder[]
+  @@index([kind, active, validFrom, validUntil])
 }
 
 model DeliveryConfiguration {

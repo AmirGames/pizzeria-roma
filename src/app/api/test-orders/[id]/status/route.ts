@@ -17,7 +17,10 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     const current = await prisma.testOrder.findUnique({ where: { id } });
     if (!current) return Response.json({ error: 'NOT_FOUND' }, { status: 404 });
     if (!nextTestStatuses(current.status, current.fulfillment).includes(input.status)) return Response.json({ error: 'INVALID_TRANSITION' }, { status: 400 });
-    const result = await prisma.testOrder.updateMany({ where: { id, revision: input.revision, status: current.status }, data: { status: input.status as OrderStatus, revision: { increment: 1 } } });
+    const result = await prisma.$transaction(async tx => {
+      await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${current.userId} FOR UPDATE`;
+      return tx.testOrder.updateMany({ where: { id, revision: input.revision, status: current.status }, data: { status: input.status as OrderStatus, revision: { increment: 1 } } });
+    });
     return Response.json({ ok: result.count === 1 }, { status: result.count === 1 ? 200 : 409 });
   } catch (error) { return Response.json({ error: 'UNAVAILABLE' }, { status: error instanceof Error && error.message === 'FORBIDDEN' ? 403 : error instanceof Error && error.message === 'INVALID_REQUEST' ? 400 : 503 }); }
 }

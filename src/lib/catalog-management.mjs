@@ -16,13 +16,19 @@ function active(value) { if (typeof value !== 'boolean') invalid(); return value
 
 /** Validate a complete edit against the current database product, including ownership. */
 export function validateCatalogEdit(input, product) {
-  object(input, ['revision', 'nameFr', 'baseCents', 'active', 'removableIngredients', 'sizes', 'extras']);
+  object(input, ['revision', 'categoryId', 'nameFr', 'nameEn', 'baseCents', 'active', 'ingredients', 'removableIngredients', 'sizes', 'extras']);
   if (!Number.isSafeInteger(input.revision) || input.revision < 0) invalid();
+  const categoryId = input.categoryId ?? product.categoryId;
+  const nameEn = input.nameEn ?? product.nameEn ?? input.nameFr;
+  const ingredients = input.ingredients ?? product.ingredients ?? [];
+  if (typeof categoryId !== 'string' || !categoryId || categoryId.length > 128) invalid();
   const isPizza = product.category.fulfillmentCategory === 'PIZZA';
   if (!Array.isArray(input.removableIngredients) || input.removableIngredients.length > 30 ||
       new Set(input.removableIngredients).size !== input.removableIngredients.length ||
       (!isPizza && input.removableIngredients.length)) invalid();
   input.removableIngredients.forEach(value => text(value));
+  if (!Array.isArray(ingredients) || ingredients.length > 40 || new Set(ingredients).size !== ingredients.length) invalid();
+  ingredients.forEach(value => text(value));
   if (!Array.isArray(input.sizes) || input.sizes.length !== product.sizes.length ||
       new Set(input.sizes.map(size => size?.id)).size !== input.sizes.length) invalid();
   const sizes = input.sizes.map(size => {
@@ -45,7 +51,7 @@ export function validateCatalogEdit(input, product) {
     }
     return { ...(extra.id ? { id: extra.id } : {}), nameFr: text(extra.nameFr), priceCents: cents(extra.priceCents), active: active(extra.active), sizePrices };
   });
-  return { revision: input.revision, nameFr: text(input.nameFr), baseCents: cents(input.baseCents), active: active(input.active), removableIngredients: [...input.removableIngredients], sizes, extras };
+  return { revision: input.revision, categoryId, nameFr: text(input.nameFr), nameEn: text(nameEn), baseCents: cents(input.baseCents), active: active(input.active), ingredients: [...ingredients], removableIngredients: [...input.removableIngredients], sizes, extras };
 }
 
 export function isSameOriginMutation(request, configuredOrigin) {
