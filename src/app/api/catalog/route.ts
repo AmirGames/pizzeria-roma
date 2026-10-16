@@ -21,7 +21,8 @@ export async function GET() {
     }), prisma.ingredient.findMany({ where: { active: true }, orderBy: { nameFr: 'asc' } })]);
     const withGlobalIngredients = categories.map(category => ({ ...category, products: attachGlobalPizzaIngredients(category.products.map(product => ({ ...product, category: { fulfillmentCategory: category.fulfillmentCategory } })), ingredients) }));
     return Response.json({ categories: buildPublicCatalog(withGlobalIngredients) }, { headers: { 'Cache-Control': 'no-store' } });
-  } catch {
+  } catch (error) {
+    console.error('[api/catalog] Failed to load the public catalog:', error);
     return Response.json({ error: 'CATALOG_UNAVAILABLE' }, { status: 503 });
   }
 }

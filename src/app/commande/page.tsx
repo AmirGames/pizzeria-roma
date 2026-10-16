@@ -51,9 +51,11 @@ export default function FulfillmentPage() {
   return (
     <main className="roma-fulfillment">
       <div className="roma-fulfillment-container">
-        <p className="eyebrow">PIZZERIA ROMA · NAMUR</p>
-        <h1>Livraison ou à emporter</h1>
-        <p className="roma-fulfillment-lead">Choisissez comment vous souhaitez récupérer votre commande. Cet écran présente les règles prévues : les commandes ne sont pas encore ouvertes.</p>
+        <section className="fulfillment-hero">
+          <p className="eyebrow">PIZZERIA ROMA · NAMUR</p>
+          <h1>Livraison ou à emporter</h1>
+          <p className="roma-fulfillment-lead">Choisissez comment vous souhaitez récupérer votre commande. Cet écran présente les règles prévues : les commandes ne sont pas encore ouvertes.</p>
+        </section>
         <div className="roma-fulfillment-layout">
           <section className="roma-fulfillment-card" aria-label="Mode de commande">
             <h2>Mode de commande</h2>
