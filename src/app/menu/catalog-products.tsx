@@ -8,6 +8,7 @@ import type { CatalogCartLine } from '../../lib/catalog-cart.mjs';
 import { useCatalogCart } from '../../lib/use-catalog-cart';
 
 type CatalogCategory = { id: string; nameFr: string; products: CatalogProduct[] };
+type CatalogEntry = { product: CatalogProduct; displayName?: string; selectedSizeId?: string };
 const money = (cents: number) => new Intl.NumberFormat('fr-BE', { style: 'currency', currency: 'EUR' }).format(cents / 100);
 
 function categorySlug(name: string) {
@@ -133,7 +134,7 @@ export default function CatalogProducts() {
   }
 
   const currentCategory = categories.find(category => category.id === activeCategory) ?? categories[0];
-  const categoryProducts = useMemo(() => {
+  const categoryProducts = useMemo<CatalogEntry[]>(() => {
     const products = currentCategory?.products ?? [];
     if (categorySlug(currentCategory?.nameFr ?? '') !== 'desserts') return products.map(product => ({ product }));
 
