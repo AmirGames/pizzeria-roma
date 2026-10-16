@@ -23,6 +23,7 @@ export default function HomePage() {
       <div className={styles.heroCopy}>
         <h1>De véritables<br />saveurs italiennes<br />à Namur</h1>
         <p className={styles.intro}>Pizzas artisanales, pâtes, salades et bien plus encore.<br />À emporter ou en livraison, toujours avec passion.</p>
+        <p className={styles.notice}>Site de présentation : aucune commande ni paiement disponible pour le moment.</p>
         <div className={styles.actions}><Link className={styles.primary} href="/menu">Commander maintenant <span aria-hidden="true">→</span></Link><Link className={styles.secondary} href="/menu">Voir la carte</Link></div>
       </div>
       <div className={styles.heroFoot}>

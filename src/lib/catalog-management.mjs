@@ -21,7 +21,7 @@ export function validateCatalogEdit(input, product) {
   const categoryId = input.categoryId ?? product.categoryId;
   const nameEn = input.nameEn ?? product.nameEn ?? input.nameFr;
   const ingredients = input.ingredients ?? product.ingredients ?? [];
-  if (typeof categoryId !== 'string' || !categoryId || categoryId.length > 128) invalid();
+  if (categoryId !== undefined && (typeof categoryId !== 'string' || !categoryId || categoryId.length > 128)) invalid();
   const isPizza = product.category.fulfillmentCategory === 'PIZZA';
   if (!Array.isArray(input.removableIngredients) || input.removableIngredients.length > 30 ||
       new Set(input.removableIngredients).size !== input.removableIngredients.length ||
@@ -51,7 +51,18 @@ export function validateCatalogEdit(input, product) {
     }
     return { ...(extra.id ? { id: extra.id } : {}), nameFr: text(extra.nameFr), priceCents: cents(extra.priceCents), active: active(extra.active), sizePrices };
   });
-  return { revision: input.revision, categoryId, nameFr: text(input.nameFr), nameEn: text(nameEn), baseCents: cents(input.baseCents), active: active(input.active), ingredients: [...ingredients], removableIngredients: [...input.removableIngredients], sizes, extras };
+  return {
+    revision: input.revision,
+    ...(categoryId === undefined ? {} : { categoryId }),
+    nameFr: text(input.nameFr),
+    ...(input.nameEn !== undefined || product.nameEn !== undefined ? { nameEn: text(nameEn) } : {}),
+    baseCents: cents(input.baseCents),
+    active: active(input.active),
+    ...(input.ingredients !== undefined || product.ingredients !== undefined ? { ingredients: [...ingredients] } : {}),
+    removableIngredients: [...input.removableIngredients],
+    sizes,
+    extras,
+  };
 }
 
 export function isSameOriginMutation(request, configuredOrigin) {
