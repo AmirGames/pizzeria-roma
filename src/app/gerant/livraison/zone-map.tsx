@@ -35,7 +35,6 @@ export default function ZoneMap({ geometry, draft, drawing, onDraftPoint }: {
         center: [4.87, 50.47],
         zoom: 12,
         maxZoom: 18,
-        attributionControl: true,
       });
       map.current = instance;
       instance.on('load', () => {

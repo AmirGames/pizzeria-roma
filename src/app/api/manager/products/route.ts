@@ -1,6 +1,7 @@
 import { prisma } from '../../../../lib/db';
 import { requirePermission } from '../../../../lib/auth';
 import { isSameOriginMutation } from '../../../../lib/catalog-management.mjs';
+// @ts-ignore JavaScript module
 import { validateMenuItem } from '../../../../lib/menu-management.mjs';
 
 export async function POST(request: Request) {

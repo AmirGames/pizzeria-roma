@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     return jsonError(400, 'INVALID_REQUEST');
   }
 
-  const input = body as { items?: unknown; mode?: unknown; zoneId?: unknown };
+  const input = body as { items?: unknown; mode?: unknown; zoneId?: unknown; promoCode?: unknown };
   if (!Array.isArray(input.items) || input.items.length < 1 || input.items.length > MAX_CART_LINES ||
       !['delivery', 'pickup'].includes(String(input.mode)) ||
       (input.zoneId !== undefined && typeof input.zoneId !== 'string') ||

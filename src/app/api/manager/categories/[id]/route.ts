@@ -1,6 +1,7 @@
 import { prisma } from '../../../../../lib/db';
 import { requirePermission } from '../../../../../lib/auth';
 import { isSameOriginMutation } from '../../../../../lib/catalog-management.mjs';
+// @ts-ignore JavaScript module
 import { validateMenuCategory } from '../../../../../lib/menu-management.mjs';
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {

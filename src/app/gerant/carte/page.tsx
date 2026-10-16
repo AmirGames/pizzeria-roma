@@ -16,11 +16,6 @@ export default async function ManagerCatalogPage() {
     const categories = await prisma.menuCategory.findMany({ orderBy: [{ position: 'asc' }, { nameFr: 'asc' }] });
     const ingredients = await prisma.ingredient.findMany({ orderBy: { nameFr: 'asc' } });
     const products = await prisma.product.findMany({ orderBy: [{ categoryId: 'asc' }, { nameFr: 'asc' }], include: { category: true, sizes: { orderBy: { priceCents: 'asc' } }, extras: { orderBy: { nameFr: 'asc' } } } });
-<<<<<<< Updated upstream
     return <main className="manager-page"><p className="manager-eyebrow">MENU · PRODUITS ET PRIX</p><h1>Gérer la carte</h1><p className="manager-lede">Gérez les catégories, le catalogue central d’ingrédients et les plats.</p><CatalogEditor initialProducts={products} initialCategories={categories} initialIngredients={ingredients} /></main>;
   } catch { return <main className="manager-page"><p className="manager-eyebrow">MENU · PRODUITS ET PRIX</p><h1>Gérer la carte</h1><p role="alert">La carte est indisponible pour le moment. Réessayez plus tard.</p></main>; }
-=======
-    return <main className="manager-page"><nav aria-label="Navigation gérant"><Link href="/gerant">Tableau de bord</Link><Link href="/gerant/livraison">Livraison et créneaux</Link><Link href="/gerant/commandes-test">Commandes de test</Link><Link href="/menu">Voir la carte</Link></nav><h1>Gérer la carte</h1><p>Modifiez les prix, les disponibilités et les options. Les changements enregistrés sont publiés sur la carte.</p><CatalogEditor initialProducts={products} pizzaCategories={pizzaCategories} /></main>;
-  } catch { return <main className="manager-page"><Link href="/gerant">Tableau de bord gérant</Link><Link href="/gerant/livraison">Livraison et créneaux</Link><Link href="/gerant/commandes-test">Commandes de test</Link><h1>Gérer la carte</h1><p role="alert">La carte est indisponible pour le moment. Réessayez plus tard.</p></main>; }
->>>>>>> Stashed changes
 }
