@@ -171,3 +171,12 @@ body:has(.manager-shell)>header:not(.manager-header),body:has(.manager-shell)>.s
 .customer-gate-link{display:inline-flex;align-items:center;gap:18px;margin-top:18px;padding:14px 20px;border-radius:7px;background:#d51f2b;color:#fff;text-decoration:none;font-weight:700}
 .customer-gate-link:hover{background:#b91e29}
 @media(max-width:600px){.customer-page,.manager-page{width:calc(100% - 12px);padding:26px 15px 54px}.manager-page>nav:not(.cards){gap:7px;padding:9px}.manager-page>nav:not(.cards) a,.manager-shortcuts a{font-size:12px;padding:8px 10px}.customer-page>section,.customer-page>details,.customer-page>form,.customer-settings{padding:16px}}
+
+
+/* Keep menu category labels readable on phones; scroll the tabs horizontally. */
+@media(max-width:760px){
+  .catalog-category-tabs{display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+  .catalog-category-tabs button{flex:0 0 auto;min-width:max-content;white-space:nowrap;padding-inline:14px}
+  .homeHeader .nav{gap:8px}
+  .homeHeader .nav a{font-size:clamp(9px,2.6vw,10px)}
+}
