@@ -172,11 +172,59 @@ body:has(.manager-shell)>header:not(.manager-header),body:has(.manager-shell)>.s
 .customer-gate-link:hover{background:#b91e29}
 @media(max-width:600px){.customer-page,.manager-page{width:calc(100% - 12px);padding:26px 15px 54px}.manager-page>nav:not(.cards){gap:7px;padding:9px}.manager-page>nav:not(.cards) a,.manager-shortcuts a{font-size:12px;padding:8px 10px}.customer-page>section,.customer-page>details,.customer-page>form,.customer-settings{padding:16px}}
 
-
-/* Keep menu category labels readable on phones; scroll the tabs horizontally. */
+/* Shared Roma identity across the account, cart and secondary storefront pages. */
+:root{--roma-ink:#20251f;--roma-green:#08271f;--roma-red:#d51f2b;--roma-gold:#d8bc8b;--roma-paper:#f8f7f2;--roma-line:#e7e1d7}
+.customer-page,.customize-page,.roma-cart{width:calc(100% - 16px);margin:8px auto 0;overflow:hidden;border-radius:12px;background:var(--roma-paper);color:var(--roma-ink)}
+.customer-page{max-width:1600px;min-height:55vh;padding:clamp(30px,4.2vw,64px) clamp(18px,5vw,76px) 78px}
+.customer-page>h1{font:700 clamp(2.5rem,5.3vw,4.3rem)/1 Georgia,serif;letter-spacing:-.035em;color:#18251e}
+.customer-page>p{max-width:780px;color:#676960;font-size:15px}
+.customer-page> a:first-child{display:inline-flex;align-items:center;gap:8px;margin-bottom:12px;color:#24533a;font-size:14px;font-weight:700;text-decoration:none}
+.customer-page> a:first-child:hover{text-decoration:underline;text-underline-offset:4px}
+.customer-gate-card{position:relative;isolation:isolate;display:flex;min-height:clamp(300px,38vw,470px);max-width:1280px;margin:12px auto 4px;padding:clamp(34px,7vw,88px);flex-direction:column;align-items:flex-start;justify-content:center;overflow:hidden;border:0;border-radius:12px;background:#09130f url('/roma-hero.png') center 52%/cover no-repeat;box-shadow:0 14px 38px #14271b1c;color:#fff}
+.customer-gate-card:before{position:absolute;z-index:-1;inset:0;content:"";background:linear-gradient(90deg,#050907ed 0%,#07100fdd 43%,#0a0c086b 78%,#0508062b 100%)}
+.customer-gate-card .eyebrow{color:var(--roma-gold)}
+.customer-gate-card h1{max-width:760px;color:#fff;font-size:clamp(2.8rem,6.6vw,5rem)}
+.customer-gate-card>p:not(.eyebrow){max-width:650px;color:#f1ede7;font-size:clamp(16px,1.8vw,21px);line-height:1.6}
+.customer-gate-link{min-height:48px;border-radius:6px;background:var(--roma-red);box-shadow:0 5px 18px #0003}
+.customer-page section[aria-label="Accès client"]{max-width:850px;margin:28px 0;padding:clamp(20px,3.5vw,42px);border-color:var(--roma-line);border-radius:12px}
+.customer-page section[aria-label="Accès client"] .customer-actions{margin:0 0 20px}
+.customer-page .customer-actions button[aria-pressed=true]{background:var(--roma-green);outline:0}
+.customer-page .customer-actions button:not([aria-pressed=true]){background:#eeece6;color:#26392e}
+.customer-page form>fieldset{padding:clamp(18px,3vw,30px);border-color:var(--roma-line);border-radius:9px;background:#fcfbf8}
+.customer-page form>fieldset>p,.customer-page form [role=alert]{color:#69665f;font-size:13px}
+.customer-page form>fieldset>button,.customer-page>section[aria-label="Accès client"] form>button{min-height:48px;padding-inline:20px}
+.customer-page .customer-loyalty{border-color:#e2d6bd;background:linear-gradient(135deg,#fffdf8,#f5efdf)}
+.customer-page .customer-orders,.customer-page .test-order-card{border-color:var(--roma-line);border-radius:10px}
+.roma-cart{min-height:55vh}
+.roma-cart-container{max-width:1500px;padding-top:clamp(32px,5vw,70px);padding-bottom:clamp(48px,7vw,100px)}
+.roma-cart-intro{position:relative;isolation:isolate;overflow:hidden;margin:0 0 30px;padding:clamp(24px,4vw,48px);border-radius:10px;background:#07110d url('/roma-hero.png') center 58%/cover no-repeat;color:#fff}
+.roma-cart-intro:before{position:absolute;z-index:-1;inset:0;content:"";background:linear-gradient(90deg,#050907ed 0%,#07100fce 52%,#080b0870 100%)}
+.roma-cart-intro .eyebrow{color:var(--roma-gold)}
+.roma-cart-intro h1{color:#fff}
+.roma-cart-intro>p:last-child{max-width:760px;color:#f1ede7}
+.customize-page{min-height:55vh;padding:clamp(28px,5vw,72px) 18px 82px}
+.customize-panel{border-color:var(--roma-line);border-radius:12px;box-shadow:0 12px 35px #15291b0b}
+.customize-panel .eyebrow{color:#a5382c}
+.customize-warning{border-radius:7px;background:#f7f2e7;border-left-color:var(--roma-red)}
+.customize-link{border-radius:6px;background:var(--roma-red)}
+.menu-category-index{display:none}
 @media(max-width:760px){
-  .catalog-category-tabs{display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
-  .catalog-category-tabs button{flex:0 0 auto;min-width:max-content;white-space:nowrap;padding-inline:14px}
-  .homeHeader .nav{gap:8px}
-  .homeHeader .nav a{font-size:clamp(9px,2.6vw,10px)}
+  .catalog-category-tabs{display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:thin;border-radius:12px}
+  .catalog-category-tabs button{flex:0 0 auto;min-width:max-content;padding:12px 14px;white-space:nowrap}
+  .customer-page,.customize-page,.roma-cart{width:calc(100% - 12px)}
+  .customer-gate-card{min-height:320px;padding:30px 22px;background-position:58% center}
+  .customer-gate-card:before{background:linear-gradient(90deg,#050907ed,#07100fce 65%,#080b0866)}
+  .customer-page section[aria-label="Accès client"]{padding:18px}
+  .customer-page section[aria-label="Accès client"] .customer-actions{align-items:stretch}
+  .customer-page section[aria-label="Accès client"] .customer-actions button{flex:1}
+  .roma-cart-container{padding:28px 14px 58px}
+  .roma-cart-intro{padding:26px 20px}
+}
+@media(max-width:480px){
+  .customer-page,.customize-page{padding:25px 14px 52px}
+  .customer-gate-card{min-height:300px}
+  .customer-gate-card h1{font-size:clamp(2.55rem,12vw,3.5rem)}
+  .customer-gate-card>p:not(.eyebrow){font-size:15px}
+  .customer-page .customer-loyalty ol{gap:6px}
+  .customer-page .customer-loyalty li{width:32px;height:32px}
 }
