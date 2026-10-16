@@ -21,9 +21,15 @@ export default async function StaffTestOrders({ searchParams }: { searchParams: 
   catch { filterError = 'Filtres invalides. La file à traiter est affichée avec les réglages par défaut.'; }
   const result = await listStaffTestOrders(filters);
   const from = (result.page - 1) * STAFF_TEST_PAGE_SIZE + 1;
+<<<<<<< Updated upstream
   return <main className="manager-page"><p className="manager-eyebrow">OPÉRATIONS · FILE DES COMMANDES</p><h1>Commandes de test</h1>
     <div className="manager-notice"><strong>Simulation uniquement</strong><span>Ne préparez pas ces commandes. Triez par créneau pour voir les essais prévus le plus tôt.</span></div>
     <section className="manager-orders-panel" aria-labelledby="staff-test-list-title"><h2 id="staff-test-list-title">File des essais</h2>
+=======
+  return <main className="manager-page"><nav aria-label="Navigation gérant"><Link href="/gerant">Tableau de bord</Link><Link href="/gerant/carte">Gérer la carte</Link><Link href="/gerant/livraison">Livraison et créneaux</Link></nav><h1>Gérant et cuisine — commandes de test</h1>
+    <p>Simulation uniquement. Ne préparez pas ces commandes. Choisissez le tri par créneau pour voir ensemble les essais prévus le plus tôt.</p>
+    <section aria-labelledby="staff-test-list-title"><h2 id="staff-test-list-title">File des essais</h2>
+>>>>>>> Stashed changes
       <form key={JSON.stringify([filters, result.page])} method="get" action="/gerant/commandes-test#staff-test-list-title"><fieldset><legend>Filtrer la file</legend>
         <label htmlFor="staff-test-q">Référence à rechercher</label><input id="staff-test-q" name="q" type="search" maxLength={64} defaultValue={filters.q} placeholder="Référence complète ou partielle" />
         <label htmlFor="staff-test-status">Statut des essais</label><select id="staff-test-status" name="statut" defaultValue={filters.status}><option value="active">À traiter</option><option value="all">Tous les statuts</option>{Object.entries(TEST_STATUS_LABELS).map(([status, label]) => <option key={status} value={status}>{label}</option>)}</select>

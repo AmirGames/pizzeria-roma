@@ -18,6 +18,7 @@ Le projet peut être essayé en local. **Les commandes commerciales et les paiem
 - Carte de fidélité client : une pizza ou des pâtes terminées ajoutent un crédit ; après 10 plats payés, le plat éligible le moins cher est offert. Les annulations et refus ne donnent aucun crédit.
 - En mode test : inscription/connexion client, profil nom/téléphone, changement de mot de passe, confirmation, historique privé et annulation des essais en attente.
 - Carnet privé de dix adresses en mode test : ajout, modification, suppression, adresse par défaut et sélection au checkout.
+- Export JSON des données du compte connecté : profil, adresses et historiques de commandes associés, sans identifiants ni secrets.
 
 - Historique client paginé : recherche par référence, filtre par statut et accès aux anciens essais au-delà des 50 derniers.
 - Reprise d’une ancienne sélection depuis l’historique, avec prix actuels et ajout confirmé au panier existant.
@@ -122,7 +123,12 @@ Garder ce lien privé. Utiliser des comptes distincts pour les parcours client e
 | `/menu` | Carte et personnalisation avant ajout au panier |
 | `/panier` | Sélection catalogue et modification des recettes ; démonstration fictive séparée si aucun article catalogue |
 | `/commande` | Aperçu livraison/retrait, zones et horaires |
+<<<<<<< Updated upstream
 | `/compte` | Inscription, connexion, profil, carte de fidélité et historique client en mode test |
+=======
+| `/compte` | Inscription, connexion, profil, adresses, export des données et historique client en mode test |
+| `/api/customer/export` | Téléchargement privé des données du client connecté |
+>>>>>>> Stashed changes
 | `/compte/mot-de-passe-oublie` | Demande d’un lien de récupération dans Mailpit |
 | `/compte/verifier` et `/compte/reinitialiser` | Confirmation des liens à usage unique reçus localement |
 | `/commande/test` | Confirmation d’un essai pour un client connecté |
@@ -152,6 +158,7 @@ En mode test, le client saisit son adresse sans placer de repère. ICAR renvoie 
 
 Les créneaux simulés durent 15 minutes et sont proposés pendant les horaires d’ouverture, jusqu’à 7 jours à l’avance. La configuration initiale limite chaque créneau à 7 pizzas ; le délai minimum initial est de 30 minutes pour le retrait et la livraison. Le gérant peut modifier ces valeurs, par pas de 15 minutes pour le délai. Les jours fériés légaux belges affichent un service informatif 18h–22h, sauf dimanche fermé.
 
+<<<<<<< Updated upstream
 ## Promotions et codes promo
 
 Dans `/gerant/promotions`, un compte MANAGER peut créer une remise automatique ou un code à saisir au checkout. La remise peut être un pourcentage entier ou un montant fixe en euros. Chaque offre peut avoir une date de début et de fin inclusives, un ou plusieurs jours de la semaine, une plage horaire, un minimum de panier et un nombre maximum d’utilisations. Sans période de dates, l’offre n’a pas de borne de date ; sans plage horaire, elle est valable toute la journée. Les horaires et jours sont évalués en `Europe/Brussels` ; l’heure de fin est exclue (par exemple 12h00–13h00 s’arrête à 13h00).
@@ -171,6 +178,9 @@ La fidélité utilise les commandes de test car les ventes réelles sont désact
 Dans `/gerant/carte`, le gérant peut ajouter ou renommer une catégorie, définir son type (pizzas, pâtes ou autres plats) et son ordre d’affichage. Le catalogue central « Ingrédients & suppléments » gère chaque ingrédient une seule fois, son activation comme supplément et ses tarifs 33/50 cm (1,50 €/3,00 € par défaut, modifiables). Les ingrédients actifs sont proposés sur toutes les pizzas. À la création d’une pizza, le gérant coche sa composition ; ces ingrédients sont affichés au client et peuvent être retirés. Le client peut aussi ajouter une portion d’un ingrédient déjà inclus, au tarif du format choisi. Renommer un ingrédient répercute le nouveau nom dans les compositions enregistrées. Les plats de pâtes gardent leur propre composition. Les plats existants peuvent changer de catégorie et leur prix, formats, suppléments spécifiques et disponibilité restent modifiables depuis cette page.
 
 La vérification e-mail et la récupération du mot de passe sont disponibles avec Mailpit en local. Un service d’envoi externe, la suppression/export du compte et les exigences d’exploitation restent à préparer avant l’ouverture publique de l’espace client. La PWA, la traduction complète et les paiements sont des objectifs, pas des fonctions annoncées comme terminées.
+=======
+La vérification e-mail et la récupération du mot de passe sont disponibles avec Mailpit en local. L’export JSON des données du compte est disponible en mode test. Un service d’envoi externe, la suppression du compte et les exigences d’exploitation restent à préparer avant l’ouverture publique de l’espace client. La PWA, la traduction complète et les paiements sont des objectifs, pas des fonctions annoncées comme terminées.
+>>>>>>> Stashed changes
 
 ## Vérifications
 

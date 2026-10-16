@@ -269,6 +269,7 @@ model DeliveryZoneBoundary {
 enum CustomerEmailPurpose {
   VERIFY_EMAIL
   RESET_PASSWORD
+  CHANGE_EMAIL
 }
 
 model CustomerEmailToken {

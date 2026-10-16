@@ -1,0 +1,2149 @@
+From 39fad25bb08f3f539683eb9d7821fc97c4b4c536 Mon Sep 17 00:00:00 2001
+From: Soultane Saouaf <ssoultane.s.amir@gmail.com>
+Date: Fri, 16 Oct 2026 08:56:41 +0000
+Subject: [PATCH] Add promotions loyalty and shared ingredient catalog
+
+---
+ README.md                                     |  31 ++++-
+ prisma/menu-2026-10-14.mjs                    |  68 ++++++++++
+ .../20261016100000_promotions/migration.sql   |  62 +++++++++
+ prisma/schema.prisma                          |  55 ++++++++
+ prisma/seed.mjs                               |  11 +-
+ src/app/api/cart/preview/route.ts             |  28 +++-
+ src/app/api/catalog/route.ts                  |  11 +-
+ src/app/api/manager/categories/[id]/route.ts  |  24 ++++
+ src/app/api/manager/categories/route.ts       |  21 +++
+ src/app/api/manager/ingredients/[id]/route.ts |  37 ++++++
+ src/app/api/manager/ingredients/route.ts      |  21 +++
+ src/app/api/manager/products/[id]/route.ts    |  10 +-
+ src/app/api/manager/products/route.ts         |   8 +-
+ src/app/api/manager/promotions/[id]/route.ts  |  29 +++++
+ src/app/api/manager/promotions/route.ts       |  37 ++++++
+ src/app/api/test-orders/[id]/reorder/route.ts |   8 +-
+ src/app/api/test-orders/[id]/route.ts         |   5 +-
+ src/app/api/test-orders/[id]/status/route.ts  |   5 +-
+ src/app/api/test-orders/route.ts              |  37 +++++-
+ src/app/commande/page.tsx                     |   4 +-
+ src/app/commande/test/test-checkout.tsx       |  20 ++-
+ src/app/compte/commandes/[id]/page.tsx        |   2 +-
+ src/app/compte/page.tsx                       |   4 +-
+ src/app/gerant/carte/catalog-editor.tsx       | 120 ++++++++++++++++--
+ src/app/gerant/carte/page.tsx                 |   9 +-
+ src/app/gerant/carte/pizza-creator.tsx        |  58 +++++----
+ src/app/gerant/commandes-test/page.tsx        |  13 +-
+ src/app/gerant/connexion/page.tsx             |   2 +-
+ src/app/gerant/dashboard.module.css           |   7 -
+ src/app/gerant/layout.tsx                     |   8 ++
+ src/app/gerant/livraison/page.tsx             |   5 +-
+ src/app/gerant/manager-navigation.tsx         |  23 ++++
+ src/app/gerant/page.tsx                       |  19 ++-
+ src/app/gerant/promotions/page.tsx            |  18 +++
+ .../gerant/promotions/promotion-editor.tsx    |  88 +++++++++++++
+ src/app/globals.css                           |  21 +++
+ src/app/menu/catalog-products.tsx             |   2 +-
+ src/app/panier/catalog-cart-panel.tsx         |   8 +-
+ src/components/product-configurator.tsx       |   7 +-
+ src/components/test-order-summary.tsx         |   5 +-
+ src/lib/catalog-cart-preview.d.mts            |  10 +-
+ src/lib/catalog-management.d.mts              |   6 +-
+ src/lib/catalog-management.mjs                |  10 +-
+ src/lib/catalog-types.ts                      |   2 +-
+ src/lib/customer-loyalty.ts                   |  12 ++
+ src/lib/global-pizza-ingredients.mjs          |  14 ++
+ src/lib/ingredient-management.mjs             |  14 ++
+ src/lib/loyalty.mjs                           |  27 ++++
+ src/lib/menu-management.mjs                   |  33 +++++
+ src/lib/promotion-management.mjs              |  32 +++++
+ src/lib/promotions.mjs                        |  49 +++++++
+ src/lib/public-catalog.mjs                    |   1 +
+ src/lib/staff-test-orders.ts                  |   2 +-
+ src/lib/test-order-policy.d.mts               |   4 +-
+ src/lib/test-order-policy.mjs                 |   5 +-
+ 55 files changed, 1048 insertions(+), 124 deletions(-)
+ create mode 100644 prisma/migrations/20261016100000_promotions/migration.sql
+ create mode 100644 src/app/api/manager/categories/[id]/route.ts
+ create mode 100644 src/app/api/manager/categories/route.ts
+ create mode 100644 src/app/api/manager/ingredients/[id]/route.ts
+ create mode 100644 src/app/api/manager/ingredients/route.ts
+ create mode 100644 src/app/api/manager/promotions/[id]/route.ts
+ create mode 100644 src/app/api/manager/promotions/route.ts
+ delete mode 100644 src/app/gerant/dashboard.module.css
+ create mode 100644 src/app/gerant/layout.tsx
+ create mode 100644 src/app/gerant/manager-navigation.tsx
+ create mode 100644 src/app/gerant/promotions/page.tsx
+ create mode 100644 src/app/gerant/promotions/promotion-editor.tsx
+ create mode 100644 src/lib/customer-loyalty.ts
+ create mode 100644 src/lib/global-pizza-ingredients.mjs
+ create mode 100644 src/lib/ingredient-management.mjs
+ create mode 100644 src/lib/loyalty.mjs
+ create mode 100644 src/lib/menu-management.mjs
+ create mode 100644 src/lib/promotion-management.mjs
+ create mode 100644 src/lib/promotions.mjs
+
+diff --git a/README.md b/README.md
+index 78f5d12..bc26de8 100644
+--- a/README.md
++++ b/README.md
+@@ -10,10 +10,12 @@ Le projet peut être essayé en local. **Les commandes commerciales et les paiem
+ 
+ ## Fonctionnalités disponibles
+ 
+-- Catalogue du menu du 14/10/2026, avec formats, choix de pâtes, desserts et suppléments configurés.
++- Catalogue du menu du 14/10/2026, avec les compositions de pizzas et les compositions explicitement décrites pour les pâtes relevées depuis les photos du menu, ainsi que les formats, choix de pâtes, desserts et suppléments configurés.
+ - Personnalisation d’une pizza prédéfinie : retrait d’ingrédients autorisés **sans réduction du prix**, et suppléments à prix fixe ou selon le format.
+ - Panier catalogue : modification des recettes, conservation des quantités et regroupement des recettes identiques, avec contrôle serveur des prix et options.
+-- Espace gérant : recherche des articles, gestion des prix/disponibilités/options et création de pizzas en brouillon avant publication explicite.
++- Espace gérant : création et classement des catégories, création de plats avec formats et prix, gestion de leur composition, des ingrédients retirables, des suppléments et des disponibilités. Les nouveaux plats restent en brouillon jusqu’à publication explicite.
++- Promotions gérant : remises automatiques et codes promo en pourcentage ou montant fixe, avec période, jours, heures de validité, minimum de panier et plafond d’utilisations. Les remises sont calculées côté serveur et enregistrées sur les essais.
++- Carte de fidélité client : une pizza ou des pâtes terminées ajoutent un crédit ; après 10 plats payés, le plat éligible le moins cher est offert. Les annulations et refus ne donnent aucun crédit.
+ - En mode test : inscription/connexion client, profil nom/téléphone, changement de mot de passe, confirmation, historique privé et annulation des essais en attente.
+ - Carnet privé de dix adresses en mode test : ajout, modification, suppression, adresse par défaut et sélection au checkout.
+ 
+@@ -75,7 +77,7 @@ Le conteneur PostgreSQL conserve les données dans un volume Docker et expose so
+ npm run db:seed
+ ```
+ 
+-Le seed charge explicitement la carte dans la base pointée par `DATABASE_URL`. Il n’est exécuté ni au build ni automatiquement au démarrage. **Le relancer réapplique des noms, prix et disponibilités du menu source et remplace les options qu’il gère** : ne pas le relancer après personnalisation sans vouloir restaurer ces données.
++Le seed charge explicitement la carte dans la base pointée par `DATABASE_URL`. Il n’est exécuté ni au build ni automatiquement au démarrage. **Le relancer réapplique les noms, prix, compositions, disponibilités et options du menu source** : ne pas le relancer après personnalisation sans vouloir restaurer ces données.
+ 
+ ### 5. Démarrer le site
+ 
+@@ -120,7 +122,7 @@ Garder ce lien privé. Utiliser des comptes distincts pour les parcours client e
+ | `/menu` | Carte et personnalisation avant ajout au panier |
+ | `/panier` | Sélection catalogue et modification des recettes ; démonstration fictive séparée si aucun article catalogue |
+ | `/commande` | Aperçu livraison/retrait, zones et horaires |
+-| `/compte` | Inscription, connexion, profil, statut e-mail et historique client en mode test |
++| `/compte` | Inscription, connexion, profil, carte de fidélité et historique client en mode test |
+ | `/compte/mot-de-passe-oublie` | Demande d’un lien de récupération dans Mailpit |
+ | `/compte/verifier` et `/compte/reinitialiser` | Confirmation des liens à usage unique reçus localement |
+ | `/commande/test` | Confirmation d’un essai pour un client connecté |
+@@ -128,6 +130,7 @@ Garder ce lien privé. Utiliser des comptes distincts pour les parcours client e
+ | `/gerant/connexion` | Connexion par lien privé |
+ | `/gerant` | Tableau de bord des essais, réservé au gérant |
+ | `/gerant/carte` | Édition de la carte, réservée au gérant |
++| `/gerant/promotions` | Création et activation des promotions et codes promo, réservée au gérant |
+ | `/gerant/commandes-test` | Suivi simulé, réservé au gérant et à la cuisine |
+ | `/gerant/livraison` | Réglage des créneaux et dessin des zones, réservé au gérant |
+ 
+@@ -137,7 +140,7 @@ Garder ce lien privé. Utiliser des comptes distincts pour les parcours client e
+ 2. Avec un compte client distinct créé sur `/compte`, composer une pizza et l’ajouter au panier.
+ 3. Modifier sa recette depuis `/panier`, puis confirmer un essai sur `/commande/test`.
+ 4. Consulter son détail et son historique dans l’espace client.
+-5. Avec le compte professionnel, simuler les étapes de préparation dans `/gerant/commandes-test`, puis actualiser le suivi client.
++5. Avec le compte professionnel, simuler les étapes de préparation jusqu’à « Test terminé » dans `/gerant/commandes-test`, puis vérifier les crédits de fidélité dans l’espace client.
+ 
+ Le changement de mot de passe demande le mot de passe actuel et une confirmation. Il crée une nouvelle session pour le navigateur courant et déconnecte les autres sessions, y compris face à une connexion concurrente. Les coordonnées modifiées préremplissent les prochains essais et ne réécrivent pas l’historique.
+ 
+@@ -149,6 +152,24 @@ En mode test, le client saisit son adresse sans placer de repère. ICAR renvoie
+ 
+ Les créneaux simulés durent 15 minutes et sont proposés pendant les horaires d’ouverture, jusqu’à 7 jours à l’avance. La configuration initiale limite chaque créneau à 7 pizzas ; le délai minimum initial est de 30 minutes pour le retrait et la livraison. Le gérant peut modifier ces valeurs, par pas de 15 minutes pour le délai. Les jours fériés légaux belges affichent un service informatif 18h–22h, sauf dimanche fermé.
+ 
++## Promotions et codes promo
++
++Dans `/gerant/promotions`, un compte MANAGER peut créer une remise automatique ou un code à saisir au checkout. La remise peut être un pourcentage entier ou un montant fixe en euros. Chaque offre peut avoir une date de début et de fin inclusives, un ou plusieurs jours de la semaine, une plage horaire, un minimum de panier et un nombre maximum d’utilisations. Sans période de dates, l’offre n’a pas de borne de date ; sans plage horaire, elle est valable toute la journée. Les horaires et jours sont évalués en `Europe/Brussels` ; l’heure de fin est exclue (par exemple 12h00–13h00 s’arrête à 13h00).
++
++Une seule promotion automatique peut être active à la fois. Si un code saisi et une promotion automatique sont tous deux applicables, une seule remise est appliquée : la plus avantageuse. Les prix et la remise sont recalculés côté serveur à l’aperçu et à l’enregistrement. Le plafond d’utilisations est réservé de façon atomique avec l’essai ; le code, le montant de la remise et le total sont conservés sur `TestOrder`.
++
++Les promotions, la fidélité et le catalogue central d’ingrédients nécessitent la migration `20261016100000_promotions`, à appliquer avec `npx prisma migrate deploy`, puis la génération du client Prisma avec `npm run db:generate`. Pour charger la liste initiale d’ingrédients avec le menu, lancer `npm run db:seed` après la migration. Les promotions s’appliquent actuellement aux commandes de test uniquement : les commandes commerciales et les paiements restent désactivés.
++
++## Carte de fidélité
++
++La carte est visible dans `/compte` pour le client connecté. Les pizzas et pâtes d’un essai sont créditées uniquement lorsque son statut devient terminé. À chaque groupe de 10 plats payés, le client obtient un plat éligible offert ; si plusieurs plats sont dans le panier, le moins cher est déduit. Le crédit peut être réservé au checkout, mais il n’est consommé qu’à la fin de l’essai : un essai annulé ou refusé libère le crédit. Une remise de fidélité peut s’ajouter à une promotion ou un code promo ; l’offre promotionnelle est calculée sur le sous-total restant après le plat offert.
++
++La fidélité utilise les commandes de test car les ventes réelles sont désactivées. Le nombre de pizzas et pâtes des essais déjà enregistrés est repris par la migration `20261016100000_promotions`. Cette migration ajoute aussi le champ de composition des plats. Aucun seed supplémentaire n’est requis.
++
++## Gestion des catégories et des plats
++
++Dans `/gerant/carte`, le gérant peut ajouter ou renommer une catégorie, définir son type (pizzas, pâtes ou autres plats) et son ordre d’affichage. Le catalogue central « Ingrédients & suppléments » gère chaque ingrédient une seule fois, son activation comme supplément et ses tarifs 33/50 cm (1,50 €/3,00 € par défaut, modifiables). Les ingrédients actifs sont proposés sur toutes les pizzas. À la création d’une pizza, le gérant coche sa composition ; ces ingrédients sont affichés au client et peuvent être retirés. Le client peut aussi ajouter une portion d’un ingrédient déjà inclus, au tarif du format choisi. Renommer un ingrédient répercute le nouveau nom dans les compositions enregistrées. Les plats de pâtes gardent leur propre composition. Les plats existants peuvent changer de catégorie et leur prix, formats, suppléments spécifiques et disponibilité restent modifiables depuis cette page.
++
+ La vérification e-mail et la récupération du mot de passe sont disponibles avec Mailpit en local. Un service d’envoi externe, la suppression/export du compte et les exigences d’exploitation restent à préparer avant l’ouverture publique de l’espace client. La PWA, la traduction complète et les paiements sont des objectifs, pas des fonctions annoncées comme terminées.
+ 
+ ## Vérifications
+diff --git a/prisma/menu-2026-10-14.mjs b/prisma/menu-2026-10-14.mjs
+index 4f297be..7b61551 100644
+--- a/prisma/menu-2026-10-14.mjs
++++ b/prisma/menu-2026-10-14.mjs
+@@ -3,6 +3,52 @@ const size = (productSlug, slug, label, priceCents) => ({ id: `${menuId}-size-${
+ const extra = (slug, nameFr) => ({ id: `${menuId}-extra-${slug}`, nameFr, nameEn: nameFr, priceCents: 250, active: true });
+ const pastaExtras = [extra('parmesan', 'Parmesan'), extra('gruyere', 'Gruyère')];
+ 
++const pizzaIngredients = {
++  margherita: ['Tomates', 'Mozzarella'],
++  salami: ['Tomates', 'Mozzarella', 'Salami ou chorizo'],
++  chorizo: ['Tomates', 'Mozzarella', 'Salami ou chorizo'],
++  napoli: ['Tomates', 'Mozzarella', 'Câpres', 'Anchois'],
++  prosciutto: ['Tomates', 'Mozzarella', 'Jambon'],
++  funghi: ['Tomates', 'Mozzarella', 'Champignons'],
++  bolognese: ['Bolognaise', 'Mozzarella'],
++  'sole-mio': ['Tomates', 'Mozzarella', 'Jambon', 'Œufs'],
++  hawai: ['Tomates', 'Mozzarella', 'Jambon', 'Ananas'],
++  regina: ['Tomates', 'Mozzarella', 'Jambon', 'Champignons'],
++  chevre: ['Tomates', 'Mozzarella', 'Fromage de chèvre', 'Miel'],
++  viennese: ['Tomates', 'Mozzarella', 'Saucisses viennoises', 'Oignons'],
++  calzone: ['Tomates', 'Mozzarella', 'Jambon', 'Champignons', 'Œufs', 'Ail'],
++  capricciosa: ['Tomates', 'Mozzarella', 'Jambon', 'Champignons', 'Olives', 'Anchois'],
++  '4-stagioni': ['Tomates', 'Mozzarella', 'Jambon', 'Champignons', 'Salami', 'Artichauts'],
++  '4-formaggi': ['Tomates', 'Mozzarella', 'Bel Paese', 'Gorgonzola', 'Taleggio'],
++  'al-capone': ['Tomates', 'Mozzarella', 'Jambon', 'Poivrons', 'Œufs durs', 'Ail', 'Anchois'],
++  ortolana: ['Tomates', 'Mozzarella', 'Aubergines', 'Oignons', 'Parmesan'],
++  brocoli: ['Tomates', 'Mozzarella', 'Brocolis', 'Lardons', 'Oignons', 'Ail'],
++  roma: ['Tomates', 'Mozzarella', 'Jambon', 'Salami', 'Œufs', 'Oignons'],
++  colosseo: ['Tomates', 'Mozzarella', 'Jambon', 'Épinards', 'Oignons'],
++  vegetarienne: ['Tomates', 'Mozzarella', 'Champignons', 'Artichauts', 'Poivrons', 'Olives', 'Oignons'],
++  maria: ['Crème', 'Mozzarella', '4 fromages', 'Oignons', 'Anchois'],
++  forestiere: ['Tomates', 'Mozzarella', 'Champignons', 'Lardons', 'Oignons', 'Ail'],
++  merguez: ['Tomates', 'Mozzarella', 'Poivrons', 'Merguez'],
++  'hamburger-cheese': ['Mozzarella', 'Hamburger', 'Oignons frits', 'Sauce barbecue', 'Cheese'],
++  'mamma-mia': ['Tomates fraîches', 'Mozzarella en tranches', 'Basilic', 'Huile de basilic'],
++  'san-daniele': ['Tomates', 'Mozzarella', 'Jambon de Parme', '4 fromages'],
++  rucola: ['Tomates', 'Mozzarella', 'Jambon de Parme', 'Tomates cerises', 'Roquette', 'Parmesan'],
++  exotic: ['Tomates', 'Mozzarella', 'Poulet', 'Maïs', 'Ananas'],
++  carpaccio: ['Tomates', 'Mozzarella', 'Huile d’olive', 'Viande de bœuf', 'Parmesan'],
++  tartiflette: ['Pommes de terre', 'Mozzarella', 'Crème', 'Lardons', 'Oignons', 'Reblochon'],
++  thai: ['Tomates', 'Mozzarella', 'Poulet', 'Poivrons', 'Oignons frits', 'Sauce sucrée piquante'],
++  'al-tonno': ['Tomates', 'Mozzarella', 'Thon', 'Oignons', 'Ail'],
++  salmone: ['Tomates', 'Mozzarella', 'Saumon', 'Ail'],
++  'frutti-di-mare': ['Tomates', 'Mozzarella', 'Cocktail de fruits de mer', 'Ail'],
++  scampi: ['Tomates', 'Mozzarella', 'Scampis', 'Ail'],
++  'mare-e-monte': ['Tomates', 'Mozzarella', 'Fruits de mer', 'Champignons', 'Ail'],
++  royale: ['Tomates', 'Mozzarella', 'Langoustines', 'Scampis', 'Saumon', 'Ail'],
++  'burrata-pesto': ['Tomates', 'Mozzarella', 'Parme', 'Burrata', 'Roquette', 'Huile pesto'],
++  'burrata-balsamique': ['Tomates', 'Mozzarella', 'Parme', 'Burrata', 'Roquette', 'Crème balsamique'],
++  'burrata-truffe': ['Tomates', 'Mozzarella', 'Parme', 'Burrata', 'Roquette', 'Huile de truffe'],
++  truffe: ['Crème à la truffe', 'Mozzarella', 'Champignons', 'Pancetta'],
++};
++
+ const pizzas = [
+   ['margherita','Margherita',1000,2250], ['salami','Salami',1150,2550], ['chorizo','Chorizo',1150,2550],
+   ['napoli','Napoli',1150,2550], ['prosciutto','Prosciutto',1150,2550], ['funghi','Funghi',1150,2550],
+@@ -21,6 +67,7 @@ const pizzas = [
+   ['burrata-truffe','Burrata à l’huile de truffe',1950,4100], ['truffe','Truffe',1950,4100],
+ ].map(([slug, nameFr, price33, price50]) => ({
+   id: `${menuId}-pizza-${slug}`, nameFr, nameEn: nameFr, baseCents: 0, active: true,
++  ingredients: pizzaIngredients[slug] ?? [],
+   sizes: [size(slug, '33cm', '33 cm', price33), ...(price50 === null ? [] : [size(slug, '50cm', '50 cm', price50)])],
+   extras: [],
+ }));
+@@ -35,8 +82,26 @@ const pastaRows = [
+   ['tortellini-jambon-creme','Tortellini jambon, crème',1500,false], ['lasagne','Lasagne',1550,false],
+   ['cannelloni','Cannelloni',1550,false], ['tortelli','Tortelli',1850,false],
+ ];
++const pastaIngredients = {
++  scampis: ['Scampis'],
++  'al-salmone': ['Saumon'],
++  '4-formaggi': ['4 fromages'],
++  'jambon-creme': ['Jambon', 'Crème'],
++  'tomate-creme': ['Tomate', 'Crème'],
++  'al-forno': ['Bolognaise', 'Œufs', 'Jambon', 'Gratiné'],
++  tonnata: ['Sauce tomate', 'Olives', 'Thon'],
++  'ravioles-champignons': ['Ravioles fraîches farcies aux cèpes', 'Crème à la truffe', 'Roquette', 'Pancetta'],
++  strozzapreti: ['Pâtes fraîches', 'Sauce tomate', 'Aubergines', 'Pancetta', 'Ail', 'Parmesan de ricotta salée'],
++  maison: ['Sauce tomate', 'Lardons', 'Aubergines', 'Ail'],
++  pesto: ['Crème', 'Pesto'],
++  primavera: ['Champignons', 'Haricots', 'Choux-fleurs', 'Brocolis', 'Tomate', 'Ail'],
++  'fruits-de-mer': ['Fruits de mer'],
++  'tortellini-jambon-creme': ['Tortellini', 'Jambon', 'Crème'],
++  tortelli: ['Pâtes fraîches farcies à la mozzarella di bufala campana', 'Tomate basilic', 'Pesto genovese', 'Roquette', 'Pignons de pin grillés'],
++};
+ const pastas = pastaRows.map(([slug, nameFr, priceCents, hasShapeChoice]) => ({
+   id: `${menuId}-pasta-${slug}`, nameFr, nameEn: nameFr, baseCents: priceCents, active: true,
++  ingredients: pastaIngredients[slug] ?? [],
+   choiceLabel: hasShapeChoice ? 'Type de pâtes' : null,
+   extraSelectionMode: 'SINGLE',
+   sizes: hasShapeChoice ? [
+@@ -89,3 +154,6 @@ export const menu20261014 = [
+   { id:`${menuId}-cat-boissons`, nameFr:'Boissons', nameEn:'Drinks', fulfillmentCategory:'OTHER', position:60, products:drinks },
+   { id:`${menuId}-cat-desserts`, nameFr:'Desserts', nameEn:'Desserts', fulfillmentCategory:'OTHER', position:70, products:desserts },
+ ];
++
++export const ingredientsCatalog = [...new Set([...Object.values(pizzaIngredients).flat(), ...Object.values(pastaIngredients).flat()])].sort((a, b) => a.localeCompare(b, 'fr'));
++export const pizzaSupplementNames = new Set(Object.values(pizzaIngredients).flat());
+diff --git a/prisma/migrations/20261016100000_promotions/migration.sql b/prisma/migrations/20261016100000_promotions/migration.sql
+new file mode 100644
+index 0000000..05ecb99
+--- /dev/null
++++ b/prisma/migrations/20261016100000_promotions/migration.sql
+@@ -0,0 +1,62 @@
++CREATE TYPE "PromotionKind" AS ENUM ('AUTOMATIC', 'CODE');
++CREATE TYPE "PromotionDiscountType" AS ENUM ('PERCENT', 'FIXED');
++
++CREATE TABLE "Promotion" (
++  "id" TEXT NOT NULL,
++  "name" VARCHAR(100) NOT NULL,
++  "kind" "PromotionKind" NOT NULL,
++  "code" VARCHAR(32),
++  "discountType" "PromotionDiscountType" NOT NULL,
++  "value" INTEGER NOT NULL,
++  "minimumSubtotalCents" INTEGER NOT NULL DEFAULT 0,
++  "validFrom" DATE,
++  "validUntil" DATE,
++  "weekdays" INTEGER[] NOT NULL DEFAULT ARRAY[1, 2, 3, 4, 5, 6, 7],
++  "startTime" VARCHAR(5),
++  "endTime" VARCHAR(5),
++  "usageLimit" INTEGER,
++  "usageCount" INTEGER NOT NULL DEFAULT 0,
++  "active" BOOLEAN NOT NULL DEFAULT false,
++  "revision" INTEGER NOT NULL DEFAULT 0,
++  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
++  "updatedAt" TIMESTAMP(3) NOT NULL,
++  CONSTRAINT "Promotion_pkey" PRIMARY KEY ("id")
++);
++
++CREATE UNIQUE INDEX "Promotion_code_key" ON "Promotion"("code");
++CREATE INDEX "Promotion_kind_active_validFrom_validUntil_idx" ON "Promotion"("kind", "active", "validFrom", "validUntil");
++
++ALTER TABLE "TestOrder"
++  ADD COLUMN "subtotalCents" INTEGER NOT NULL DEFAULT 0,
++  ADD COLUMN "discountCents" INTEGER NOT NULL DEFAULT 0,
++  ADD COLUMN "loyaltyDiscountCents" INTEGER NOT NULL DEFAULT 0,
++  ADD COLUMN "loyaltyPaidDishCount" INTEGER NOT NULL DEFAULT 0,
++  ADD COLUMN "loyaltyFreeDishCount" INTEGER NOT NULL DEFAULT 0,
++  ADD COLUMN "promotionId" TEXT,
++  ADD COLUMN "promotionCode" TEXT,
++  ADD COLUMN "promotionName" TEXT;
++UPDATE "TestOrder" SET "subtotalCents" = "totalCents";
++UPDATE "TestOrder" AS t SET "loyaltyPaidDishCount" = COALESCE((
++  SELECT SUM((item->>'quantity')::INTEGER)
++  FROM jsonb_array_elements(t."itemsSnapshot") AS snapshot(item)
++  JOIN "Product" AS p ON p."id" = item->>'productId'
++  JOIN "MenuCategory" AS c ON c."id" = p."categoryId"
++  WHERE c."fulfillmentCategory" IN ('PIZZA', 'PASTA')
++), 0);
++ALTER TABLE "TestOrder" ADD CONSTRAINT "TestOrder_promotionId_fkey" FOREIGN KEY ("promotionId") REFERENCES "Promotion"("id") ON DELETE SET NULL ON UPDATE CASCADE;
++CREATE INDEX "TestOrder_userId_status_idx" ON "TestOrder"("userId", "status");
++
++ALTER TABLE "Product" ADD COLUMN "ingredients" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[];
++
++CREATE TABLE "Ingredient" (
++  "id" TEXT NOT NULL,
++  "nameFr" VARCHAR(128) NOT NULL,
++  "nameEn" VARCHAR(128) NOT NULL,
++  "price33Cents" INTEGER NOT NULL DEFAULT 150,
++  "price50Cents" INTEGER NOT NULL DEFAULT 300,
++  "active" BOOLEAN NOT NULL DEFAULT true,
++  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
++  "updatedAt" TIMESTAMP(3) NOT NULL,
++  CONSTRAINT "Ingredient_pkey" PRIMARY KEY ("id")
++);
++CREATE UNIQUE INDEX "Ingredient_nameFr_key" ON "Ingredient"("nameFr");
+diff --git a/prisma/schema.prisma b/prisma/schema.prisma
+index 6a4e130..1352bd0 100644
+--- a/prisma/schema.prisma
++++ b/prisma/schema.prisma
+@@ -40,6 +40,16 @@ enum ExtraSelectionMode {
+   SINGLE
+ }
+ 
++enum PromotionKind {
++  AUTOMATIC
++  CODE
++}
++
++enum PromotionDiscountType {
++  PERCENT
++  FIXED
++}
++
+ model User {
+   id            String    @id @default(cuid())
+   email         String    @unique @db.VarChar(320)
+@@ -86,6 +96,7 @@ model Product {
+   nameEn     String
+   active     Boolean      @default(true)
+   baseCents  Int
++  ingredients String[] @default([])
+   removableIngredients String[] @default([])
+   catalogRevision Int @default(0)
+   choiceLabel String?
+@@ -148,6 +159,17 @@ model ProductExtra {
+   @@index([productId, active])
+ }
+ 
++model Ingredient {
++  id String @id @default(cuid())
++  nameFr String @unique @db.VarChar(128)
++  nameEn String @db.VarChar(128)
++  price33Cents Int @default(150)
++  price50Cents Int @default(300)
++  active Boolean @default(true)
++  createdAt DateTime @default(now())
++  updatedAt DateTime @updatedAt
++}
++
+ model ManagerAccessToken {
+   tokenHash String @id @db.Char(64)
+   userId String
+@@ -186,16 +208,49 @@ model TestOrder {
+   comment String? @db.VarChar(500)
+   status OrderStatus @default(PENDING)
+   revision Int @default(0)
++  subtotalCents Int @default(0)
++  discountCents Int @default(0)
++  loyaltyDiscountCents Int @default(0)
++  loyaltyPaidDishCount Int @default(0)
++  loyaltyFreeDishCount Int @default(0)
+   totalCents Int
++  promotionId String?
++  promotionCode String?
++  promotionName String?
+   itemsSnapshot Json
+   placedAt DateTime @default(now())
+   updatedAt DateTime @updatedAt
+   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
++  promotion Promotion? @relation(fields: [promotionId], references: [id], onDelete: SetNull)
+   @@unique([userId, requestKey])
+   @@index([userId, placedAt])
++  @@index([userId, status])
+   @@index([status, placedAt])
+ }
+ 
++model Promotion {
++  id String @id @default(cuid())
++  name String @db.VarChar(100)
++  kind PromotionKind
++  code String? @unique @db.VarChar(32)
++  discountType PromotionDiscountType
++  value Int
++  minimumSubtotalCents Int @default(0)
++  validFrom DateTime? @db.Date
++  validUntil DateTime? @db.Date
++  weekdays Int[] @default([1, 2, 3, 4, 5, 6, 7])
++  startTime String? @db.VarChar(5)
++  endTime String? @db.VarChar(5)
++  usageLimit Int?
++  usageCount Int @default(0)
++  active Boolean @default(false)
++  revision Int @default(0)
++  createdAt DateTime @default(now())
++  updatedAt DateTime @updatedAt
++  testOrders TestOrder[]
++  @@index([kind, active, validFrom, validUntil])
++}
++
+ model DeliveryConfiguration {
+   id String @id @default("global")
+   leadTimeMinutes Int @default(30)
+diff --git a/prisma/seed.mjs b/prisma/seed.mjs
+index e6dad08..5383687 100644
+--- a/prisma/seed.mjs
++++ b/prisma/seed.mjs
+@@ -1,5 +1,5 @@
+ import { PrismaClient } from '@prisma/client';
+-import { menu20261014 } from './menu-2026-10-14.mjs';
++import { menu20261014, ingredientsCatalog, pizzaSupplementNames } from './menu-2026-10-14.mjs';
+ 
+ const prisma = new PrismaClient();
+ 
+@@ -33,6 +33,7 @@ async function main() {
+             nameEn: product.nameEn,
+             active: product.active,
+             baseCents: product.baseCents,
++            ingredients: product.ingredients ?? [],
+             choiceLabel: product.choiceLabel ?? null,
+             extraSelectionMode: product.extraSelectionMode ?? 'MULTIPLE',
+           },
+@@ -42,6 +43,7 @@ async function main() {
+             nameEn: product.nameEn,
+             active: product.active,
+             baseCents: product.baseCents,
++            ingredients: product.ingredients ?? [],
+             choiceLabel: product.choiceLabel ?? null,
+             extraSelectionMode: product.extraSelectionMode ?? 'MULTIPLE',
+           },
+@@ -62,6 +64,13 @@ async function main() {
+         }
+       }
+     }
++    for (const nameFr of ingredientsCatalog) {
++      await tx.ingredient.upsert({
++        where: { nameFr },
++        create: { nameFr, nameEn: nameFr, price33Cents: 150, price50Cents: 300, active: pizzaSupplementNames.has(nameFr) },
++        update: { nameEn: nameFr },
++      });
++    }
+   });
+   console.log(`Menu 2026-10-14 synchronisé : ${menu20261014.reduce((sum, category) => sum + category.products.length, 0)} produits.`);
+ }
+diff --git a/src/app/api/cart/preview/route.ts b/src/app/api/cart/preview/route.ts
+index 3e1a27e..7baa192 100644
+--- a/src/app/api/cart/preview/route.ts
++++ b/src/app/api/cart/preview/route.ts
+@@ -1,9 +1,17 @@
+ import { prisma } from '../../../../lib/db';
++import { getCurrentUser } from '../../../../lib/auth';
++import { getCustomerLoyaltyStatus } from '../../../../lib/customer-loyalty';
++// @ts-ignore JavaScript module
++import { attachGlobalPizzaIngredients } from '../../../../lib/global-pizza-ingredients.mjs';
+ // @ts-ignore JavaScript module; covered by unit tests
+ import { previewCatalogCart } from '../../../../lib/catalog-cart-preview.mjs';
++// @ts-ignore JavaScript module
++import { normalizePromotionCode, selectPromotion } from '../../../../lib/promotions.mjs';
++// @ts-ignore JavaScript module
++import { calculateLoyaltyReward } from '../../../../lib/loyalty.mjs';
+ 
+ const MAX_CART_LINES = 30;
+-const allowedBodyKeys = new Set(['items', 'mode', 'zoneId']);
++const allowedBodyKeys = new Set(['items', 'mode', 'zoneId', 'promoCode']);
+ 
+ function jsonError(status: number, error: string) {
+   return Response.json({ error }, { status });
+@@ -26,7 +34,8 @@ export async function POST(request: Request) {
+   const input = body as { items?: unknown; mode?: unknown; zoneId?: unknown };
+   if (!Array.isArray(input.items) || input.items.length < 1 || input.items.length > MAX_CART_LINES ||
+       !['delivery', 'pickup'].includes(String(input.mode)) ||
+-      (input.zoneId !== undefined && typeof input.zoneId !== 'string')) {
++      (input.zoneId !== undefined && typeof input.zoneId !== 'string') ||
++      (input.promoCode !== undefined && (typeof input.promoCode !== 'string' || input.promoCode.length > 32))) {
+     return jsonError(400, 'INVALID_REQUEST');
+   }
+   if (input.items.some(item => !item || typeof item !== 'object' || Array.isArray(item) ||
+@@ -39,7 +48,7 @@ export async function POST(request: Request) {
+   try {
+     const selections = input.items as Array<{ productId: string; sizeId?: string; extraIds?: string[]; removedIngredients?: string[]; quantity: number }>;
+     const productIds = [...new Set(selections.map(item => item.productId))];
+-    const products = await prisma.product.findMany({
++    const [catalogProducts, ingredients] = await Promise.all([prisma.product.findMany({
+       where: { id: { in: productIds }, active: true },
+       select: {
+         id: true,
+@@ -52,12 +61,21 @@ export async function POST(request: Request) {
+         sizes: { orderBy: [{ priceCents: 'asc' }, { label: 'asc' }], select: { id: true, label: true, priceCents: true, active: true } },
+         extras: { select: { id: true, nameFr: true, priceCents: true, sizePrices: true, active: true } },
+       },
+-    });
++    }), prisma.ingredient.findMany({ where: { active: true } })]);
++    const products = attachGlobalPizzaIngredients(catalogProducts, ingredients);
+     const preview = previewCatalogCart(products, selections, {
+       mode: input.mode as 'delivery' | 'pickup',
+       zoneId: input.zoneId as string | undefined,
+     });
+-    return Response.json(preview);
++    const user = await getCurrentUser();
++    const loyaltyStatus = user?.role === 'CUSTOMER' ? await getCustomerLoyaltyStatus(user.id) : null;
++    const loyalty = loyaltyStatus ? calculateLoyaltyReward(products, preview.items, loyaltyStatus.paidDishCount, loyaltyStatus.reservedFreeDishCount) : { loyaltyPaidDishCount: 0, loyaltyFreeDishCount: 0, loyaltyDiscountCents: 0, loyaltyFreeByLine: Array(preview.items.length).fill(0) };
++    const [automatic, codePromotion] = await Promise.all([
++      prisma.promotion.findFirst({ where: { kind: 'AUTOMATIC', active: true }, orderBy: { updatedAt: 'desc' } }),
++      input.promoCode?.trim() ? prisma.promotion.findUnique({ where: { code: normalizePromotionCode(input.promoCode) } }) : Promise.resolve(null),
++    ]);
++    const discount = selectPromotion({ automatic, codePromotion, code: input.promoCode, subtotalCents: preview.subtotalCents - loyalty.loyaltyDiscountCents });
++    return Response.json({ ...preview, ...discount, ...loyalty, items: preview.items.map((item, index) => ({ ...item, loyaltyFreeQuantity: loyalty.loyaltyFreeByLine[index] ?? 0 })) });
+   } catch (error) {
+     const code = error instanceof Error ? error.message : '';
+     if (['INVALID_CART', 'INVALID_REMOVALS', 'INVALID_EXTRAS', 'INVALID_SIZE', 'INVALID_COUNT', 'INVALID_MODE', 'UNKNOWN_ZONE', 'INVALID_PRICE', 'PRICE_OVERFLOW'].includes(code)) {
+diff --git a/src/app/api/catalog/route.ts b/src/app/api/catalog/route.ts
+index 7e1e955..fec61a9 100644
+--- a/src/app/api/catalog/route.ts
++++ b/src/app/api/catalog/route.ts
+@@ -1,4 +1,6 @@
+ import { prisma } from '../../../lib/db';
++// @ts-ignore JavaScript module
++import { attachGlobalPizzaIngredients } from '../../../lib/global-pizza-ingredients.mjs';
+ // @ts-ignore JavaScript module; covered by unit tests
+ import { buildPublicCatalog } from '../../../lib/public-catalog.mjs';
+ 
+@@ -6,18 +8,19 @@ export const dynamic = 'force-dynamic';
+ 
+ export async function GET() {
+   try {
+-    const categories = await prisma.menuCategory.findMany({
++    const [categories, ingredients] = await Promise.all([prisma.menuCategory.findMany({
+       orderBy: [{ position: 'asc' }, { nameFr: 'asc' }],
+       select: {
+         id: true, nameFr: true, position: true, fulfillmentCategory: true,
+         products: { where: { active: true }, select: {
+-          id: true, nameFr: true, active: true, baseCents: true, removableIngredients: true, choiceLabel: true, extraSelectionMode: true,
++          id: true, nameFr: true, active: true, baseCents: true, ingredients: true, removableIngredients: true, choiceLabel: true, extraSelectionMode: true,
+           sizes: { where: { active: true }, orderBy: [{ priceCents: 'asc' }, { label: 'asc' }], select: { id: true, label: true, priceCents: true, active: true } },
+           extras: { where: { active: true }, select: { id: true, nameFr: true, priceCents: true, sizePrices: true, active: true } },
+         } },
+       },
+-    });
+-    return Response.json({ categories: buildPublicCatalog(categories) }, { headers: { 'Cache-Control': 'no-store' } });
++    }), prisma.ingredient.findMany({ where: { active: true }, orderBy: { nameFr: 'asc' } })]);
++    const withGlobalIngredients = categories.map(category => ({ ...category, products: attachGlobalPizzaIngredients(category.products.map(product => ({ ...product, category: { fulfillmentCategory: category.fulfillmentCategory } })), ingredients) }));
++    return Response.json({ categories: buildPublicCatalog(withGlobalIngredients) }, { headers: { 'Cache-Control': 'no-store' } });
+   } catch {
+     return Response.json({ error: 'CATALOG_UNAVAILABLE' }, { status: 503 });
+   }
+diff --git a/src/app/api/manager/categories/[id]/route.ts b/src/app/api/manager/categories/[id]/route.ts
+new file mode 100644
+index 0000000..87296f0
+--- /dev/null
++++ b/src/app/api/manager/categories/[id]/route.ts
+@@ -0,0 +1,24 @@
++import { prisma } from '../../../../../lib/db';
++import { requirePermission } from '../../../../../lib/auth';
++import { isSameOriginMutation } from '../../../../../lib/catalog-management.mjs';
++import { validateMenuCategory } from '../../../../../lib/menu-management.mjs';
++
++export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
++  try {
++    await requirePermission('catalog:write');
++    if (!isSameOriginMutation(request, process.env.APP_ORIGIN)) return Response.json({ error: 'FORBIDDEN' }, { status: 403 });
++    const raw = await request.text();
++    if (raw.length > 4096) return Response.json({ error: 'REQUEST_TOO_LARGE' }, { status: 413 });
++    let input: unknown;
++    try { input = JSON.parse(raw); } catch { return Response.json({ error: 'INVALID_CATEGORY' }, { status: 400 }); }
++    const { id } = await context.params;
++    const result = await prisma.menuCategory.updateMany({ where: { id }, data: validateMenuCategory(input) });
++    if (!result.count) return Response.json({ error: 'CATEGORY_NOT_FOUND' }, { status: 404 });
++    const category = await prisma.menuCategory.findUniqueOrThrow({ where: { id } });
++    return Response.json({ category }, { headers: { 'Cache-Control': 'no-store' } });
++  } catch (error) {
++    const code = error instanceof Error ? error.message : '';
++    const status = code === 'FORBIDDEN' ? 403 : code === 'INVALID_MENU_ITEM' ? 400 : 503;
++    return Response.json({ error: status === 503 ? 'CATALOG_UNAVAILABLE' : 'INVALID_CATEGORY' }, { status });
++  }
++}
+diff --git a/src/app/api/manager/categories/route.ts b/src/app/api/manager/categories/route.ts
+new file mode 100644
+index 0000000..c3c4887
+--- /dev/null
++++ b/src/app/api/manager/categories/route.ts
+@@ -0,0 +1,21 @@
++import { prisma } from '../../../../lib/db';
++import { requirePermission } from '../../../../lib/auth';
++import { isSameOriginMutation } from '../../../../lib/catalog-management.mjs';
++import { validateMenuCategory } from '../../../../lib/menu-management.mjs';
++
++export async function POST(request: Request) {
++  try {
++    await requirePermission('catalog:write');
++    if (!isSameOriginMutation(request, process.env.APP_ORIGIN)) return Response.json({ error: 'FORBIDDEN' }, { status: 403 });
++    const raw = await request.text();
++    if (raw.length > 4096) return Response.json({ error: 'REQUEST_TOO_LARGE' }, { status: 413 });
++    let input: unknown;
++    try { input = JSON.parse(raw); } catch { return Response.json({ error: 'INVALID_CATEGORY' }, { status: 400 }); }
++    const category = await prisma.menuCategory.create({ data: validateMenuCategory(input) });
++    return Response.json({ category }, { status: 201, headers: { 'Cache-Control': 'no-store' } });
++  } catch (error) {
++    const code = error instanceof Error ? error.message : '';
++    const status = code === 'FORBIDDEN' ? 403 : code === 'INVALID_MENU_ITEM' ? 400 : 503;
++    return Response.json({ error: status === 503 ? 'CATALOG_UNAVAILABLE' : 'INVALID_CATEGORY' }, { status });
++  }
++}
+diff --git a/src/app/api/manager/ingredients/[id]/route.ts b/src/app/api/manager/ingredients/[id]/route.ts
+new file mode 100644
+index 0000000..597f6fa
+--- /dev/null
++++ b/src/app/api/manager/ingredients/[id]/route.ts
+@@ -0,0 +1,37 @@
++import { prisma } from '../../../../../lib/db';
++import { requirePermission } from '../../../../../lib/auth';
++import { isSameOriginMutation } from '../../../../../lib/catalog-management.mjs';
++import { validateIngredient } from '../../../../../lib/ingredient-management.mjs';
++
++export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
++  try {
++    await requirePermission('catalog:write');
++    if (!isSameOriginMutation(request, process.env.APP_ORIGIN)) return Response.json({ error: 'FORBIDDEN' }, { status: 403 });
++    const raw = await request.text();
++    if (raw.length > 4096) return Response.json({ error: 'REQUEST_TOO_LARGE' }, { status: 413 });
++    let input: unknown;
++    try { input = JSON.parse(raw); } catch { return Response.json({ error: 'INVALID_INGREDIENT' }, { status: 400 }); }
++    const { id } = await context.params;
++    const data = validateIngredient(input);
++    const ingredient = await prisma.$transaction(async tx => {
++      const current = await tx.ingredient.findUnique({ where: { id } });
++      if (!current) return null;
++      const updated = await tx.ingredient.update({ where: { id }, data });
++      if (current.nameFr !== data.nameFr) {
++        const products = await tx.product.findMany({ where: { OR: [{ ingredients: { has: current.nameFr } }, { removableIngredients: { has: current.nameFr } }] }, select: { id: true, ingredients: true, removableIngredients: true } });
++        for (const product of products) await tx.product.update({ where: { id: product.id }, data: {
++          ingredients: product.ingredients.map(name => name === current.nameFr ? data.nameFr : name),
++          removableIngredients: product.removableIngredients.map(name => name === current.nameFr ? data.nameFr : name),
++          catalogRevision: { increment: 1 },
++        } });
++      }
++      return updated;
++    });
++    if (!ingredient) return Response.json({ error: 'INGREDIENT_NOT_FOUND' }, { status: 404 });
++    return Response.json({ ingredient }, { headers: { 'Cache-Control': 'no-store' } });
++  } catch (error) {
++    const code = error instanceof Error ? error.message : '';
++    const status = code === 'FORBIDDEN' ? 403 : code === 'INVALID_INGREDIENT' ? 400 : 503;
++    return Response.json({ error: status === 503 ? 'INGREDIENT_CATALOG_UNAVAILABLE' : code }, { status });
++  }
++}
+diff --git a/src/app/api/manager/ingredients/route.ts b/src/app/api/manager/ingredients/route.ts
+new file mode 100644
+index 0000000..5fcfeef
+--- /dev/null
++++ b/src/app/api/manager/ingredients/route.ts
+@@ -0,0 +1,21 @@
++import { prisma } from '../../../../lib/db';
++import { requirePermission } from '../../../../lib/auth';
++import { isSameOriginMutation } from '../../../../lib/catalog-management.mjs';
++import { validateIngredient } from '../../../../lib/ingredient-management.mjs';
++
++export async function POST(request: Request) {
++  try {
++    await requirePermission('catalog:write');
++    if (!isSameOriginMutation(request, process.env.APP_ORIGIN)) return Response.json({ error: 'FORBIDDEN' }, { status: 403 });
++    const raw = await request.text();
++    if (raw.length > 4096) return Response.json({ error: 'REQUEST_TOO_LARGE' }, { status: 413 });
++    let input: unknown;
++    try { input = JSON.parse(raw); } catch { return Response.json({ error: 'INVALID_INGREDIENT' }, { status: 400 }); }
++    const ingredient = await prisma.ingredient.create({ data: validateIngredient(input) });
++    return Response.json({ ingredient }, { status: 201, headers: { 'Cache-Control': 'no-store' } });
++  } catch (error) {
++    const code = error instanceof Error ? error.message : '';
++    const status = code === 'FORBIDDEN' ? 403 : code === 'INVALID_INGREDIENT' ? 400 : 503;
++    return Response.json({ error: status === 503 ? 'INGREDIENT_CATALOG_UNAVAILABLE' : code }, { status });
++  }
++}
+diff --git a/src/app/api/manager/products/[id]/route.ts b/src/app/api/manager/products/[id]/route.ts
+index 5250692..f4934c3 100644
+--- a/src/app/api/manager/products/[id]/route.ts
++++ b/src/app/api/manager/products/[id]/route.ts
+@@ -16,10 +16,14 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
+     const product = await prisma.$transaction(async tx => {
+       const current = await tx.product.findUnique({ where: { id }, include: { category: true, sizes: true, extras: true } });
+       if (!current) throw new Error('PRODUCT_NOT_FOUND');
+-      const edit = validateCatalogEdit(input, current);
++      const categoryId = input && typeof input === 'object' ? (input as { categoryId?: unknown }).categoryId : null;
++      const category = typeof categoryId === 'string' ? await tx.menuCategory.findUnique({ where: { id: categoryId } }) : null;
++      if (!category) throw new Error('INVALID_CATALOG_EDIT');
++      const edit = validateCatalogEdit(input, { ...current, category });
++      if (category.fulfillmentCategory !== 'PIZZA' && edit.removableIngredients.length) throw new Error('INVALID_CATALOG_EDIT');
+       const updated = await tx.product.updateMany({ where: { id, catalogRevision: edit.revision }, data: {
+-        nameFr: edit.nameFr, active: edit.active, baseCents: edit.baseCents,
+-        removableIngredients: edit.removableIngredients, catalogRevision: { increment: 1 },
++        categoryId: edit.categoryId, nameFr: edit.nameFr, nameEn: edit.nameEn, active: edit.active, baseCents: edit.baseCents,
++        ingredients: edit.ingredients, removableIngredients: edit.removableIngredients, catalogRevision: { increment: 1 },
+       } });
+       if (updated.count !== 1) throw new Error('CATALOG_CONFLICT');
+       for (const size of edit.sizes) await tx.productSize.update({ where: { id: size.id, productId: id }, data: { priceCents: size.priceCents, active: size.active } });
+diff --git a/src/app/api/manager/products/route.ts b/src/app/api/manager/products/route.ts
+index 6411f65..402e3ae 100644
+--- a/src/app/api/manager/products/route.ts
++++ b/src/app/api/manager/products/route.ts
+@@ -1,7 +1,7 @@
+ import { prisma } from '../../../../lib/db';
+ import { requirePermission } from '../../../../lib/auth';
+ import { isSameOriginMutation } from '../../../../lib/catalog-management.mjs';
+-import { validatePizzaCreation } from '../../../../lib/pizza-creation.mjs';
++import { validateMenuItem } from '../../../../lib/menu-management.mjs';
+ 
+ export async function POST(request: Request) {
+   try {
+@@ -11,16 +11,16 @@ export async function POST(request: Request) {
+     if (raw.length > 16384) return Response.json({ error: 'REQUEST_TOO_LARGE' }, { status: 413 });
+     let input: unknown;
+     try { input = JSON.parse(raw); } catch { return Response.json({ error: 'INVALID_PIZZA' }, { status: 400 }); }
+-    const data = validatePizzaCreation(input);
++    const data = validateMenuItem(input);
+     const product = await prisma.$transaction(async tx => {
+       const category = await tx.menuCategory.findUnique({ where: { id: data.categoryId } });
+-      if (!category || category.fulfillmentCategory !== 'PIZZA') throw new Error('INVALID_PIZZA');
++      if (!category || (category.fulfillmentCategory !== 'PIZZA' && data.removableIngredients.length) || (category.fulfillmentCategory === 'PIZZA' && data.ingredients.length === 0)) throw new Error('INVALID_MENU_ITEM');
+       return tx.product.create({ data, include: { category: true, sizes: { orderBy: { priceCents: 'asc' } }, extras: true } });
+     });
+     return Response.json({ product }, { status: 201, headers: { 'Cache-Control': 'no-store' } });
+   } catch (error) {
+     const code = error instanceof Error ? error.message : '';
+-    const status = code === 'FORBIDDEN' ? 403 : code === 'INVALID_PIZZA' ? 400 : 503;
++    const status = code === 'FORBIDDEN' ? 403 : code === 'INVALID_MENU_ITEM' ? 400 : 503;
+     return Response.json({ error: status === 503 ? 'CATALOG_UNAVAILABLE' : code }, { status });
+   }
+ }
+diff --git a/src/app/api/manager/promotions/[id]/route.ts b/src/app/api/manager/promotions/[id]/route.ts
+new file mode 100644
+index 0000000..dc48884
+--- /dev/null
++++ b/src/app/api/manager/promotions/[id]/route.ts
+@@ -0,0 +1,29 @@
++import { prisma } from '../../../../../lib/db';
++import { requirePermission } from '../../../../../lib/auth';
++import { isSameOriginMutation } from '../../../../../lib/catalog-management.mjs';
++import { readJson } from '../../../../../lib/http-json';
++// @ts-ignore JavaScript module
++import { validatePromotionInput } from '../../../../../lib/promotion-management.mjs';
++
++export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
++  try {
++    await requirePermission('catalog:write');
++    if (!isSameOriginMutation(request, process.env.APP_ORIGIN)) return Response.json({ error: 'FORBIDDEN' }, { status: 403 });
++    const { id } = await context.params;
++    const raw = await readJson(request, 4096) as Record<string, unknown>;
++    const data = validatePromotionInput(raw);
++    const changed = await prisma.$transaction(async tx => {
++      const current = await tx.promotion.findUnique({ where: { id } });
++      if (!current || current.revision !== raw.revision) return null;
++      if (data.kind === 'AUTOMATIC' && data.active) await tx.promotion.updateMany({ where: { kind: 'AUTOMATIC', active: true, id: { not: id } }, data: { active: false, revision: { increment: 1 } } });
++      const result = await tx.promotion.updateMany({ where: { id, revision: raw.revision as number }, data: { ...data, revision: { increment: 1 } } });
++      return result.count === 1 ? tx.promotion.findUnique({ where: { id } }) : null;
++    });
++    return changed ? Response.json({ promotion: changed }, { headers: { 'Cache-Control': 'no-store' } }) : Response.json({ error: 'PROMOTION_CONFLICT' }, { status: 409 });
++  } catch (error) {
++    const code = error instanceof Error ? error.message : '';
++    const uniqueConflict = typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2002';
++    const status = code === 'FORBIDDEN' ? 403 : code === 'INVALID_PROMOTION' || code === 'INVALID_REQUEST' ? 400 : uniqueConflict ? 409 : 503;
++    return Response.json({ error: status === 403 ? 'FORBIDDEN' : status === 400 ? 'INVALID_PROMOTION' : status === 409 ? 'PROMOTION_CODE_EXISTS' : 'SERVICE_UNAVAILABLE' }, { status });
++  }
++}
+diff --git a/src/app/api/manager/promotions/route.ts b/src/app/api/manager/promotions/route.ts
+new file mode 100644
+index 0000000..d63047a
+--- /dev/null
++++ b/src/app/api/manager/promotions/route.ts
+@@ -0,0 +1,37 @@
++import { prisma } from '../../../../lib/db';
++import { requirePermission } from '../../../../lib/auth';
++import { isSameOriginMutation } from '../../../../lib/catalog-management.mjs';
++import { readJson } from '../../../../lib/http-json';
++// @ts-ignore JavaScript module
++import { validatePromotionInput } from '../../../../lib/promotion-management.mjs';
++
++export const dynamic = 'force-dynamic';
++
++export async function GET() {
++  try {
++    await requirePermission('catalog:write');
++    const promotions = await prisma.promotion.findMany({ orderBy: [{ kind: 'asc' }, { updatedAt: 'desc' }] });
++    return Response.json({ promotions }, { headers: { 'Cache-Control': 'no-store' } });
++  } catch (error) {
++    const status = error instanceof Error && error.message === 'FORBIDDEN' ? 403 : 503;
++    return Response.json({ error: status === 403 ? 'FORBIDDEN' : 'SERVICE_UNAVAILABLE' }, { status });
++  }
++}
++
++export async function POST(request: Request) {
++  try {
++    await requirePermission('catalog:write');
++    if (!isSameOriginMutation(request, process.env.APP_ORIGIN)) return Response.json({ error: 'FORBIDDEN' }, { status: 403 });
++    const input = validatePromotionInput(await readJson(request, 4096), true);
++    const promotion = await prisma.$transaction(async tx => {
++      if (input.kind === 'AUTOMATIC' && input.active) await tx.promotion.updateMany({ where: { kind: 'AUTOMATIC', active: true }, data: { active: false, revision: { increment: 1 } } });
++      return tx.promotion.create({ data: input });
++    });
++    return Response.json({ promotion }, { status: 201, headers: { 'Cache-Control': 'no-store' } });
++  } catch (error) {
++    const code = error instanceof Error ? error.message : '';
++    const uniqueConflict = typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2002';
++    const status = code === 'FORBIDDEN' ? 403 : code === 'INVALID_PROMOTION' || code === 'INVALID_REQUEST' ? 400 : uniqueConflict ? 409 : 503;
++    return Response.json({ error: status === 403 ? 'FORBIDDEN' : status === 400 ? 'INVALID_PROMOTION' : status === 409 ? 'PROMOTION_CODE_EXISTS' : 'SERVICE_UNAVAILABLE' }, { status });
++  }
++}
+diff --git a/src/app/api/test-orders/[id]/reorder/route.ts b/src/app/api/test-orders/[id]/reorder/route.ts
+index 8b5f817..e05ac15 100644
+--- a/src/app/api/test-orders/[id]/reorder/route.ts
++++ b/src/app/api/test-orders/[id]/reorder/route.ts
+@@ -4,6 +4,8 @@ import { isSameOriginMutation } from '../../../../../lib/catalog-management.mjs'
+ import { testOrdersEnabled } from '../../../../../lib/test-mode';
+ import { readJson } from '../../../../../lib/http-json';
+ import { prepareCustomerReorder } from '../../../../../lib/customer-reorder.mjs';
++// @ts-ignore JavaScript module
++import { attachGlobalPizzaIngredients } from '../../../../../lib/global-pizza-ingredients.mjs';
+ export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
+   if (!testOrdersEnabled()) return Response.json({ error: 'NOT_FOUND' }, { status: 404 });
+   try {
+@@ -17,7 +19,11 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
+     const snapshot = order.itemsSnapshot;
+     if (!Array.isArray(snapshot) || !snapshot.length || snapshot.length > 30) throw new Error('REORDER_UNAVAILABLE');
+     const ids = snapshot.flatMap(line => line && typeof line === 'object' && !Array.isArray(line) && typeof line.productId === 'string' ? [line.productId] : []);
+-    const products = await prisma.product.findMany({ where: { id: { in: ids } }, include: { category: true, sizes: true, extras: true } });
++    const [catalogProducts, ingredients] = await Promise.all([
++      prisma.product.findMany({ where: { id: { in: ids } }, include: { category: true, sizes: true, extras: true } }),
++      prisma.ingredient.findMany({ where: { active: true } }),
++    ]);
++    const products = attachGlobalPizzaIngredients(catalogProducts, ingredients);
+     return Response.json({ ...prepareCustomerReorder(products, snapshot), previousTotalCents: order.totalCents }, { headers: { 'Cache-Control': 'no-store' } });
+   } catch (error) {
+     const code = error instanceof Error ? error.message : '';
+diff --git a/src/app/api/test-orders/[id]/route.ts b/src/app/api/test-orders/[id]/route.ts
+index 27a2f02..7740c2a 100644
+--- a/src/app/api/test-orders/[id]/route.ts
++++ b/src/app/api/test-orders/[id]/route.ts
+@@ -21,7 +21,10 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
+     const input = await readJson(request, 1024) as { revision?: number };
+     if (!input || typeof input !== 'object' || Array.isArray(input) || Object.keys(input).some(key => key !== 'revision') || !Number.isSafeInteger(input.revision)) return Response.json({ error: 'INVALID_REQUEST' }, { status: 400 });
+     const { id } = await context.params;
+-    const result = await prisma.testOrder.updateMany({ where: { id, userId: user.id, status: 'PENDING', revision: input.revision }, data: { status: 'CANCELLED', revision: { increment: 1 } } });
++    const result = await prisma.$transaction(async tx => {
++      await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${user.id} FOR UPDATE`;
++      return tx.testOrder.updateMany({ where: { id, userId: user.id, status: 'PENDING', revision: input.revision }, data: { status: 'CANCELLED', revision: { increment: 1 } } });
++    });
+     return Response.json({ ok: result.count === 1 }, { status: result.count === 1 ? 200 : 409 });
+   } catch (error) { return Response.json({ error: 'UNAVAILABLE' }, { status: error instanceof Error && error.message === 'UNAUTHORIZED' ? 401 : error instanceof Error && error.message === 'INVALID_REQUEST' ? 400 : 503 }); }
+ }
+diff --git a/src/app/api/test-orders/[id]/status/route.ts b/src/app/api/test-orders/[id]/status/route.ts
+index 50e2346..91f3b8f 100644
+--- a/src/app/api/test-orders/[id]/status/route.ts
++++ b/src/app/api/test-orders/[id]/status/route.ts
+@@ -17,7 +17,10 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
+     const current = await prisma.testOrder.findUnique({ where: { id } });
+     if (!current) return Response.json({ error: 'NOT_FOUND' }, { status: 404 });
+     if (!nextTestStatuses(current.status, current.fulfillment).includes(input.status)) return Response.json({ error: 'INVALID_TRANSITION' }, { status: 400 });
+-    const result = await prisma.testOrder.updateMany({ where: { id, revision: input.revision, status: current.status }, data: { status: input.status as OrderStatus, revision: { increment: 1 } } });
++    const result = await prisma.$transaction(async tx => {
++      await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${current.userId} FOR UPDATE`;
++      return tx.testOrder.updateMany({ where: { id, revision: input.revision, status: current.status }, data: { status: input.status as OrderStatus, revision: { increment: 1 } } });
++    });
+     return Response.json({ ok: result.count === 1 }, { status: result.count === 1 ? 200 : 409 });
+   } catch (error) { return Response.json({ error: 'UNAVAILABLE' }, { status: error instanceof Error && error.message === 'FORBIDDEN' ? 403 : error instanceof Error && error.message === 'INVALID_REQUEST' ? 400 : 503 }); }
+ }
+diff --git a/src/app/api/test-orders/route.ts b/src/app/api/test-orders/route.ts
+index 49f68cb..44df2a6 100644
+--- a/src/app/api/test-orders/route.ts
++++ b/src/app/api/test-orders/route.ts
+@@ -9,6 +9,12 @@ import { previewCatalogCart } from '../../../lib/catalog-cart-preview.mjs';
+ import { readJson } from '../../../lib/http-json';
+ import { resolveWalloniaDeliveryAddress } from '../../../lib/wallonia-delivery';
+ import { brusselsDayWindow } from '../../../lib/staff-dashboard.mjs';
++// @ts-ignore JavaScript module
++import { selectPromotion } from '../../../lib/promotions.mjs';
++// @ts-ignore JavaScript module
++import { calculateLoyaltyReward } from '../../../lib/loyalty.mjs';
++// @ts-ignore JavaScript module
++import { attachGlobalPizzaIngredients } from '../../../lib/global-pizza-ingredients.mjs';
+ // @ts-ignore JavaScript module; covered by unit tests
+ import { availableSlots, brusselsDateKey, validateScheduledFor } from '../../../lib/delivery-slots.mjs';
+ 
+@@ -30,13 +36,33 @@ export async function POST(request: Request) {
+       const order = await prisma.$transaction(async tx => {
+         // Serialize slot reservations so concurrent requests cannot take the same remaining capacity.
+         await tx.$queryRaw`SELECT "id" FROM "DeliveryConfiguration" WHERE "id" = 'global' FOR UPDATE`;
++        await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${user.id} FOR UPDATE`;
+         const config = await tx.deliveryConfiguration.findUnique({ where: { id: 'global' } });
+         if (!config) throw new Error('DELIVERY_CONFIGURATION_MISSING');
+-        const products = await tx.product.findMany({ where: { id: { in: input.items.map(item => item.productId) }, active: true }, include: { category: true, sizes: true, extras: true } });
++        const [catalogProducts, ingredients] = await Promise.all([
++          tx.product.findMany({ where: { id: { in: input.items.map(item => item.productId) }, active: true }, include: { category: true, sizes: true, extras: true } }),
++          tx.ingredient.findMany({ where: { active: true } }),
++        ]);
++        const products = attachGlobalPizzaIngredients(catalogProducts, ingredients);
+         const preview = previewCatalogCart(products, input.items, { mode: input.mode, zoneId: trustedZoneId });
+         if (!preview.fulfillment.eligible) throw new Error('MINIMUM_NOT_MET');
+         if (preview.subtotalCents > 2147483647) throw new Error('INVALID_TEST_ORDER');
+-        if (preview.subtotalCents !== input.expectedTotalCents) throw new Error('PRICE_CHANGED');
++        const [completed, reserved] = await Promise.all([
++          tx.testOrder.aggregate({ where: { userId: user.id, status: 'COMPLETED' }, _sum: { loyaltyPaidDishCount: true } }),
++          tx.testOrder.aggregate({ where: { userId: user.id, status: { notIn: ['CANCELLED', 'REJECTED'] }, loyaltyFreeDishCount: { gt: 0 } }, _sum: { loyaltyFreeDishCount: true } }),
++        ]);
++        const loyalty = calculateLoyaltyReward(products, preview.items, completed._sum.loyaltyPaidDishCount ?? 0, reserved._sum.loyaltyFreeDishCount ?? 0);
++        const [automatic, codePromotion] = await Promise.all([
++          tx.promotion.findFirst({ where: { kind: 'AUTOMATIC', active: true }, orderBy: { updatedAt: 'desc' } }),
++          input.promoCode ? tx.promotion.findUnique({ where: { code: input.promoCode } }) : Promise.resolve(null),
++        ]);
++        const discount = selectPromotion({ automatic, codePromotion, code: input.promoCode, subtotalCents: preview.subtotalCents - loyalty.loyaltyDiscountCents });
++        if (discount.totalCents !== input.expectedTotalCents) throw new Error('PRICE_CHANGED');
++        if (discount.codeError) throw new Error('PROMO_CODE_INVALID');
++        if (discount.promotion) {
++          const usage = await tx.promotion.updateMany({ where: { id: discount.promotion.id, active: true, ...(discount.promotion.code ? { code: discount.promotion.code } : {}), OR: [{ usageLimit: null }, { usageCount: { lt: (automatic?.id === discount.promotion.id ? automatic.usageLimit : codePromotion?.usageLimit) ?? 2147483647 } }] }, data: { usageCount: { increment: 1 } } });
++          if (usage.count !== 1) throw new Error('PROMOTION_UNAVAILABLE');
++        }
+         const pizzaCount = input.items.reduce((count, item) => count + (products.find(product => product.id === item.productId)?.category.fulfillmentCategory === 'PIZZA' ? item.quantity : 0), 0);
+         const date = brusselsDateKey(scheduledFor);
+         const day = brusselsDayWindow(new Date(`${date}T12:00:00.000Z`));
+@@ -52,7 +78,10 @@ export async function POST(request: Request) {
+           userId: user.id, requestKey: input.requestKey, requestHash, publicReference: `TEST-${randomUUID().replaceAll('-', '').slice(0, 20).toUpperCase()}`,
+           fulfillment: input.mode === 'delivery' ? 'DELIVERY' : 'PICKUP', zoneId: trustedZoneId, scheduledFor, pizzaCount,
+           contactName: input.contactName, phone: input.phone, address: input.address, comment: input.comment,
+-          totalCents: preview.subtotalCents, itemsSnapshot: JSON.parse(JSON.stringify(preview.items)) as Prisma.InputJsonValue,
++          subtotalCents: preview.subtotalCents, discountCents: discount.discountCents, loyaltyDiscountCents: loyalty.loyaltyDiscountCents, totalCents: discount.totalCents,
++          loyaltyPaidDishCount: loyalty.loyaltyPaidDishCount, loyaltyFreeDishCount: loyalty.loyaltyFreeDishCount,
++          promotionId: discount.promotion?.id, promotionCode: discount.promotion?.code, promotionName: discount.promotion?.name,
++          itemsSnapshot: JSON.parse(JSON.stringify(preview.items.map((item, index) => ({ ...item, loyaltyFreeQuantity: loyalty.loyaltyFreeByLine[index] ?? 0 })))) as Prisma.InputJsonValue,
+         } });
+       });
+       return Response.json({ id: order.id }, { status: 201, headers: { 'Cache-Control': 'no-store' } });
+@@ -67,7 +96,7 @@ export async function POST(request: Request) {
+     }
+   } catch (error) {
+     const code = error instanceof Error ? error.message : '';
+-    const status = code === 'UNAUTHORIZED' ? 401 : ['PRICE_CHANGED', 'SLOT_UNAVAILABLE'].includes(code) ? 409 : code === 'ADDRESS_OUTSIDE_DELIVERY' || code === 'ADDRESS_NOT_FOUND' ? 422 : ['INVALID_REQUEST', 'INVALID_TEST_ORDER', 'INVALID_CART', 'INVALID_EXTRAS', 'INVALID_SIZE', 'INVALID_REMOVALS', 'PRODUCT_UNAVAILABLE', 'MINIMUM_NOT_MET', 'UNKNOWN_ZONE', 'INVALID_SLOT'].includes(code) ? 400 : 503;
++    const status = code === 'UNAUTHORIZED' ? 401 : ['PRICE_CHANGED', 'SLOT_UNAVAILABLE', 'PROMOTION_UNAVAILABLE'].includes(code) ? 409 : code === 'PROMO_CODE_INVALID' ? 400 : code === 'ADDRESS_OUTSIDE_DELIVERY' || code === 'ADDRESS_NOT_FOUND' ? 422 : ['INVALID_REQUEST', 'INVALID_TEST_ORDER', 'INVALID_CART', 'INVALID_EXTRAS', 'INVALID_SIZE', 'INVALID_REMOVALS', 'PRODUCT_UNAVAILABLE', 'MINIMUM_NOT_MET', 'UNKNOWN_ZONE', 'INVALID_SLOT'].includes(code) ? 400 : 503;
+     return Response.json({ error: status === 503 ? code || 'SERVICE_UNAVAILABLE' : code }, { status });
+   }
+ }
+diff --git a/src/app/commande/page.tsx b/src/app/commande/page.tsx
+index cc6e2b1..96ebd4b 100644
+--- a/src/app/commande/page.tsx
++++ b/src/app/commande/page.tsx
+@@ -7,7 +7,7 @@ import { useCart } from '../../lib/use-cart';
+ import { useCatalogCart } from '../../lib/use-catalog-cart';
+ 
+ type Mode = 'delivery' | 'pickup';
+-type CatalogPreview = { fulfillment: { eligible: boolean; minimum: number; dishCount: number; deliveryFeeCents: number } };
++type CatalogPreview = { fulfillment: { eligible: boolean; minimum: number; dishCount: number; deliveryFeeCents: number }; promotion?: { name: string } | null; discountCents?: number; loyaltyDiscountCents?: number };
+ 
+ export default function FulfillmentPage() {
+   const { items, ready } = useCart();
+@@ -75,6 +75,8 @@ export default function FulfillmentPage() {
+           </section>
+           <aside className="roma-fulfillment-card">
+             <h2>Horaires prévus</h2>
++            {catalogPreview?.discountCents ? <p className="roma-policy-ok">Promotion active : {catalogPreview.promotion?.name} · remise de {(catalogPreview.discountCents / 100).toLocaleString('fr-BE', { style: 'currency', currency: 'EUR' })} appliquée au récapitulatif de commande test.</p> : null}
++            {catalogPreview?.loyaltyDiscountCents ? <p className="roma-policy-ok">Carte de fidélité : un plat est offert, soit {(catalogPreview.loyaltyDiscountCents / 100).toLocaleString('fr-BE', { style: 'currency', currency: 'EUR' })} de remise au récapitulatif.</p> : null}
+             <p role="status" className={serviceOpen ? 'roma-policy-ok' : 'roma-policy-warning'}>{serviceOpen === null ? 'Vérification des horaires…' : serviceOpen ? 'Ouvert selon les horaires publiés' : 'Fermé selon les horaires publiés'}</p>
+             <p className="roma-policy-caveat">Calcul informatif selon Europe/Brussels et les jours fériés légaux belges : 18h–22h, sauf dimanche fermé. Les jours de remplacement ou exceptions propres au restaurant ne sont pas intégrés. Aucun créneau n’est réservé.</p>
+             <div className="roma-hours-row"><span>Lundi – vendredi</span><strong>11h30–14h00<br/>18h00–22h00</strong></div>
+diff --git a/src/app/commande/test/test-checkout.tsx b/src/app/commande/test/test-checkout.tsx
+index 195ea92..33350e7 100644
+--- a/src/app/commande/test/test-checkout.tsx
++++ b/src/app/commande/test/test-checkout.tsx
+@@ -13,6 +13,7 @@ function brusselsToday() {
+   return `${parts.year}-${parts.month}-${parts.day}`;
+ }
+ type Slot = { value: string; time: string; remainingPizzas: number };
++const money = (cents: number) => new Intl.NumberFormat('fr-BE', { style: 'currency', currency: 'EUR' }).format(cents / 100);
+ 
+ export default function TestCheckout({ name, phone, addresses }: { name: string; phone: string; addresses: SavedCustomerAddress[] }) {
+   const cart = useCatalogCart();
+@@ -30,6 +31,8 @@ export default function TestCheckout({ name, phone, addresses }: { name: string;
+   const [loadingSlots, setLoadingSlots] = useState(false);
+   const [slotError, setSlotError] = useState('');
+   const [preview, setPreview] = useState<CatalogCartPreview | null>(null);
++  const [promoInput, setPromoInput] = useState('');
++  const [appliedPromoCode, setAppliedPromoCode] = useState('');
+   const [checking, setChecking] = useState(true);
+   const [busy, setBusy] = useState(false);
+   const [error, setError] = useState('');
+@@ -41,13 +44,13 @@ export default function TestCheckout({ name, phone, addresses }: { name: string;
+     setPreview(null); setChecking(true);
+     if (!cart.ready || !cart.items.length) { setChecking(false); return () => controller.abort(); }
+     if (mode === 'delivery' && !resolvedAddress) { setChecking(false); setError(''); return () => controller.abort(); }
+-    fetch('/api/cart/preview', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items: cart.items, mode, ...(mode === 'delivery' && resolvedAddress ? { zoneId: resolvedAddress.zoneId } : {}) }), signal: controller.signal })
++    fetch('/api/cart/preview', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items: cart.items, mode, ...(mode === 'delivery' && resolvedAddress ? { zoneId: resolvedAddress.zoneId } : {}), ...(appliedPromoCode ? { promoCode: appliedPromoCode } : {}) }), signal: controller.signal })
+       .then(async response => { if (!response.ok) throw new Error(); return response.json() as Promise<CatalogCartPreview>; })
+       .then(result => { setPreview(result); setError(''); })
+       .catch(error => { if (error.name !== 'AbortError') setError('Impossible de vérifier ce panier. Vérifiez les options depuis le panier puis réessayez.'); })
+       .finally(() => { if (!controller.signal.aborted) setChecking(false); });
+     return () => controller.abort();
+-  }, [cart.items, cart.ready, mode, resolvedAddress?.zoneId, retry]);
++  }, [cart.items, cart.ready, mode, resolvedAddress?.zoneId, appliedPromoCode, retry]);
+ 
+   useEffect(() => {
+     if (!preview) return;
+@@ -78,7 +81,7 @@ export default function TestCheckout({ name, phone, addresses }: { name: string;
+     if (pending.current || !preview || checking) return;
+     const fields = new FormData(event.currentTarget);
+     const submitted = cart.items;
+-    const data = { items: submitted, mode, scheduledFor: slotValue, ...(mode === 'delivery' ? { zoneId: resolvedAddress?.zoneId, address: fields.get('address') } : {}), contactName: fields.get('contactName'), phone: fields.get('phone'), comment: fields.get('comment'), expectedTotalCents: preview.subtotalCents };
++    const data = { items: submitted, mode, scheduledFor: slotValue, ...(mode === 'delivery' ? { zoneId: resolvedAddress?.zoneId, address: fields.get('address') } : {}), ...(appliedPromoCode ? { promoCode: appliedPromoCode } : {}), contactName: fields.get('contactName'), phone: fields.get('phone'), comment: fields.get('comment'), expectedTotalCents: preview.totalCents ?? preview.subtotalCents };
+     const signature = JSON.stringify(data);
+     if (requestKey.current?.signature !== signature) requestKey.current = { signature, key: crypto.randomUUID() };
+     pending.current = true; setBusy(true); setError('');
+@@ -86,7 +89,7 @@ export default function TestCheckout({ name, phone, addresses }: { name: string;
+       const response = await fetch('/api/test-orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...data, requestKey: requestKey.current.key }) });
+       if (!response.ok) {
+         const result = await response.json() as { error?: string };
+-        setError(result.error === 'PRICE_CHANGED' ? 'Le prix a changé. Actualisez le récapitulatif et vérifiez-le avant de confirmer à nouveau.' : response.status === 401 ? 'La session a expiré. Reconnectez-vous depuis votre espace client.' : response.status === 422 ? 'L’adresse ne semble pas être dans les zones de livraison configurées.' : 'Enregistrement refusé. Vérifiez les coordonnées, les options et le minimum de plats.');
++        setError(result.error === 'PRICE_CHANGED' ? 'Le prix a changé. Actualisez le récapitulatif et vérifiez-le avant de confirmer à nouveau.' : result.error === 'PROMO_CODE_INVALID' ? 'Ce code promo n’est pas valide pour ce panier.' : response.status === 401 ? 'La session a expiré. Reconnectez-vous depuis votre espace client.' : response.status === 422 ? 'L’adresse ne semble pas être dans les zones de livraison configurées.' : 'Enregistrement refusé. Vérifiez les coordonnées, les options et le minimum de plats.');
+         return;
+       }
+       const result = await response.json() as { id: string };
+@@ -117,8 +120,13 @@ export default function TestCheckout({ name, phone, addresses }: { name: string;
+     <label>Nom<input name="contactName" required maxLength={128} defaultValue={name} autoComplete="name" /></label>
+     <label>Téléphone fictif<input name="phone" type="tel" required minLength={7} maxLength={30} defaultValue={phone} autoComplete="off" placeholder="Ex. 081 00 00 00" /></label>
+     <label>Commentaire<textarea name="comment" maxLength={500} rows={3} /></label>
+-    <h2>Récapitulatif</h2>{checking ? <p role="status">Vérification du prix…</p> : preview && <><TestOrderSummary items={preview.items} totalCents={preview.subtotalCents} />{!preview.fulfillment.eligible && <p role="alert">Minimum de livraison non atteint : {preview.fulfillment.dishCount} plat(s), minimum {preview.fulfillment.minimum}.</p>}</>}
++    <label htmlFor="test-promo-code">Code promo<input id="test-promo-code" maxLength={32} value={promoInput} onChange={event => setPromoInput(event.target.value.toUpperCase())} placeholder="Saisir un code" /></label>
++    <button type="button" onClick={() => { setError(''); setAppliedPromoCode(promoInput.trim()); }}>Appliquer le code</button>{appliedPromoCode && <button type="button" onClick={() => { setPromoInput(''); setAppliedPromoCode(''); setError(''); }}>Retirer le code</button>}
++    <h2>Récapitulatif</h2>{checking ? <p role="status">Vérification du prix…</p> : preview && <><TestOrderSummary items={preview.items} subtotalCents={preview.subtotalCents} loyaltyDiscountCents={preview.loyaltyDiscountCents} discountCents={preview.discountCents} promotionName={preview.promotion?.name} promotionCode={preview.promotion?.code} totalCents={preview.totalCents ?? preview.subtotalCents} />
++      {preview.codeError && <p role="alert">{preview.codeError === 'CODE_INVALIDE' ? 'Code promo introuvable.' : preview.codeError === 'CODE_EPUISE' ? 'Ce code a atteint sa limite d’utilisations.' : preview.codeError === 'CODE_PAS_ENCORE_VALIDE' ? 'Ce code n’est pas encore valable.' : preview.codeError === 'CODE_EXPIRE' ? 'Ce code promo a expiré.' : preview.codeError === 'CODE_HORS_HORAIRE' ? 'Ce code n’est pas valable à cette heure ou ce jour.' : preview.codeError === 'MONTANT_MINIMUM_NON_ATTEINT' ? 'Le panier minimum pour ce code n’est pas atteint.' : 'Ce code promo n’est pas actif.'}</p>}
++      {preview.codeNotSelected && <p role="status">Une promotion automatique plus avantageuse a été appliquée à la place du code saisi.</p>}
++      {!preview.fulfillment.eligible && <p role="alert">Minimum de livraison non atteint : {preview.fulfillment.dishCount} plat(s), minimum {preview.fulfillment.minimum}.</p>}</>}
+     <button type="button" onClick={() => setRetry(current => current + 1)}>Actualiser le récapitulatif</button>
+-    <button type="submit" disabled={checking || loadingSlots || !slotValue || !preview?.fulfillment.eligible || (mode === 'delivery' && !resolvedAddress)}>{busy ? 'Enregistrement…' : 'Confirmer la commande de test'}</button>
++    <button type="submit" disabled={checking || loadingSlots || !slotValue || !preview?.fulfillment.eligible || !!preview?.codeError || (mode === 'delivery' && !resolvedAddress)}>{busy ? 'Enregistrement…' : 'Confirmer la commande de test'}</button>
+   </fieldset>{error && <p role="alert">{error}</p>}</form>;
+ }
+diff --git a/src/app/compte/commandes/[id]/page.tsx b/src/app/compte/commandes/[id]/page.tsx
+index 57fd090..892fd0a 100644
+--- a/src/app/compte/commandes/[id]/page.tsx
++++ b/src/app/compte/commandes/[id]/page.tsx
+@@ -17,5 +17,5 @@ export default async function TestOrderDetail({ params }: { params: Promise<{ id
+   const { id } = await params;
+   const order = await prisma.testOrder.findFirst({ where: { id, userId: user.id } });
+   if (!order) notFound();
+-  return <main className="customer-page"><Link href="/compte">← Mon espace client</Link><h1>Commande de test enregistrée</h1><p>{order.publicReference}</p><p>Aucune commande réelle n’est envoyée au restaurant. Le créneau est réservé uniquement dans le mode test ; aucun paiement ni aucune préparation réelle n’a lieu.</p><p>Créneau souhaité : {order.scheduledFor.toLocaleString('fr-BE', { timeZone: 'Europe/Brussels', dateStyle: 'full', timeStyle: 'short' })}</p><h2>Suivi : {TEST_STATUS_LABELS[order.status]}</h2><TestOrderActions id={order.id} revision={order.revision} statuses={order.status === 'PENDING' ? ['CANCELLED'] : []} customer /><TestOrderSummary items={order.itemsSnapshot as TestOrderSnapshot[]} totalCents={order.totalCents} /><CustomerReorder orderId={order.id} /><h2>Coordonnées de cet essai</h2><p>{order.contactName} · {order.phone}</p><p>{order.fulfillment === 'DELIVERY' ? `Livraison simulée · ${order.address} · zone ${order.zoneId}` : 'Retrait simulé sur place'}</p>{order.comment && <p>Commentaire : {order.comment}</p>}<Link href="/menu">Retour à la carte</Link></main>;
++  return <main className="customer-page"><Link href="/compte">← Mon espace client</Link><h1>Commande de test enregistrée</h1><p>{order.publicReference}</p><p>Aucune commande réelle n’est envoyée au restaurant. Le créneau est réservé uniquement dans le mode test ; aucun paiement ni aucune préparation réelle n’a lieu.</p><p>Créneau souhaité : {order.scheduledFor.toLocaleString('fr-BE', { timeZone: 'Europe/Brussels', dateStyle: 'full', timeStyle: 'short' })}</p><h2>Suivi : {TEST_STATUS_LABELS[order.status]}</h2><TestOrderActions id={order.id} revision={order.revision} statuses={order.status === 'PENDING' ? ['CANCELLED'] : []} customer /><TestOrderSummary items={order.itemsSnapshot as TestOrderSnapshot[]} subtotalCents={order.subtotalCents} loyaltyDiscountCents={order.loyaltyDiscountCents} discountCents={order.discountCents} promotionName={order.promotionName} promotionCode={order.promotionCode} totalCents={order.totalCents} /><CustomerReorder orderId={order.id} /><h2>Coordonnées de cet essai</h2><p>{order.contactName} · {order.phone}</p><p>{order.fulfillment === 'DELIVERY' ? `Livraison simulée · ${order.address} · zone ${order.zoneId}` : 'Retrait simulé sur place'}</p>{order.comment && <p>Commentaire : {order.comment}</p>}<Link href="/menu">Retour à la carte</Link></main>;
+ }
+diff --git a/src/app/compte/page.tsx b/src/app/compte/page.tsx
+index 7152178..6f3bee0 100644
+--- a/src/app/compte/page.tsx
++++ b/src/app/compte/page.tsx
+@@ -10,6 +10,7 @@ import { listCustomerAddresses } from '../../lib/customer-addresses';
+ import { parseCustomerHistoryQuery } from '../../lib/customer-history.mjs';
+ import { listCustomerOrderHistory } from '../../lib/customer-order-history';
+ import OrderHistory from './order-history';
++import { getCustomerLoyaltyStatus } from '../../lib/customer-loyalty';
+ export const dynamic = 'force-dynamic';
+ export const metadata = { title: 'Mon espace client | Pizzeria Roma', robots: { index: false, follow: false } };
+ export default async function CustomerPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+@@ -24,6 +25,7 @@ export default async function CustomerPage({ searchParams }: { searchParams: Pro
+   catch { filterError = 'Filtres invalides : utilisez une référence de 64 caractères maximum (lettres, chiffres et tirets) et un statut proposé. L’historique complet est affiché.'; }
+   const history = await listCustomerOrderHistory(user.id, filters);
+   const addresses = await listCustomerAddresses(user.id);
+-  return <main className="customer-page"><Link href="/menu">← La carte</Link><h1>Bonjour {user.name}</h1><p>{user.email}</p><p>{user.emailVerified ? 'Adresse e-mail vérifiée' : 'Adresse e-mail non vérifiée'}</p>{!user.emailVerified && <EmailRequest verify />}<p>Mode test : aucun achat réel. Retrouvez vos essais dans l’historique ci-dessous.</p><div className="customer-actions"><Link href="/commande/test">Passer une commande de test</Link><SignOut /></div><ProfileSettings name={user.name ?? ''} phone={user.phone ?? ''} /><AddressBook initialAddresses={addresses} /><OrderHistory history={history} filters={filters} error={filterError} />
++  const loyalty = await getCustomerLoyaltyStatus(user.id);
++  return <main className="customer-page"><Link href="/menu">← La carte</Link><h1>Bonjour {user.name}</h1><p>{user.email}</p><p>{user.emailVerified ? 'Adresse e-mail vérifiée' : 'Adresse e-mail non vérifiée'}</p>{!user.emailVerified && <EmailRequest verify />}<p>Mode test : aucun achat réel. Retrouvez vos essais dans l’historique ci-dessous.</p><div className="customer-actions"><Link href="/commande/test">Passer une commande de test</Link><SignOut /></div><section className="customer-loyalty" aria-labelledby="loyalty-card-title"><h2 id="loyalty-card-title">Carte de fidélité</h2><p>1 plat offert après 10 pizzas ou pâtes terminées.</p><ol aria-label={`${loyalty.progress} plats validés sur 10`}>{Array.from({ length: 10 }, (_, index) => <li key={index} className={index < loyalty.progress ? 'stamped' : ''}>{index < loyalty.progress ? '✓' : index + 1}</li>)}</ol><p><strong>{loyalty.progress}/10 plats</strong>{loyalty.rewardsAvailable > 0 ? ` · ${loyalty.rewardsAvailable} plat(s) offert(s) disponible(s)` : loyalty.rewardsReserved > 0 ? ' · Une récompense est réservée sur une commande en cours.' : ''}</p></section><ProfileSettings name={user.name ?? ''} phone={user.phone ?? ''} /><AddressBook initialAddresses={addresses} /><OrderHistory history={history} filters={filters} error={filterError} />
+   </main>;
+ }
+diff --git a/src/app/gerant/carte/catalog-editor.tsx b/src/app/gerant/carte/catalog-editor.tsx
+index d028f08..cdcb2ba 100644
+--- a/src/app/gerant/carte/catalog-editor.tsx
++++ b/src/app/gerant/carte/catalog-editor.tsx
+@@ -7,13 +7,18 @@ import { parseEuroCents } from '../../../lib/catalog-management.mjs';
+ import type { ManagerProduct } from '../../../lib/catalog-management.mjs';
+ 
+ type ExtraDraft = { id?: string; nameFr: string; price: string; active: boolean; bySize: boolean; sizePrices: Record<string, string> };
++type Category = { id: string; nameFr: string; nameEn: string; fulfillmentCategory: 'PIZZA' | 'PASTA' | 'OTHER'; position: number };
++type Ingredient = { id: string; nameFr: string; nameEn: string; price33Cents: number; price50Cents: number; active: boolean };
+ const euroInput = (cents: number) => (cents / 100).toFixed(2).replace('.', ',');
+ 
+-function ProductEditor({ product, onSaved }: { product: ManagerProduct; onSaved: (product: ManagerProduct) => void }) {
++function ProductEditor({ product, categories, ingredientChoices, onSaved }: { product: ManagerProduct; categories: Category[]; ingredientChoices: string[]; onSaved: (product: ManagerProduct) => void }) {
+   const [nameFr, setNameFr] = useState(product.nameFr);
++  const [nameEn, setNameEn] = useState(product.nameEn);
++  const [categoryId, setCategoryId] = useState(product.categoryId);
+   const [active, setActive] = useState(product.active);
+   const [basePrice, setBasePrice] = useState(euroInput(product.baseCents));
+-  const [ingredients, setIngredients] = useState(product.removableIngredients.join('\n'));
++  const [composition, setComposition] = useState((product.ingredients ?? []).join('\n'));
++  const [selectedIngredients, setSelectedIngredients] = useState<string[]>([...new Set([...(product.ingredients ?? []), ...product.removableIngredients])]);
+   const [sizes, setSizes] = useState(product.sizes.map(size => ({ ...size, price: euroInput(size.priceCents) })));
+   const [extras, setExtras] = useState<ExtraDraft[]>(product.extras.map(extra => ({
+     id: extra.id, nameFr: extra.nameFr, price: euroInput(extra.priceCents), active: extra.active,
+@@ -22,7 +27,8 @@ function ProductEditor({ product, onSaved }: { product: ManagerProduct; onSaved:
+   })));
+   const [status, setStatus] = useState('');
+   const [saving, setSaving] = useState(false);
+-  const isPizza = product.category.fulfillmentCategory === 'PIZZA';
++  const isPizza = categories.find(category => category.id === categoryId)?.fulfillmentCategory === 'PIZZA';
++  const choices = [...new Set([...ingredientChoices, ...selectedIngredients])].sort((a, b) => a.localeCompare(b, 'fr'));
+   function updateExtra(index: number, update: Partial<ExtraDraft>) {
+     setExtras(current => current.map((extra, i) => i === index ? { ...extra, ...update } : extra));
+   }
+@@ -33,8 +39,9 @@ function ProductEditor({ product, onSaved }: { product: ManagerProduct; onSaved:
+     let body;
+     try {
+       body = {
+-        revision: product.catalogRevision, nameFr: nameFr.trim(), active, baseCents: parseEuroCents(basePrice),
+-        removableIngredients: isPizza ? ingredients.split('\n').map(value => value.trim()).filter(Boolean) : [],
++        revision: product.catalogRevision, categoryId, nameFr: nameFr.trim(), nameEn: nameEn.trim() || nameFr.trim(), active, baseCents: parseEuroCents(basePrice),
++        ingredients: isPizza ? selectedIngredients : composition.split('\n').map(value => value.trim()).filter(Boolean),
++        removableIngredients: isPizza ? selectedIngredients : [],
+         sizes: sizes.map(size => ({ id: size.id, priceCents: parseEuroCents(size.price), active: size.active })),
+         extras: extras.map(extra => ({ ...(extra.id ? { id: extra.id } : {}), nameFr: extra.nameFr.trim(), active: extra.active, priceCents: parseEuroCents(extra.price),
+           sizePrices: extra.bySize ? Object.fromEntries(Object.entries(extra.sizePrices).filter(([, price]) => price.trim() !== '').map(([id, price]) => [id, parseEuroCents(price)])) : null })),
+@@ -55,22 +62,24 @@ function ProductEditor({ product, onSaved }: { product: ManagerProduct; onSaved:
+   return <form className="manager-product" onSubmit={save}>
+     <fieldset disabled={saving}><legend>{product.nameFr}</legend>
+       <label>Nom de l’article<input required maxLength={128} value={nameFr} onChange={event => setNameFr(event.target.value)} /></label>
++      <label>Nom anglais<input maxLength={128} value={nameEn} onChange={event => setNameEn(event.target.value)} /></label>
++      <label>Catégorie<select value={categoryId} onChange={event => setCategoryId(event.target.value)}>{categories.map(category => <option key={category.id} value={category.id}>{category.nameFr}</option>)}</select></label>
+       <label className="manager-check"><input type="checkbox" checked={active} onChange={event => setActive(event.target.checked)} /> Disponible sur la carte</label>
+       {sizes.length === 0 && <label>Prix (€)<input required inputMode="decimal" value={basePrice} onChange={event => setBasePrice(event.target.value)} /></label>}
+       {sizes.length > 0 && <fieldset><legend>Formats et prix</legend>{sizes.map((size, index) => <div className="manager-size" key={size.id}>
+         <label>{size.label} (€)<input required inputMode="decimal" value={size.price} onChange={event => setSizes(current => current.map((item, i) => i === index ? { ...item, price: event.target.value } : item))} /></label>
+         <label className="manager-check"><input type="checkbox" checked={size.active} onChange={event => setSizes(current => current.map((item, i) => i === index ? { ...item, active: event.target.checked } : item))} /> Disponible</label>
+       </div>)}</fieldset>}
+-      {isPizza && <label>Ingrédients que le client peut retirer (un par ligne)<textarea rows={5} value={ingredients} onChange={event => setIngredients(event.target.value)} /><small>Un retrait ne réduit jamais le prix de la pizza.</small></label>}
++      {isPizza ? <fieldset><legend>Composition de la pizza</legend><p>Chaque ingrédient coché s’affiche au client et peut être retiré sans réduire le prix. Un supplément peut aussi être ajouté, même s’il est déjà inclus.</p>{choices.map(ingredient => <label className="manager-check" key={ingredient}><input type="checkbox" checked={selectedIngredients.includes(ingredient)} onChange={() => setSelectedIngredients(current => current.includes(ingredient) ? current.filter(item => item !== ingredient) : [...current, ingredient])} />{ingredient}</label>)}</fieldset> : <label>Composition / ingrédients affichés au client (un par ligne)<textarea rows={5} value={composition} onChange={event => setComposition(event.target.value)} /></label>}
+       <fieldset><legend>Suppléments</legend>
+         {extras.map((extra, index) => <fieldset key={extra.id ?? `new-${index}`}><legend>Supplément {index + 1}</legend>
+           <label>Nom<input required maxLength={128} value={extra.nameFr} onChange={event => updateExtra(index, { nameFr: event.target.value })} /></label>
+           <label className="manager-check"><input type="checkbox" checked={extra.active} onChange={event => updateExtra(index, { active: event.target.checked })} /> Disponible</label>
+-          {isPizza && <label className="manager-check"><input type="checkbox" checked={extra.bySize} onChange={event => updateExtra(index, { bySize: event.target.checked })} /> Prix selon le format</label>}
++          {isPizza && sizes.length > 0 && <label className="manager-check"><input type="checkbox" checked={extra.bySize} onChange={event => updateExtra(index, { bySize: event.target.checked })} /> Prix selon le format</label>}
+           {extra.bySize ? <><p>Laissez vide pour ne pas proposer ce supplément dans un format. Renseignez au moins un prix.</p>{sizes.map(size => <label key={size.id}>{size.label} (€)<input inputMode="decimal" value={extra.sizePrices[size.id] ?? ''} onChange={event => updateExtra(index, { sizePrices: { ...extra.sizePrices, [size.id]: event.target.value } })} /></label>)}</> : <label>Prix du supplément (€)<input required inputMode="decimal" value={extra.price} onChange={event => updateExtra(index, { price: event.target.value })} /></label>}
+           <button type="button" onClick={() => setExtras(current => current.filter((_, i) => i !== index))}>Retirer ce supplément de la carte</button>
+         </fieldset>)}
+-        <button type="button" disabled={extras.length >= 20} onClick={() => setExtras(current => [...current, { nameFr: '', price: '0,00', active: false, bySize: isPizza, sizePrices: {} }])}>Ajouter un supplément</button>
++        <button type="button" disabled={extras.length >= 20} onClick={() => setExtras(current => [...current, { nameFr: '', price: '0,00', active: false, bySize: isPizza && sizes.length > 0, sizePrices: {} }])}>Ajouter un supplément</button>
+       </fieldset>
+       <button className="catalog-add" type="submit">{saving ? 'Enregistrement…' : 'Enregistrer et publier cet article'}</button>
+     </fieldset>
+@@ -78,8 +87,87 @@ function ProductEditor({ product, onSaved }: { product: ManagerProduct; onSaved:
+   </form>;
+ }
+ 
+-export default function CatalogEditor({ initialProducts, pizzaCategories }: { initialProducts: ManagerProduct[]; pizzaCategories: PizzaCategory[] }) {
++function IngredientEditor({ initialIngredients, onSaved }: { initialIngredients: Ingredient[]; onSaved: (ingredients: Ingredient[]) => void }) {
++  const [ingredients, setIngredients] = useState(initialIngredients);
++  const [priceDrafts, setPriceDrafts] = useState<Record<string, { price33: string; price50: string }>>({});
++  const [draft, setDraft] = useState({ nameFr: '', nameEn: '', price33: '1,50', price50: '3,00' });
++  const [status, setStatus] = useState('');
++  const [busy, setBusy] = useState(false);
++  function update(id: string, change: Partial<Ingredient>) { setIngredients(current => current.map(item => item.id === id ? { ...item, ...change } : item)); }
++  async function save(item: Ingredient) {
++    setBusy(true); setStatus('');
++    try {
++      const draftPrices = priceDrafts[item.id];
++      const body = { nameFr: item.nameFr, nameEn: item.nameEn, active: item.active, price33Cents: draftPrices ? parseEuroCents(draftPrices.price33) : item.price33Cents, price50Cents: draftPrices ? parseEuroCents(draftPrices.price50) : item.price50Cents };
++      const response = await fetch(`/api/manager/ingredients/${encodeURIComponent(item.id)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
++      if (!response.ok) throw new Error();
++      const result = await response.json() as { ingredient: Ingredient };
++      const next = ingredients.map(current => current.id === item.id ? result.ingredient : current).sort((a, b) => a.nameFr.localeCompare(b.nameFr, 'fr'));
++      setIngredients(next); onSaved(next); setPriceDrafts(current => { const copy = { ...current }; delete copy[item.id]; return copy; }); setStatus('Ingrédient enregistré.');
++    } catch { setStatus('Enregistrement impossible. Vérifiez les prix et votre session gérant.'); }
++    finally { setBusy(false); }
++  }
++  async function add(event: React.FormEvent<HTMLFormElement>) {
++    event.preventDefault(); if (busy) return;
++    let price33Cents: number; let price50Cents: number;
++    try { price33Cents = parseEuroCents(draft.price33); price50Cents = parseEuroCents(draft.price50); } catch { setStatus('Vérifiez les prix des suppléments.'); return; }
++    setBusy(true); setStatus('');
++    try {
++      const body = { nameFr: draft.nameFr.trim(), nameEn: draft.nameEn.trim() || draft.nameFr.trim(), price33Cents, price50Cents, active: true };
++      const response = await fetch('/api/manager/ingredients', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
++      if (!response.ok) throw new Error();
++      const result = await response.json() as { ingredient: Ingredient };
++      const next = [...ingredients, result.ingredient].sort((a, b) => a.nameFr.localeCompare(b.nameFr, 'fr'));
++      setIngredients(next); onSaved(next); setDraft({ nameFr: '', nameEn: '', price33: '1,50', price50: '3,00' }); setStatus('Ingrédient ajouté au catalogue central.');
++    } catch { setStatus('Création impossible. Vérifiez le nom et votre session gérant.'); }
++    finally { setBusy(false); }
++  }
++  return <details className="manager-creator"><summary>Ingrédients & suppléments ({ingredients.length})</summary><p>Chaque ingrédient actif est proposé en supplément sur toutes les pizzas. Les tarifs sont réglables par format ; ceux du menu, 1,50 € et 3,00 €, sont proposés par défaut.</p>
++    {ingredients.map(item => <fieldset className="manager-ingredient-row" key={item.id}><legend>{item.nameFr}</legend><label>Nom<input value={item.nameFr} maxLength={128} disabled={busy} onChange={event => update(item.id, { nameFr: event.target.value })} /></label><label>Nom anglais<input value={item.nameEn} maxLength={128} disabled={busy} onChange={event => update(item.id, { nameEn: event.target.value })} /></label><label>Supplément 33 cm (€)<input inputMode="decimal" value={priceDrafts[item.id]?.price33 ?? euroInput(item.price33Cents)} disabled={busy} onChange={event => setPriceDrafts(current => ({ ...current, [item.id]: { price33: event.target.value, price50: current[item.id]?.price50 ?? euroInput(item.price50Cents) } }))} /></label><label>Supplément 50 cm (€)<input inputMode="decimal" value={priceDrafts[item.id]?.price50 ?? euroInput(item.price50Cents)} disabled={busy} onChange={event => setPriceDrafts(current => ({ ...current, [item.id]: { price33: current[item.id]?.price33 ?? euroInput(item.price33Cents), price50: event.target.value } }))} /></label><label className="manager-check"><input type="checkbox" checked={item.active} disabled={busy} onChange={event => update(item.id, { active: event.target.checked })} /> Proposé en supplément</label><button type="button" disabled={busy} onClick={() => void save(item)}>Enregistrer</button></fieldset>)}
++    <form onSubmit={add}><fieldset disabled={busy}><legend>Ajouter un ingrédient</legend><label>Nom<input required maxLength={128} value={draft.nameFr} onChange={event => setDraft(current => ({ ...current, nameFr: event.target.value }))} /></label><label>Nom anglais (facultatif)<input maxLength={128} value={draft.nameEn} onChange={event => setDraft(current => ({ ...current, nameEn: event.target.value }))} /></label><label>Prix en supplément 33 cm (€)<input required inputMode="decimal" value={draft.price33} onChange={event => setDraft(current => ({ ...current, price33: event.target.value }))} /></label><label>Prix en supplément 50 cm (€)<input required inputMode="decimal" value={draft.price50} onChange={event => setDraft(current => ({ ...current, price50: event.target.value }))} /></label><button type="submit">Ajouter au catalogue central</button></fieldset></form>{status && <p role="status">{status}</p>}
++  </details>;
++}
++
++function CategoryEditor({ initialCategories, onSaved }: { initialCategories: Category[]; onSaved: (categories: Category[]) => void }) {
++  const [categories, setCategories] = useState(initialCategories);
++  const [nameFr, setNameFr] = useState('');
++  const [nameEn, setNameEn] = useState('');
++  const [kind, setKind] = useState<Category['fulfillmentCategory']>('OTHER');
++  const [status, setStatus] = useState('');
++  const [busy, setBusy] = useState(false);
++  async function saveCategory(category: Category) {
++    setBusy(true); setStatus('');
++    try {
++      const response = await fetch(`/api/manager/categories/${encodeURIComponent(category.id)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(category) });
++      if (!response.ok) throw new Error();
++      const result = await response.json() as { category: Category };
++      const next = categories.map(item => item.id === result.category.id ? result.category : item);
++      setCategories(next); onSaved(next); setStatus('Catégorie enregistrée.');
++    } catch { setStatus('Enregistrement impossible. Vérifiez votre session gérant puis réessayez.'); }
++    finally { setBusy(false); }
++  }
++  async function addCategory(event: React.FormEvent<HTMLFormElement>) {
++    event.preventDefault(); if (busy) return; setBusy(true); setStatus('');
++    try {
++      const body = { nameFr: nameFr.trim(), nameEn: nameEn.trim() || nameFr.trim(), fulfillmentCategory: kind, position: categories.length };
++      const response = await fetch('/api/manager/categories', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
++      if (!response.ok) throw new Error();
++      const result = await response.json() as { category: Category };
++      const next = [...categories, result.category]; setCategories(next); onSaved(next); setNameFr(''); setNameEn(''); setStatus('Catégorie ajoutée.');
++    } catch { setStatus('Création impossible. Vérifiez les champs et votre session gérant.'); }
++    finally { setBusy(false); }
++  }
++  return <details className="manager-creator"><summary>Catégories du menu ({categories.length})</summary>
++    {categories.map((category, index) => <fieldset key={category.id}><legend>{category.nameFr}</legend><label>Nom<input value={category.nameFr} maxLength={128} onChange={event => setCategories(current => current.map((item, i) => i === index ? { ...item, nameFr: event.target.value } : item))} /></label><label>Nom anglais<input value={category.nameEn} maxLength={128} onChange={event => setCategories(current => current.map((item, i) => i === index ? { ...item, nameEn: event.target.value } : item))} /></label><label>Type<select value={category.fulfillmentCategory} onChange={event => setCategories(current => current.map((item, i) => i === index ? { ...item, fulfillmentCategory: event.target.value as Category['fulfillmentCategory'] } : item))}><option value="PIZZA">Pizzas</option><option value="PASTA">Pâtes</option><option value="OTHER">Autres plats</option></select></label><label>Ordre d’affichage<input type="number" min={0} max={10000} value={category.position} onChange={event => setCategories(current => current.map((item, i) => i === index ? { ...item, position: Number(event.target.value) } : item))} /></label><button type="button" disabled={busy} onClick={() => void saveCategory(category)}>Enregistrer cette catégorie</button></fieldset>)}
++    <form onSubmit={addCategory}><fieldset disabled={busy}><legend>Ajouter une catégorie</legend><label>Nom<input required maxLength={128} value={nameFr} onChange={event => setNameFr(event.target.value)} /></label><label>Nom anglais (facultatif)<input maxLength={128} value={nameEn} onChange={event => setNameEn(event.target.value)} /></label><label>Type<select value={kind} onChange={event => setKind(event.target.value as Category['fulfillmentCategory'])}><option value="PIZZA">Pizzas</option><option value="PASTA">Pâtes</option><option value="OTHER">Autres plats</option></select></label><button type="submit">Ajouter la catégorie</button></fieldset></form>
++    {status && <p role="status">{status}</p>}
++  </details>;
++}
++
++export default function CatalogEditor({ initialProducts, initialCategories, initialIngredients }: { initialProducts: ManagerProduct[]; initialCategories: PizzaCategory[]; initialIngredients: Ingredient[] }) {
+   const [products, setProducts] = useState(initialProducts);
++  const [categories, setCategories] = useState(initialCategories);
++  const [ingredients, setIngredients] = useState(initialIngredients);
+   const [search, setSearch] = useState('');
+   const [selectedId, setSelectedId] = useState(initialProducts[0]?.id ?? '');
+   const [logoutError, setLogoutError] = useState('');
+@@ -95,16 +183,26 @@ export default function CatalogEditor({ initialProducts, pizzaCategories }: { in
+   const filteredProducts = products.filter(product => normalize(`${product.nameFr} ${product.category.nameFr}`).includes(normalize(search)));
+   const visibleProducts = products.filter(product => product.id === selectedId || filteredProducts.includes(product));
+   const selected = products.find(product => product.id === selectedId);
++  const ingredientChoices = [...new Set([...ingredients.map(item => item.nameFr), ...products.filter(product => product.category.fulfillmentCategory === 'PIZZA').flatMap(product => product.ingredients ?? [])])].sort((a, b) => a.localeCompare(b, 'fr'));
+   return <section aria-label="Éditeur de carte">
+     <button type="button" onClick={logout}>Se déconnecter</button>
+     {logoutError && <p role="alert">{logoutError}</p>}
+-    <PizzaCreator categories={pizzaCategories} onCreated={product => { setProducts(current => [...current, product]); setSelectedId(product.id); setSearch(''); setSaved('Brouillon créé. Configurez les suppléments puis activez « Disponible sur la carte » pour publier.'); }} />
++    <CategoryEditor initialCategories={categories} onSaved={nextCategories => { setCategories(nextCategories); setProducts(current => current.map(product => { const category = nextCategories.find(item => item.id === product.categoryId); return category ? { ...product, category: { nameFr: category.nameFr, fulfillmentCategory: category.fulfillmentCategory } } : product; })); }} />
++    <IngredientEditor initialIngredients={ingredients} onSaved={nextIngredients => {
++      const renamed = new Map(ingredients.filter(item => nextIngredients.some(next => next.id === item.id && next.nameFr !== item.nameFr)).map(item => [item.nameFr, nextIngredients.find(next => next.id === item.id)!.nameFr]));
++      setIngredients(nextIngredients);
++      if (renamed.size) setProducts(current => current.map(product => {
++        const affected = (product.ingredients ?? []).some(name => renamed.has(name)) || product.removableIngredients.some(name => renamed.has(name));
++        return { ...product, ingredients: (product.ingredients ?? []).map(name => renamed.get(name) ?? name), removableIngredients: product.removableIngredients.map(name => renamed.get(name) ?? name), catalogRevision: product.catalogRevision + (affected ? 1 : 0) };
++      }));
++    }} />
++    <PizzaCreator categories={categories} ingredientChoices={ingredientChoices} onCreated={product => { setProducts(current => [...current, product]); setSelectedId(product.id); setSearch(''); setSaved('Brouillon créé. Configurez les formats et suppléments puis activez « Disponible sur la carte » pour publier.'); }} />
+     <label>Rechercher un article<input type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Nom ou catégorie" /></label>
+     <p role="status">{filteredProducts.length} article(s) correspondant à la recherche. L’article sélectionné reste accessible.</p>
+     <label>Article à modifier<select value={selectedId} onChange={event => { setSelectedId(event.target.value); setSaved(''); }}>
+       {visibleProducts.map(product => <option key={product.id} value={product.id}>{product.category.nameFr} — {product.nameFr}{product.active ? '' : ' (indisponible)'}</option>)}
+     </select></label>
+     <p role="status">{saved}</p>
+-    {selected ? <ProductEditor key={`${selected.id}-${selected.catalogRevision}`} product={selected} onSaved={updated => { setProducts(current => current.map(product => product.id === updated.id ? updated : product)); setSaved('Article enregistré. La carte a été mise à jour.'); }} /> : <p>Aucun article dans la carte.</p>}
++    {selected ? <ProductEditor key={`${selected.id}-${selected.catalogRevision}`} product={selected} categories={categories} ingredientChoices={ingredientChoices} onSaved={updated => { setProducts(current => current.map(product => product.id === updated.id ? updated : product)); setSaved('Article enregistré. La carte a été mise à jour.'); }} /> : <p>Aucun article dans la carte.</p>}
+   </section>;
+ }
+diff --git a/src/app/gerant/carte/page.tsx b/src/app/gerant/carte/page.tsx
+index d824120..d4748eb 100644
+--- a/src/app/gerant/carte/page.tsx
++++ b/src/app/gerant/carte/page.tsx
+@@ -10,11 +10,12 @@ export default async function ManagerCatalogPage() {
+   try { await requirePermission('catalog:write'); }
+   catch (error) {
+     if (!(error instanceof Error) || error.message !== 'FORBIDDEN') throw error;
+-    return <main className="manager-page"><h1>Espace gérant</h1><p>Une session gérant est nécessaire pour gérer la carte. Utilisez votre lien privé de connexion.</p><Link href="/gerant/connexion">Se connecter</Link></main>;
++    return <main className="manager-page"><p className="manager-eyebrow">PIZZERIA ROMA · ESPACE PROFESSIONNEL</p><h1>Espace gérant</h1><p>Une session gérant est nécessaire pour gérer la carte. Utilisez votre lien privé de connexion.</p><Link className="manager-button-link" href="/gerant/connexion">Se connecter</Link></main>;
+   }
+   try {
+-    const pizzaCategories = await prisma.menuCategory.findMany({ where: { fulfillmentCategory: 'PIZZA' }, select: { id: true, nameFr: true }, orderBy: { position: 'asc' } });
++    const categories = await prisma.menuCategory.findMany({ orderBy: [{ position: 'asc' }, { nameFr: 'asc' }] });
++    const ingredients = await prisma.ingredient.findMany({ orderBy: { nameFr: 'asc' } });
+     const products = await prisma.product.findMany({ orderBy: [{ categoryId: 'asc' }, { nameFr: 'asc' }], include: { category: true, sizes: { orderBy: { priceCents: 'asc' } }, extras: { orderBy: { nameFr: 'asc' } } } });
+-    return <main className="manager-page"><Link href="/menu">← Voir la carte</Link><Link href="/gerant">Tableau de bord gérant</Link><Link href="/gerant/livraison">Livraison et créneaux</Link><Link href="/gerant/commandes-test">Commandes de test</Link><h1>Gérer la carte</h1><p>Modifiez les prix, les disponibilités et les options. Les changements enregistrés sont publiés sur la carte.</p><CatalogEditor initialProducts={products} pizzaCategories={pizzaCategories} /></main>;
+-  } catch { return <main className="manager-page"><Link href="/gerant">Tableau de bord gérant</Link><Link href="/gerant/livraison">Livraison et créneaux</Link><Link href="/gerant/commandes-test">Commandes de test</Link><h1>Gérer la carte</h1><p role="alert">La carte est indisponible pour le moment. Réessayez plus tard.</p></main>; }
++    return <main className="manager-page"><p className="manager-eyebrow">MENU · PRODUITS ET PRIX</p><h1>Gérer la carte</h1><p className="manager-lede">Gérez les catégories, le catalogue central d’ingrédients et les plats.</p><CatalogEditor initialProducts={products} initialCategories={categories} initialIngredients={ingredients} /></main>;
++  } catch { return <main className="manager-page"><p className="manager-eyebrow">MENU · PRODUITS ET PRIX</p><h1>Gérer la carte</h1><p role="alert">La carte est indisponible pour le moment. Réessayez plus tard.</p></main>; }
+ }
+diff --git a/src/app/gerant/carte/pizza-creator.tsx b/src/app/gerant/carte/pizza-creator.tsx
+index 85dc06b..90bd02c 100644
+--- a/src/app/gerant/carte/pizza-creator.tsx
++++ b/src/app/gerant/carte/pizza-creator.tsx
+@@ -3,43 +3,57 @@ import { useState } from 'react';
+ import { parseEuroCents } from '../../../lib/catalog-management.mjs';
+ import type { ManagerProduct } from '../../../lib/catalog-management.mjs';
+ 
+-export type PizzaCategory = { id: string; nameFr: string };
+-export default function PizzaCreator({ categories, onCreated }: { categories: PizzaCategory[]; onCreated: (product: ManagerProduct) => void }) {
++export type PizzaCategory = { id: string; nameFr: string; nameEn: string; fulfillmentCategory: 'PIZZA' | 'PASTA' | 'OTHER'; position: number };
++export default function PizzaCreator({ categories, ingredientChoices, onCreated }: { categories: PizzaCategory[]; ingredientChoices: string[]; onCreated: (product: ManagerProduct) => void }) {
+   const [categoryId, setCategoryId] = useState(categories[0]?.id ?? '');
+-  const [name, setName] = useState('');
+-  const [price33, setPrice33] = useState('');
+-  const [maxi, setMaxi] = useState(false);
+-  const [price50, setPrice50] = useState('');
+-  const [ingredients, setIngredients] = useState('');
++  const [nameFr, setNameFr] = useState('');
++  const [nameEn, setNameEn] = useState('');
++  const [price, setPrice] = useState('');
++  const [sizeLines, setSizeLines] = useState('');
++  const [ingredients, setIngredients] = useState<string[]>([]);
++  const [ingredientsText, setIngredientsText] = useState('');
+   const [busy, setBusy] = useState(false);
+   const [error, setError] = useState('');
++  const isPizza = categories.find(category => category.id === categoryId)?.fulfillmentCategory === 'PIZZA';
++  const choices = [...new Set([...ingredientChoices, ...ingredients])].sort((a, b) => a.localeCompare(b, 'fr'));
++  function toggleIngredient(name: string) { setIngredients(current => current.includes(name) ? current.filter(item => item !== name) : [...current, name]); }
+   async function create(event: React.FormEvent<HTMLFormElement>) {
+     event.preventDefault();
+     if (busy) return;
+     setError('');
+-    let body;
++    if (isPizza && ingredients.length === 0) { setError('Cochez au moins un ingrédient pour cette pizza.'); return; }
++    let baseCents: number;
++    let parsedSizes: Array<{ label: string; priceCents: number }> = [];
+     try {
+-      body = { categoryId, nameFr: name.trim(), price33Cents: parseEuroCents(price33), ...(maxi ? { price50Cents: parseEuroCents(price50) } : {}), removableIngredients: ingredients.split('\n').map(value => value.trim()).filter(Boolean) };
+-    } catch { setError('Vérifiez les prix : au maximum deux décimales, sans montant négatif.'); return; }
++      baseCents = price.trim() ? parseEuroCents(price) : 0;
++      const sizes = sizeLines.split('\n').map(line => line.trim()).filter(Boolean).map(line => {
++        const [label, amount, ...rest] = line.split('=');
++        if (!label?.trim() || !amount || rest.length) throw new Error();
++        return { label: label.trim(), priceCents: parseEuroCents(amount.trim()) };
++      });
++      if (!sizes.length && baseCents <= 0) throw new Error();
++      if (sizes.length > 12 || new Set(sizes.map(size => size.label)).size !== sizes.length) throw new Error();
++      parsedSizes = sizes;
++    } catch { setError('Renseignez un prix de base ou des formats au format « 33 cm=12,00 ».'); return; }
++    const body = { categoryId, nameFr: nameFr.trim(), nameEn: nameEn.trim() || nameFr.trim(), baseCents, ingredients: isPizza ? ingredients : ingredientsText.split('\n').map(value => value.trim()).filter(Boolean), removableIngredients: isPizza ? ingredients : [], sizes: parsedSizes };
+     setBusy(true);
+     try {
+       const response = await fetch('/api/manager/products', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+-      if (!response.ok) { setError(response.status === 403 ? 'Une session gérant valide est nécessaire.' : 'Création refusée. Vérifiez les champs et les ingrédients en double.'); return; }
++      if (!response.ok) { setError(response.status === 403 ? 'Une session gérant valide est nécessaire.' : 'Création refusée. Vérifiez le nom, la catégorie et les ingrédients.'); return; }
+       const result = await response.json() as { product: ManagerProduct };
+-      setName(''); setPrice33(''); setPrice50(''); setMaxi(false); setIngredients('');
++      setNameFr(''); setNameEn(''); setPrice(''); setSizeLines(''); setIngredients([]); setIngredientsText('');
+       onCreated(result.product);
+-    } catch { setError('Connexion interrompue. Rechargez la carte pour vérifier si le brouillon a été créé avant de réessayer.'); }
++    } catch { setError('Connexion interrompue. Rechargez la carte pour vérifier si le brouillon a été créé.'); }
+     finally { setBusy(false); }
+   }
+-  return <details className="manager-creator"><summary>Créer une nouvelle pizza</summary>
+-    {categories.length === 0 ? <p>Une catégorie pizzas doit être configurée avant de créer un article.</p> : <form onSubmit={create}><fieldset disabled={busy}><legend>Nouvelle pizza</legend>
+-      <p>La pizza sera créée en brouillon. Vous pourrez ensuite ajouter ses suppléments et la rendre disponible.</p>
+-      <label>Catégorie<select value={categoryId} onChange={event => setCategoryId(event.target.value)}>{categories.map(category => <option key={category.id} value={category.id}>{category.nameFr}</option>)}</select></label>
+-      <label>Nom<input required maxLength={128} value={name} onChange={event => setName(event.target.value)} /></label>
+-      <label>Prix en 33 cm (€)<input required inputMode="decimal" value={price33} onChange={event => setPrice33(event.target.value)} /></label>
+-      <label className="manager-check"><input type="checkbox" checked={maxi} onChange={event => setMaxi(event.target.checked)} /> Proposer aussi le format 50 cm</label>
+-      {maxi && <label>Prix en 50 cm (€)<input required inputMode="decimal" value={price50} onChange={event => setPrice50(event.target.value)} /></label>}
+-      <label>Ingrédients retirables, un par ligne<textarea rows={4} value={ingredients} onChange={event => setIngredients(event.target.value)} /></label>
++  return <details className="manager-creator"><summary>Ajouter un plat</summary>
++    {!categories.length ? <p>Créez d’abord une catégorie.</p> : <form onSubmit={create}><fieldset disabled={busy}><legend>Nouveau plat</legend><p>Le plat est créé en brouillon. Vous pourrez ajouter ses formats et suppléments avant de le publier.</p>
++      <label>Catégorie<select required value={categoryId} onChange={event => setCategoryId(event.target.value)}>{categories.map(category => <option key={category.id} value={category.id}>{category.nameFr}</option>)}</select></label>
++      <label>Nom du plat<input required maxLength={128} value={nameFr} onChange={event => setNameFr(event.target.value)} /></label>
++      <label>Nom anglais (facultatif)<input maxLength={128} value={nameEn} onChange={event => setNameEn(event.target.value)} /></label>
++      <label>Prix (€), si le plat n’a pas de formats<input inputMode="decimal" value={price} onChange={event => setPrice(event.target.value)} /></label>
++      <label>Formats et prix (un par ligne : 33 cm=12,00)<textarea rows={3} value={sizeLines} onChange={event => setSizeLines(event.target.value)} /></label>
++      {isPizza ? <fieldset><legend>Ingrédients de la pizza</legend><p>Cochez sa composition : le client pourra retirer ces ingrédients ou en ajouter une portion supplémentaire depuis le catalogue.</p>{choices.length ? choices.map(ingredient => <label className="manager-check" key={ingredient}><input type="checkbox" checked={ingredients.includes(ingredient)} onChange={() => toggleIngredient(ingredient)} />{ingredient}</label>) : <p>Ajoutez d’abord les ingrédients dans le catalogue central ci-dessus.</p>}</fieldset> : <label>Composition / ingrédients, un par ligne<textarea rows={4} value={ingredientsText} onChange={event => setIngredientsText(event.target.value)} /></label>}
+       <button type="submit">{busy ? 'Création…' : 'Créer le brouillon'}</button>
+     </fieldset>{error && <p role="alert">{error}</p>}</form>}
+   </details>;
+diff --git a/src/app/gerant/commandes-test/page.tsx b/src/app/gerant/commandes-test/page.tsx
+index 0b27961..6149931 100644
+--- a/src/app/gerant/commandes-test/page.tsx
++++ b/src/app/gerant/commandes-test/page.tsx
+@@ -13,18 +13,17 @@ export const dynamic = 'force-dynamic';
+ export const metadata = { title: 'Commandes de test | Pizzeria Roma', robots: { index: false, follow: false } };
+ export default async function StaffTestOrders({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+   if (!testOrdersEnabled()) notFound();
+-  let staff;
+-  try { staff = await requirePermission('orders:read'); }
+-  catch (error) { if (!(error instanceof Error) || error.message !== 'FORBIDDEN') throw error; return <main className="customer-page"><h1>Accès professionnel requis</h1><Link href="/gerant/connexion">Connexion gérant</Link></main>; }
++  try { await requirePermission('orders:read'); }
++  catch (error) { if (!(error instanceof Error) || error.message !== 'FORBIDDEN') throw error; return <main className="manager-page"><h1>Accès professionnel requis</h1><Link className="manager-button-link" href="/gerant/connexion">Connexion gérant</Link></main>; }
+   let filters = parseStaffTestFilters();
+   let filterError: string | undefined;
+   try { filters = parseStaffTestFilters(await searchParams); }
+   catch { filterError = 'Filtres invalides. La file à traiter est affichée avec les réglages par défaut.'; }
+   const result = await listStaffTestOrders(filters);
+   const from = (result.page - 1) * STAFF_TEST_PAGE_SIZE + 1;
+-  return <main className="customer-page"><Link href="/gerant/carte">← Gestion de la carte</Link>{staff.role === 'MANAGER' && <p><Link href="/gerant">Tableau de bord gérant</Link></p>}<h1>Gérant et cuisine — commandes de test</h1>
+-    <p>Simulation uniquement. Ne préparez pas ces commandes. Choisissez le tri par créneau pour voir ensemble les essais prévus le plus tôt.</p>
+-    <section aria-labelledby="staff-test-list-title"><h2 id="staff-test-list-title">File des essais</h2>
++  return <main className="manager-page"><p className="manager-eyebrow">OPÉRATIONS · FILE DES COMMANDES</p><h1>Commandes de test</h1>
++    <div className="manager-notice"><strong>Simulation uniquement</strong><span>Ne préparez pas ces commandes. Triez par créneau pour voir les essais prévus le plus tôt.</span></div>
++    <section className="manager-orders-panel" aria-labelledby="staff-test-list-title"><h2 id="staff-test-list-title">File des essais</h2>
+       <form key={JSON.stringify([filters, result.page])} method="get" action="/gerant/commandes-test#staff-test-list-title"><fieldset><legend>Filtrer la file</legend>
+         <label htmlFor="staff-test-q">Référence à rechercher</label><input id="staff-test-q" name="q" type="search" maxLength={64} defaultValue={filters.q} placeholder="Référence complète ou partielle" />
+         <label htmlFor="staff-test-status">Statut des essais</label><select id="staff-test-status" name="statut" defaultValue={filters.status}><option value="active">À traiter</option><option value="all">Tous les statuts</option>{Object.entries(TEST_STATUS_LABELS).map(([status, label]) => <option key={status} value={status}>{label}</option>)}</select>
+@@ -34,7 +33,7 @@ export default async function StaffTestOrders({ searchParams }: { searchParams:
+       </fieldset></form><RefreshTestOrders />{filterError && <p role="alert">{filterError}</p>}
+       {!result.total ? <p>Aucun essai ne correspond à ces filtres.</p> : <>
+         <p role="status">Essais {from}–{Math.min(from + STAFF_TEST_PAGE_SIZE - 1, result.total)} sur {result.total} · Page {result.page} sur {result.pages}</p>
+-        {result.orders.map(order => <article className="test-order-card" key={order.id} aria-labelledby={`staff-order-${order.id}`}><h3 id={`staff-order-${order.id}`}>{order.publicReference}</h3><p>{TEST_STATUS_LABELS[order.status]} · enregistré le {order.placedAt.toLocaleString('fr-BE', { timeZone: 'Europe/Brussels' })}</p><p>Créneau souhaité : {order.scheduledFor.toLocaleString('fr-BE', { timeZone: 'Europe/Brussels', dateStyle: 'short', timeStyle: 'short' })}</p><p>{order.contactName} · {order.phone}</p><p>{order.fulfillment === 'DELIVERY' ? `Livraison simulée — ${order.address} (${order.zoneId})` : 'Retrait simulé'}</p>{order.comment && <p>{order.comment}</p>}<TestOrderSummary items={order.itemsSnapshot as TestOrderSnapshot[]} totalCents={order.totalCents} /><TestOrderActions id={order.id} revision={order.revision} statuses={nextTestStatuses(order.status, order.fulfillment)} /></article>)}
++        {result.orders.map(order => <article className="test-order-card" key={order.id} aria-labelledby={`staff-order-${order.id}`}><h3 id={`staff-order-${order.id}`}>{order.publicReference}</h3><p>{TEST_STATUS_LABELS[order.status]} · enregistré le {order.placedAt.toLocaleString('fr-BE', { timeZone: 'Europe/Brussels' })}</p><p>Créneau souhaité : {order.scheduledFor.toLocaleString('fr-BE', { timeZone: 'Europe/Brussels', dateStyle: 'short', timeStyle: 'short' })}</p><p>{order.contactName} · {order.phone}</p><p>{order.fulfillment === 'DELIVERY' ? `Livraison simulée — ${order.address} (${order.zoneId})` : 'Retrait simulé'}</p>{order.comment && <p>{order.comment}</p>}<TestOrderSummary items={order.itemsSnapshot as TestOrderSnapshot[]} subtotalCents={order.subtotalCents} loyaltyDiscountCents={order.loyaltyDiscountCents} discountCents={order.discountCents} promotionName={order.promotionName} promotionCode={order.promotionCode} totalCents={order.totalCents} /><TestOrderActions id={order.id} revision={order.revision} statuses={nextTestStatuses(order.status, order.fulfillment)} /></article>)}
+         <nav className="customer-actions" aria-label="Pages de la file des essais">{result.page > 1 && <Link href={staffTestHref(filters, result.page - 1)}>Page précédente</Link>}{result.page < result.pages && <Link href={staffTestHref(filters, result.page + 1)}>Page suivante</Link>}</nav>
+       </>}
+     </section>
+diff --git a/src/app/gerant/connexion/page.tsx b/src/app/gerant/connexion/page.tsx
+index 124ac8b..d6465df 100644
+--- a/src/app/gerant/connexion/page.tsx
++++ b/src/app/gerant/connexion/page.tsx
+@@ -2,5 +2,5 @@ import Link from 'next/link';
+ import ManagerLogin from './manager-login';
+ export const metadata = { title: 'Connexion gérant | Pizzeria Roma', robots: { index: false, follow: false }, referrer: 'no-referrer' as const };
+ export default function ManagerLoginPage() {
+-  return <main className="manager-page"><h1>Connexion gérant</h1><p>Utilisez votre lien privé de connexion. Il est valable 15 minutes et ne peut servir qu’une fois.</p><ManagerLogin /><Link href="/menu">Retour à la carte</Link></main>;
++  return <main className="manager-page"><p className="manager-eyebrow">PIZZERIA ROMA · ESPACE PROFESSIONNEL</p><h1>Connexion gérant</h1><p className="manager-lede">Utilisez votre lien privé de connexion. Il est valable 15 minutes et ne peut servir qu’une fois.</p><ManagerLogin /><Link href="/menu">Retour à la boutique</Link></main>;
+ }
+diff --git a/src/app/gerant/dashboard.module.css b/src/app/gerant/dashboard.module.css
+deleted file mode 100644
+index e2d3720..0000000
+--- a/src/app/gerant/dashboard.module.css
++++ /dev/null
+@@ -1,7 +0,0 @@
+-.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-block: 1rem 2rem; }
+-.card { padding: 1rem; border: 1px solid #c9cec7; border-radius: .6rem; background: #fafbf7; color: #1d382b; text-decoration: none; }
+-a.card:hover { background: #eef3e9; }
+-a.card:focus-visible { outline: 3px solid #1d382b; outline-offset: 3px; }
+-.card h3, .card p, .card dd { margin: 0; }
+-.card p, .card dd { margin-top: .5rem; font-size: 2rem; font-weight: 700; }
+-.card dt { font-weight: 600; }
+diff --git a/src/app/gerant/layout.tsx b/src/app/gerant/layout.tsx
+new file mode 100644
+index 0000000..351822e
+--- /dev/null
++++ b/src/app/gerant/layout.tsx
+@@ -0,0 +1,8 @@
++import ManagerNavigation from './manager-navigation';
++
++export default function ManagerLayout({ children }: Readonly<{ children: React.ReactNode }>) {
++  return <div className="manager-shell">
++    <ManagerNavigation />
++    {children}
++  </div>;
++}
+diff --git a/src/app/gerant/livraison/page.tsx b/src/app/gerant/livraison/page.tsx
+index 6bc6d27..5447aac 100644
+--- a/src/app/gerant/livraison/page.tsx
++++ b/src/app/gerant/livraison/page.tsx
+@@ -1,4 +1,3 @@
+-import Link from 'next/link';
+ import { redirect } from 'next/navigation';
+ import { prisma } from '../../../lib/db';
+ import { requirePermission } from '../../../lib/auth';
+@@ -15,8 +14,8 @@ export default async function ManagerDeliveryPage() {
+     prisma.deliveryZoneBoundary.findMany(),
+   ]);
+   if (!config) throw new Error('DELIVERY_CONFIGURATION_MISSING');
+-  return <main className="manager-page"><Link href="/gerant">← Tableau de bord gérant</Link><h1>Livraison et créneaux</h1>
+-    <p>La prise de commande reste en mode test. Aucune commande réelle ni aucun paiement n’est activé.</p>
++  return <main className="manager-page"><p className="manager-eyebrow">RÉGLAGES · LOGISTIQUE</p><h1>Livraison et créneaux</h1>
++    <p className="manager-lede">Configurez les horaires et les zones disponibles pour la boutique.</p><div className="manager-notice"><strong>Mode test</strong><span>La prise de commande reste en mode test. Aucun paiement n’est activé.</span></div>
+     <DeliverySettings initialConfig={config} initialZones={zones as unknown as Array<{ zoneId: string; geometry: { type: 'Polygon'; coordinates: [number, number][][] }; revision: number }>} />
+   </main>;
+ }
+diff --git a/src/app/gerant/manager-navigation.tsx b/src/app/gerant/manager-navigation.tsx
+new file mode 100644
+index 0000000..122d791
+--- /dev/null
++++ b/src/app/gerant/manager-navigation.tsx
+@@ -0,0 +1,23 @@
++'use client';
++
++import Link from 'next/link';
++import { usePathname } from 'next/navigation';
++
++const links = [
++  { href: '/gerant', label: 'Tableau de bord' },
++  { href: '/gerant/carte', label: 'La carte' },
++  { href: '/gerant/promotions', label: 'Promotions' },
++  { href: '/gerant/livraison', label: 'Livraison' },
++  { href: '/gerant/commandes-test', label: 'Commandes' },
++];
++
++export default function ManagerNavigation() {
++  const pathname = usePathname();
++  return <header className="manager-header">
++    <Link className="manager-brand" href="/gerant"><span>PIZZERIA</span><strong>ROMA</strong><small>ESPACE GÉRANT</small></Link>
++    <nav className="manager-nav" aria-label="Navigation gérant">
++      {links.map(link => <Link key={link.href} href={link.href} aria-current={pathname === link.href ? 'page' : undefined}>{link.label}</Link>)}
++    </nav>
++    <Link className="manager-store-link" href="/menu">Voir la boutique ↗</Link>
++  </header>;
++}
+diff --git a/src/app/gerant/page.tsx b/src/app/gerant/page.tsx
+index 6697bb8..37dedf5 100644
+--- a/src/app/gerant/page.tsx
++++ b/src/app/gerant/page.tsx
+@@ -5,13 +5,12 @@ import { testOrdersEnabled } from '../../lib/test-mode';
+ import { loadStaffDashboard } from '../../lib/staff-dashboard-data';
+ import { parseStaffTestFilters, staffTestHref } from '../../lib/staff-test-filters.mjs';
+ import RefreshTestOrders from '../../components/refresh-test-orders';
+-import styles from './dashboard.module.css';
+ export const dynamic = 'force-dynamic';
+ export const metadata = { title: 'Tableau de bord gérant | Pizzeria Roma', robots: { index: false, follow: false } };
+ export default async function ManagerDashboard() {
+   if (!testOrdersEnabled()) notFound();
+   try { await requirePermission('reports:read'); }
+-  catch (error) { if (!(error instanceof Error) || error.message !== 'FORBIDDEN') throw error; return <main className="customer-page"><h1>Accès gérant requis</h1><Link href="/gerant/connexion">Connexion gérant</Link><p><Link href="/gerant/commandes-test">Ouvrir la file professionnelle</Link></p></main>; }
++  catch (error) { if (!(error instanceof Error) || error.message !== 'FORBIDDEN') throw error; return <main className="manager-page"><p className="manager-eyebrow">PIZZERIA ROMA · ESPACE PROFESSIONNEL</p><h1>Accès gérant requis</h1><p>Connectez-vous pour accéder aux outils de gestion.</p><Link className="manager-button-link" href="/gerant/connexion">Connexion gérant</Link><p><Link href="/gerant/commandes-test">Ouvrir la file professionnelle</Link></p></main>; }
+   const data = await loadStaffDashboard();
+   const defaults = parseStaffTestFilters();
+   const cards = [
+@@ -22,16 +21,16 @@ export default async function ManagerDashboard() {
+     { label: 'Prêts', status: 'READY', count: data.statuses.READY },
+     { label: 'En livraison', status: 'OUT_FOR_DELIVERY', count: data.statuses.OUT_FOR_DELIVERY },
+   ] as const;
+-  return <main className="customer-page"><h1>Tableau de bord gérant</h1><p>Mode test : ces compteurs concernent uniquement les essais. Aucune préparation réelle ni aucun paiement.</p>
+-    <div className="customer-actions"><Link href="/gerant/carte">Gérer la carte</Link><Link href="/gerant/livraison">Livraison et créneaux</Link><Link href="/gerant/commandes-test">Ouvrir la file des essais</Link><RefreshTestOrders label="Actualiser le tableau de bord" /></div>
+-    <p>Actualisé à {data.refreshedAt.toLocaleString('fr-BE', { timeZone: 'Europe/Brussels' })} · heure de Bruxelles.</p>
+-    <section aria-labelledby="dashboard-queue-title"><h2 id="dashboard-queue-title">File à traiter</h2><p>Essais encore actifs, quelle que soit leur date d’enregistrement. Chaque compteur ouvre la liste correspondante.</p>
+-      <nav className={styles.cards} aria-label="Compteurs de la file">{cards.map(card => <Link className={styles.card} key={card.status} href={staffTestHref({ ...defaults, status: card.status })}><h3>{card.label}</h3><p>{card.count}</p></Link>)}</nav>
++  return <main className="manager-page"><p className="manager-eyebrow">PIZZERIA ROMA · ESPACE PROFESSIONNEL</p><h1>Tableau de bord</h1><p className="manager-lede">Vue d’ensemble de l’activité en mode test.</p>
++    <div className="manager-notice"><strong>Mode test</strong><span>Ces compteurs concernent uniquement les essais. Aucune préparation réelle ni aucun paiement.</span></div>
++    <div className="manager-toolbar"><div><span className="manager-meta-label">Dernière actualisation</span><p>{data.refreshedAt.toLocaleString('fr-BE', { timeZone: 'Europe/Brussels' })} · heure de Bruxelles</p></div><RefreshTestOrders label="Actualiser le tableau de bord" /></div>
++    <section aria-labelledby="dashboard-queue-title"><h2 id="dashboard-queue-title">File à traiter</h2><p>Essais encore actifs. Sélectionnez un compteur pour ouvrir la liste correspondante.</p>
++      <nav className="manager-cards" aria-label="Compteurs de la file">{cards.map(card => <Link className="manager-card" key={card.status} href={staffTestHref({ ...defaults, status: card.status })}><h3>{card.label}</h3><p>{card.count}</p></Link>)}</nav>
+     </section>
+-    <section aria-labelledby="dashboard-today-title"><h2 id="dashboard-today-title">Résumé du jour</h2><p>Essais enregistrés le <time dateTime={data.date}>{data.date.split('-').reverse().join('/')}</time>, de minuit à minuit en Europe/Brussels. Les statuts reflètent la dernière actualisation.</p>
+-      <dl className={styles.cards}>{[
++    <section aria-labelledby="dashboard-today-title"><h2 id="dashboard-today-title">Résumé du jour <span className="manager-section-date"><time dateTime={data.date}>{data.date.split('-').reverse().join('/')}</time></span></h2><p>Essais enregistrés de minuit à minuit en heure de Bruxelles.</p>
++      <dl className="manager-cards">{[
+         ['Essais enregistrés', data.today.total], ['Retraits simulés', data.today.pickup], ['Livraisons simulées', data.today.delivery], ['Actuellement annulés ou refusés', data.today.cancelledOrRejected],
+-      ].map(([label, count]) => <div className={styles.card} key={label}><dt>{label}</dt><dd>{count}</dd></div>)}</dl>
++      ].map(([label, count]) => <div className="manager-card" key={label}><dt>{label}</dt><dd>{count}</dd></div>)}</dl>
+     </section>
+   </main>;
+ }
+diff --git a/src/app/gerant/promotions/page.tsx b/src/app/gerant/promotions/page.tsx
+new file mode 100644
+index 0000000..518ac63
+--- /dev/null
++++ b/src/app/gerant/promotions/page.tsx
+@@ -0,0 +1,18 @@
++import { redirect } from 'next/navigation';
++import { prisma } from '../../../lib/db';
++import { requirePermission } from '../../../lib/auth';
++import PromotionEditor from './promotion-editor';
++
++export const dynamic = 'force-dynamic';
++export const metadata = { title: 'Promotions | Pizzeria Roma', robots: { index: false, follow: false } };
++
++export default async function ManagerPromotionsPage() {
++  try { await requirePermission('catalog:write'); }
++  catch (error) { if (!(error instanceof Error) || error.message !== 'FORBIDDEN') throw error; redirect('/gerant/connexion'); }
++  const promotions = await prisma.promotion.findMany({ orderBy: [{ kind: 'asc' }, { updatedAt: 'desc' }] });
++  return <main className="manager-page"><p className="manager-eyebrow">OFFRES · ACQUISITION</p><h1>Promotions et codes promo</h1>
++    <p className="manager-lede">Créez une réduction automatique ou un code à saisir au moment de la commande. Choisissez les dates, jours et heures de validité en heure de Bruxelles. Une seule promotion automatique peut être active à la fois ; une seule remise, la plus avantageuse, s’applique au panier.</p>
++    <div className="manager-notice"><strong>Mode test</strong><span>Les remises sont appliquées aux commandes de test. Aucun paiement réel n’est activé.</span></div>
++    <PromotionEditor initialPromotions={promotions} />
++  </main>;
++}
+diff --git a/src/app/gerant/promotions/promotion-editor.tsx b/src/app/gerant/promotions/promotion-editor.tsx
+new file mode 100644
+index 0000000..169a1a7
+--- /dev/null
++++ b/src/app/gerant/promotions/promotion-editor.tsx
+@@ -0,0 +1,88 @@
++'use client';
++
++import { useState } from 'react';
++import type { Promotion, PromotionDiscountType, PromotionKind } from '@prisma/client';
++
++type Draft = { name: string; kind: PromotionKind; code: string; discountType: PromotionDiscountType; value: string; minimum: string; validFrom: string; validUntil: string; weekdays: number[]; startTime: string; endTime: string; usageLimit: string; active: boolean };
++const WEEKDAYS = [{ value: 1, label: 'Lun' }, { value: 2, label: 'Mar' }, { value: 3, label: 'Mer' }, { value: 4, label: 'Jeu' }, { value: 5, label: 'Ven' }, { value: 6, label: 'Sam' }, { value: 7, label: 'Dim' }];
++const emptyDraft = (): Draft => ({ name: '', kind: 'AUTOMATIC', code: '', discountType: 'PERCENT', value: '10', minimum: '0', validFrom: '', validUntil: '', weekdays: [1, 2, 3, 4, 5, 6, 7], startTime: '', endTime: '', usageLimit: '', active: false });
++const dateInput = (value: Date | null) => value ? new Date(value).toISOString().slice(0, 10) : '';
++const euroString = (cents: number) => (cents / 100).toFixed(2).replace('.', ',');
++
++function draftFor(promo: Promotion): Draft {
++  return { name: promo.name, kind: promo.kind, code: promo.code ?? '', discountType: promo.discountType, value: promo.discountType === 'FIXED' ? euroString(promo.value) : String(promo.value), minimum: euroString(promo.minimumSubtotalCents), validFrom: dateInput(promo.validFrom), validUntil: dateInput(promo.validUntil), weekdays: promo.weekdays, startTime: promo.startTime ?? '', endTime: promo.endTime ?? '', usageLimit: promo.usageLimit == null ? '' : String(promo.usageLimit), active: promo.active };
++}
++
++function cents(value: string) {
++  const normalized = value.trim().replace(',', '.');
++  if (!/^\d+(?:\.\d{1,2})?$/.test(normalized)) throw new Error('Saisissez un montant en euros avec deux décimales maximum.');
++  const amount = Math.round(Number(normalized) * 100);
++  if (!Number.isSafeInteger(amount)) throw new Error('Montant invalide.');
++  return amount;
++}
++
++function toPayload(draft: Draft, revision?: number) {
++  const value = draft.discountType === 'FIXED' ? cents(draft.value) : Number(draft.value);
++  if (!Number.isSafeInteger(value) || value < 1 || (draft.discountType === 'PERCENT' && value > 100)) throw new Error('La valeur de la remise est invalide.');
++  return { name: draft.name.trim(), kind: draft.kind, code: draft.kind === 'CODE' ? draft.code.trim().toUpperCase() : null, discountType: draft.discountType, value,
++    minimumSubtotalCents: cents(draft.minimum), validFrom: draft.validFrom || null, validUntil: draft.validUntil || null, weekdays: draft.weekdays, startTime: draft.startTime, endTime: draft.endTime,
++    usageLimit: draft.usageLimit ? Number(draft.usageLimit) : null, active: draft.active, ...(revision === undefined ? {} : { revision }) };
++}
++
++function PromotionForm({ initial, revision, submitLabel, onSave }: { initial: Draft; revision?: number; submitLabel: string; onSave: (payload: ReturnType<typeof toPayload>) => Promise<void> }) {
++  const [draft, setDraft] = useState(initial);
++  const [message, setMessage] = useState('');
++  const [saving, setSaving] = useState(false);
++  const update = (values: Partial<Draft>) => setDraft(current => ({ ...current, ...values }));
++  async function submit(event: React.FormEvent<HTMLFormElement>) {
++    event.preventDefault(); setSaving(true); setMessage('');
++    try { await onSave(toPayload(draft, revision)); }
++    catch (error) { setMessage(error instanceof Error ? error.message : 'Enregistrement impossible.'); }
++    finally { setSaving(false); }
++  }
++  return <form className="manager-promotion-form" onSubmit={submit}><fieldset disabled={saving}>
++    <label>Nom interne<input required maxLength={100} value={draft.name} onChange={event => update({ name: event.target.value })} placeholder="Ex. Offre de lancement" /></label>
++    <div className="manager-promo-grid">
++      <label>Type d’offre<select value={draft.kind} onChange={event => update({ kind: event.target.value as PromotionKind })}><option value="AUTOMATIC">Promotion automatique</option><option value="CODE">Code promo</option></select></label>
++      {draft.kind === 'CODE' && <label>Code à saisir<input required maxLength={32} pattern="[A-Za-z0-9-]{3,32}" value={draft.code} onChange={event => update({ code: event.target.value.toUpperCase() })} placeholder="ROMA10" /></label>}
++      <label>Remise<select value={draft.discountType} onChange={event => update({ discountType: event.target.value as PromotionDiscountType, value: event.target.value === 'FIXED' ? '5,00' : '10' })}><option value="PERCENT">Pourcentage</option><option value="FIXED">Montant fixe (€)</option></select></label>
++      <label>{draft.discountType === 'PERCENT' ? 'Pourcentage (%)' : 'Montant (€)'}<input required inputMode="decimal" value={draft.value} onChange={event => update({ value: event.target.value })} /></label>
++      <label>Panier minimum (€)<input required inputMode="decimal" value={draft.minimum} onChange={event => update({ minimum: event.target.value })} /></label>
++      <label>Valide à partir du<input type="date" value={draft.validFrom} onChange={event => update({ validFrom: event.target.value })} /></label>
++      <label>Valide jusqu’au<input type="date" value={draft.validUntil} onChange={event => update({ validUntil: event.target.value })} /></label>
++      <label>Heure de début<input type="time" value={draft.startTime} onChange={event => update({ startTime: event.target.value })} /></label>
++      <label>Heure de fin (exclue)<input type="time" value={draft.endTime} onChange={event => update({ endTime: event.target.value })} /></label>
++      <label>Nombre maximum d’utilisations<input type="number" min="1" max="1000000" value={draft.usageLimit} onChange={event => update({ usageLimit: event.target.value })} placeholder="Sans limite" /></label>
++    </div>
++    <fieldset className="manager-weekdays"><legend>Jours applicables</legend><div>{WEEKDAYS.map(day => <label className="manager-check" key={day.value}><input type="checkbox" checked={draft.weekdays.includes(day.value)} onChange={event => update({ weekdays: event.target.checked ? [...draft.weekdays, day.value].sort() : draft.weekdays.filter(value => value !== day.value) })} /> {day.label}</label>)}</div></fieldset>
++    <label className="manager-check"><input type="checkbox" checked={draft.active} onChange={event => update({ active: event.target.checked })} /> Activer cette offre</label>
++    {message && <p role="alert">{message}</p>}
++    <button type="submit">{saving ? 'Enregistrement…' : submitLabel}</button>
++  </fieldset></form>;
++}
++
++export default function PromotionEditor({ initialPromotions }: { initialPromotions: Promotion[] }) {
++  const [promotions, setPromotions] = useState(initialPromotions);
++  async function create(payload: ReturnType<typeof toPayload>) {
++    const response = await fetch('/api/manager/promotions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
++    const result = await response.json() as { promotion?: Promotion; error?: string };
++    if (!response.ok || !result.promotion) throw new Error(result.error === 'PROMOTION_CODE_EXISTS' ? 'Ce code promo existe déjà.' : 'Création refusée. Vérifiez les champs.');
++    setPromotions(current => [result.promotion!, ...current.map(item => result.promotion!.kind === 'AUTOMATIC' && result.promotion!.active && item.kind === 'AUTOMATIC' && item.active ? { ...item, active: false, revision: item.revision + 1 } : item)]);
++  }
++  async function update(id: string, payload: ReturnType<typeof toPayload>) {
++    const response = await fetch(`/api/manager/promotions/${encodeURIComponent(id)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
++    const result = await response.json() as { promotion?: Promotion; error?: string };
++    if (!response.ok || !result.promotion) throw new Error(response.status === 409 ? result.error === 'PROMOTION_CODE_EXISTS' ? 'Ce code promo existe déjà.' : 'Cette offre a été modifiée ailleurs. Rechargez la page.' : 'Enregistrement refusé. Vérifiez les champs.');
++    setPromotions(current => current.map(item => item.id === id ? result.promotion! : result.promotion!.kind === 'AUTOMATIC' && result.promotion!.active && item.kind === 'AUTOMATIC' && item.active ? { ...item, active: false, revision: item.revision + 1 } : item));
++  }
++  return <div className="manager-promotions">
++    <section aria-labelledby="promotion-create-title"><h2 id="promotion-create-title">Créer une offre</h2><PromotionForm initial={emptyDraft()} submitLabel="Créer l’offre" onSave={create} /></section>
++    <section aria-labelledby="promotion-list-title"><h2 id="promotion-list-title">Offres existantes</h2>
++      {!promotions.length && <p>Aucune promotion créée.</p>}
++      {promotions.map(promo => <article className="manager-promotion-card" key={promo.id}>
++        <header><div><h3>{promo.name}</h3><p>{promo.kind === 'AUTOMATIC' ? 'Automatique' : `Code · ${promo.code}`} · Utilisée {promo.usageCount}{promo.usageLimit == null ? ' fois' : ` / ${promo.usageLimit} fois`}</p></div><span className={promo.active ? 'manager-promo-active' : 'manager-promo-paused'}>{promo.active ? 'Active' : 'En pause'}</span></header>
++        <PromotionForm key={`${promo.id}-${promo.revision}`} initial={draftFor(promo)} revision={promo.revision} submitLabel="Enregistrer" onSave={payload => update(promo.id, payload)} />
++      </article>)}
++    </section>
++  </div>;
++}
+diff --git a/src/app/globals.css b/src/app/globals.css
+index 4ea76ee..8c5be6f 100644
+--- a/src/app/globals.css
++++ b/src/app/globals.css
+@@ -83,3 +83,24 @@
+ body{background:#f8f6f1;color:#20251f}.site-footer{width:calc(100% - 16px);margin:28px auto 8px;border-radius:0 0 12px 12px}.roma-cart-container,.roma-fulfillment-container{max-width:1440px;padding-left:clamp(22px,4.5vw,72px);padding-right:clamp(22px,4.5vw,72px)}.roma-cart-intro h1,.roma-fulfillment-container>h1,.customer-page>h1{font-family:Georgia,serif;letter-spacing:-.025em}.roma-cart-main,.roma-summary,.roma-fulfillment-card{border-color:#e9e4da;border-radius:12px;background:#fff;box-shadow:0 8px 28px #1b2b1b0a}.roma-summary h2,.roma-fulfillment-card h2{color:#1d3328}.roma-checkout{border-radius:7px;background:#d51f2b;color:#fff;text-align:center;text-decoration:none}.roma-checkout:hover{background:#b91e29}.roma-summary .roma-checkout[href]{background:#d51f2b}.roma-fulfillment-back,.roma-empty a{color:#1d5038}.roma-mode-options button{border-radius:8px}.roma-mode-options button.selected{border-color:#d51f2b;background:#fffafa}.roma-delivery-fields input:focus,.roma-delivery-fields select:focus,.roma-comment textarea:focus{outline:2px solid #24533a;outline-offset:1px}.roma-policy-ok,.roma-policy-warning,.roma-slot-note,.roma-pickup-note{border-radius:7px}.customer-page{max-width:1240px;min-height:55vh;padding:42px clamp(18px,4.5vw,70px) 74px;color:#20251f}.customer-page>h1{font-size:clamp(2.2rem,4vw,3.5rem);margin:18px 0 10px}.customer-page>h2,.customer-page section>h2{font:normal clamp(1.45rem,2.2vw,2rem) Georgia,serif;color:#1d3328}.customer-page>p{color:#68675f}.customer-page>a:not([class]){color:#24533a;text-underline-offset:3px}.customer-page>section,.customer-page>details,.customer-page>form,.customer-settings{margin-block:20px;padding:clamp(16px,2vw,28px);border:1px solid #e9e4da;border-radius:12px;background:#fff;box-shadow:0 6px 22px #1b2b1b08}.customer-page fieldset{border:1px solid #e8e3da;border-radius:8px;background:#fff;padding:clamp(15px,2vw,24px)}.customer-page legend{padding:0 8px;font:normal 19px Georgia,serif;color:#1d3328}.customer-page label{color:#30332e;font-weight:600}.customer-page input,.customer-page select,.customer-page textarea{border:1px solid #d9d5cc;border-radius:6px;background:#fff;color:#20251f}.customer-page input:focus,.customer-page select:focus,.customer-page textarea:focus{outline:2px solid #24533a;outline-offset:1px}.customer-page button,.manager-page button{border:0;border-radius:6px;background:#d51f2b;color:#fff;font-weight:700}.customer-page button:hover:not(:disabled),.manager-page button:hover:not(:disabled){background:#b91e29}.customer-page button:disabled,.manager-page button:disabled{opacity:.55}.customer-page .customer-actions a,.customer-page form a{color:#24533a;text-underline-offset:3px}.customer-page .customer-orders li,.customer-page .test-order-card{border:1px solid #e9e4da;background:#fff;border-radius:8px}.customer-page details>summary{cursor:pointer;color:#1d3328;font-weight:700}.customer-page [role=alert]{color:#a91e29}.manager-page{max-width:1240px;padding:42px clamp(18px,4.5vw,70px) 74px}.manager-page>h1{font:700 clamp(2.2rem,4vw,3.5rem) Georgia,serif;color:#20251f}.manager-page fieldset{border-color:#e8e3da;border-radius:8px;background:#fff}.manager-page input:not([type=checkbox]),.manager-page select,.manager-page textarea{border-color:#d9d5cc;border-radius:6px}.manager-page input:focus,.manager-page select:focus,.manager-page textarea:focus{outline:2px solid #24533a;outline-offset:1px}
+ 
+ html,body{max-width:100%;overflow-x:clip}
++
++/* Gérant: application shell and shared workspace styling. */
++body:has(.manager-shell)>header:not(.manager-header),body:has(.manager-shell)>.site-footer{display:none}
++.manager-shell{min-height:100dvh;background:#f5f3ed;color:#20251f}
++.manager-header{position:sticky;top:0;z-index:30;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:34px;min-height:86px;padding:12px clamp(20px,4vw,64px);background:#08271f;color:#fff;box-shadow:0 5px 22px #071b1624}
++.manager-brand{width:max-content;color:#fff;text-decoration:none;font:10px Georgia,serif;letter-spacing:.22em;line-height:1}.manager-brand span,.manager-brand strong,.manager-brand small{display:block;text-align:center}.manager-brand strong{font-size:29px;font-weight:400;letter-spacing:.18em;margin:2px 0}.manager-brand small{font:700 8px Arial,sans-serif;letter-spacing:.2em;color:#d7b996}
++.manager-nav{display:flex;align-items:center;justify-content:center;gap:clamp(8px,2vw,30px)}.manager-nav a,.manager-store-link{position:relative;padding:12px 4px;color:#e5e8df;text-decoration:none;font-size:13px;font-weight:700;white-space:nowrap}.manager-nav a:hover,.manager-store-link:hover{color:#fff}.manager-nav a[aria-current=page]:after{position:absolute;right:0;bottom:2px;left:0;height:2px;background:#d7b996;content:""}.manager-store-link{border:1px solid #ffffff4a;border-radius:5px;padding:10px 13px}
++.manager-page{width:min(100%,1500px);min-height:calc(100dvh - 86px);margin:0 auto;padding:clamp(30px,4vw,58px) clamp(20px,5vw,76px) 80px}.manager-page>h1{margin:7px 0 8px;font:400 clamp(2.3rem,4.5vw,3.7rem)/1.08 Georgia,serif;letter-spacing:-.035em;color:#20251f}.manager-eyebrow{margin:0;color:#a5382c;font-size:11px;font-weight:800;letter-spacing:.17em;text-transform:uppercase}.manager-lede{max-width:760px;margin:8px 0 25px;color:#696b64;font-size:16px}.manager-page>p:not(.manager-eyebrow):not(.manager-lede){color:#676a63}.manager-page a:not(.manager-nav a):not(.manager-brand){color:#24533a;text-underline-offset:3px}.manager-page>section{margin:28px 0;padding:clamp(19px,2.6vw,34px);border:1px solid #e5e1d8;border-radius:12px;background:#fff;box-shadow:0 8px 30px #1827190a}.manager-page>section>h2{margin:0;font:400 clamp(1.5rem,2.5vw,2rem) Georgia,serif;color:#1d3328}.manager-page>section>p{color:#6d7068}.manager-page .manager-section-date{float:right;color:#77796f;font:600 13px Arial,sans-serif;letter-spacing:0}
++.manager-notice{display:flex;align-items:center;gap:14px;margin:23px 0;padding:15px 18px;border:1px solid #e9dfca;border-left:4px solid #c9974c;border-radius:7px;background:#fbf7ec;color:#56564d}.manager-notice strong{color:#725321;white-space:nowrap}.manager-toolbar{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:22px 0;padding:16px 19px;border:1px solid #e5e1d8;border-radius:9px;background:#fff}.manager-toolbar p{margin:4px 0 0;color:#696b64;font-size:14px}.manager-meta-label{color:#85867f;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
++.manager-button-link,.manager-page button{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:10px 17px;border:0;border-radius:5px;background:#c92532;color:#fff!important;text-decoration:none;font-weight:700;cursor:pointer}.manager-button-link:hover,.manager-page button:hover:not(:disabled){background:#a91c28}.manager-page button:disabled{opacity:.55}.manager-page .customer-actions{display:flex;flex-wrap:wrap;gap:10px}.manager-page .customer-actions a{padding:10px 15px;border:1px solid #24533a;border-radius:5px;text-decoration:none;font-weight:700}.manager-page .customer-actions a:hover{background:#eff4ef}
++.manager-page .manager-product,.manager-page .manager-creator,.manager-page .manager-orders-panel form{margin:18px 0;padding:clamp(17px,2vw,25px);border:1px solid #e5e1d8;border-radius:10px;background:#fff}.manager-page .manager-product h2,.manager-page .manager-creator summary{font:400 1.4rem Georgia,serif;color:#1d3328}.manager-page label{color:#353832;font-size:14px;font-weight:700}.manager-page label:not(.manager-check){display:grid;gap:7px;margin:14px 0}.manager-page input:not([type=checkbox]),.manager-page select,.manager-page textarea{width:100%;min-height:42px;padding:9px 11px;border:1px solid #d9d5cc;border-radius:5px;background:#fff;color:#20251f;font:inherit}.manager-page input:focus,.manager-page select:focus,.manager-page textarea:focus{outline:2px solid #24533a;outline-offset:1px}.manager-page fieldset{margin:16px 0;padding:17px;border:1px solid #e5e1d8;border-radius:7px;background:#fcfbf8}.manager-page legend{padding:0 7px;color:#1d3328;font:700 14px Arial,sans-serif}.manager-page .manager-check{display:flex;align-items:center;gap:9px}.manager-page .manager-check input{accent-color:#24533a}.manager-page .manager-size{padding:11px 0;border-bottom:1px solid #eeeae2}.manager-page .manager-orders-panel>form fieldset{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 18px}.manager-page .manager-orders-panel>form legend{grid-column:1/-1}.manager-page .manager-orders-panel>form button{grid-column:1}.manager-page .manager-orders-panel>form a{align-self:center}.manager-page .test-order-card{margin:16px 0;padding:22px;border:1px solid #e5e1d8;border-radius:10px;background:#fff;box-shadow:0 5px 20px #18271908}.manager-page .test-order-card h3{margin:0;font:700 20px Georgia,serif;color:#1d3328}.manager-page .test-order-card p{color:#666a62}.manager-page [role=alert]{padding:12px 15px;border-left:3px solid #c92532;background:#fcf0ef;color:#8d242b}.manager-cards{grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:13px;margin:20px 0 8px}.manager-cards .manager-card{min-height:112px;padding:19px;border:1px solid #e7e3da;border-radius:9px;background:#fff;box-shadow:0 5px 18px #18271908;color:#1d3328}.manager-cards a.manager-card{transition:transform .15s ease,box-shadow .15s ease}.manager-cards a.manager-card:hover{transform:translateY(-2px);box-shadow:0 9px 25px #18271915}.manager-cards .manager-card h3,.manager-cards .manager-card dt{margin:0;color:#64685f;font-size:13px;font-weight:700}.manager-cards .manager-card p,.manager-cards .manager-card dd{margin:12px 0 0;font:700 32px Georgia,serif;color:#1d3328}
++@media(max-width:760px){.manager-header{grid-template-columns:1fr auto;gap:10px;padding:10px 16px}.manager-nav{grid-column:1/-1;grid-row:2;justify-content:flex-start;overflow-x:auto;gap:22px;margin:0 -16px;padding:0 16px 3px}.manager-nav a{font-size:12px}.manager-store-link{grid-column:2;grid-row:1;font-size:11px}.manager-brand{grid-column:1;grid-row:1}.manager-page{min-height:calc(100dvh - 120px);padding:30px 18px 55px}.manager-notice{align-items:flex-start;flex-direction:column;gap:4px}.manager-toolbar{align-items:flex-start;flex-direction:column}.manager-page .manager-orders-panel>form fieldset{grid-template-columns:1fr}.manager-page .manager-orders-panel>form legend,.manager-page .manager-orders-panel>form button{grid-column:1}.manager-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
++@media(max-width:400px){.manager-cards{grid-template-columns:1fr}.manager-section-date{display:block;float:none!important;margin-top:5px}}
++.manager-promotions>section{margin:24px 0;padding:clamp(18px,2.5vw,30px);border:1px solid #e5e1d8;border-radius:11px;background:#fff;box-shadow:0 7px 24px #18271909}.manager-promotions>section>h2{margin:0 0 16px;font:400 clamp(1.45rem,2.2vw,1.9rem) Georgia,serif;color:#1d3328}.manager-promotion-form fieldset{margin:0;padding:0;border:0;background:transparent}.manager-promo-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 22px}.manager-promotion-form .manager-check{display:flex!important;align-items:center;gap:9px;margin:15px 0!important}.manager-promotion-card{margin:18px 0;padding:clamp(16px,2vw,24px);border:1px solid #e5e1d8;border-radius:9px;background:#fcfbf8}.manager-promotion-card>header{display:flex;align-items:center;justify-content:space-between;gap:15px}.manager-promotion-card h3{margin:0;color:#1d3328;font:400 1.35rem Georgia,serif}.manager-promotion-card header p{margin:6px 0 0;color:#71736b;font-size:13px}.manager-promo-active,.manager-promo-paused{padding:6px 10px;border-radius:30px;font-size:11px;font-weight:800;white-space:nowrap}.manager-promo-active{background:#e5f2e8;color:#28633c}.manager-promo-paused{background:#eeece7;color:#676960}
++@media(max-width:760px){.manager-promo-grid{grid-template-columns:1fr}.manager-promotion-card>header{align-items:flex-start}}
++.roma-summary-promo{color:#28633c}
++.manager-weekdays>div{display:flex;flex-wrap:wrap;gap:10px 18px}.manager-weekdays .manager-check{margin:2px 0!important}
++.customer-loyalty{margin:22px 0;padding:clamp(18px,2.5vw,30px);border:1px solid #e2d6bd;border-radius:12px;background:linear-gradient(135deg,#fffdf8,#f5efdf);box-shadow:0 7px 24px #1b2b1b08}.customer-loyalty h2{margin:0;font:normal clamp(1.5rem,2vw,2rem) Georgia,serif;color:#1d3328}.customer-loyalty ol{display:flex;flex-wrap:wrap;gap:9px;padding:0;margin:20px 0;list-style:none}.customer-loyalty li{display:grid;place-items:center;width:38px;height:38px;border:1px solid #d5c8ae;border-radius:50%;background:#fff;color:#68675f;font-size:12px;font-weight:700}.customer-loyalty li.stamped{border-color:#28533d;background:#28533d;color:#fff}
++.manager-inline-ingredient{display:flex;align-items:center;gap:9px;margin-top:12px}.manager-inline-ingredient input{flex:1}.manager-inline-ingredient button{min-height:42px;padding:8px 12px;border:1px solid #1d4933;border-radius:5px;background:#fff;color:#1d4933;font:700 13px Arial,sans-serif;cursor:pointer}
++.manager-ingredient-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px 16px}.manager-ingredient-row legend{grid-column:1/-1}.manager-ingredient-row button{justify-self:start}.manager-ingredient-row .manager-check{grid-column:1/-1}
++@media(max-width:600px){.manager-ingredient-row{grid-template-columns:1fr}.manager-inline-ingredient{align-items:stretch;flex-direction:column}}
+diff --git a/src/app/menu/catalog-products.tsx b/src/app/menu/catalog-products.tsx
+index b7945d9..73c7b38 100644
+--- a/src/app/menu/catalog-products.tsx
++++ b/src/app/menu/catalog-products.tsx
+@@ -47,7 +47,7 @@ function ProductCard({ product, onAdd, index, isPizza }: { product: CatalogProdu
+   const [customizing, setCustomizing] = useState(false);
+   const photoIndex = isPizza ? thumbnailIndex(product.nameFr, index) : index % 6;
+   const position = `${(photoIndex % 3) * 50}% ${photoIndex < 3 ? 0 : 100}%`;
+-  const ingredients = recipes[product.nameFr] ?? (product.removableIngredients?.length ? product.removableIngredients.join(', ') : '');
++  const ingredients = product.ingredients?.length ? product.ingredients.join(', ') : recipes[product.nameFr] ?? (product.removableIngredients?.length ? product.removableIngredients.join(', ') : '');
+   const sizes = product.sizes.map(size => size.label).join(' · ');
+   return <article className="catalog-product" onChange={() => setAdded(false)}>
+     <div className="catalog-product-art" aria-hidden="true" style={{ backgroundImage: `url('${isPizza ? '/roma-pizzas.png' : '/roma-categories-portrait.png'}')`, backgroundPosition: position }} />
+diff --git a/src/app/panier/catalog-cart-panel.tsx b/src/app/panier/catalog-cart-panel.tsx
+index f718084..afa645d 100644
+--- a/src/app/panier/catalog-cart-panel.tsx
++++ b/src/app/panier/catalog-cart-panel.tsx
+@@ -7,7 +7,7 @@ import CartItemEditor from './cart-item-editor';
+ import { replaceCatalogCartItem, setCatalogCartQuantity } from '../../lib/catalog-cart.mjs';
+ import type { CatalogCartLine } from '../../lib/catalog-cart.mjs';
+ 
+-type Preview = { items: Array<{ productId: string; label: string; quantity: number; sizeLabel?: string; extraIds: string[]; extraLabels: string[]; removedIngredients: string[]; unitCents: number; totalCents: number }>; subtotalCents: number };
++type Preview = { items: Array<{ productId: string; label: string; quantity: number; sizeLabel?: string; extraIds: string[]; extraLabels: string[]; removedIngredients: string[]; unitCents: number; totalCents: number; loyaltyFreeQuantity?: number }>; subtotalCents: number; totalCents?: number; discountCents?: number; loyaltyDiscountCents?: number; promotion?: { name: string } | null };
+ const money = (cents: number) => new Intl.NumberFormat('fr-BE', { style: 'currency', currency: 'EUR' }).format(cents / 100);
+ 
+ export default function CatalogCartPanel({ items, setItems }: {
+@@ -67,13 +67,15 @@ export default function CatalogCartPanel({ items, setItems }: {
+               <p>{[item.sizeLabel, ...item.extraLabels.map(label => `Supplément ${label}`), ...item.removedIngredients.map(label => `Sans ${label}`)].filter(Boolean).join(' · ') || 'Article du menu'}</p>
+               <button type="button" disabled={!!editing} onClick={() => setEditing({ ...items[index] })} aria-label={`Modifier les options de ${item.label}`}>Modifier les options</button>
+               <div className="roma-qty" aria-label={`Quantité pour ${item.label}`}><button type="button" disabled={!!editing} onClick={() => changeQuantity(index, items[index].quantity - 1)} aria-label="Diminuer la quantité">−</button><output aria-live="polite">{item.quantity}</output><button type="button" disabled={!!editing} onClick={() => changeQuantity(index, items[index].quantity + 1)} aria-label="Augmenter la quantité">+</button></div>
+-            </div><div className="roma-item-end"><strong>{money(item.totalCents)}</strong><button type="button" className="roma-remove" disabled={!!editing} onClick={() => changeQuantity(index, 0)} aria-label={`Supprimer ${item.label}`}>Supprimer</button></div>
++            </div><div className="roma-item-end"><strong>{money(item.totalCents - item.unitCents * (item.loyaltyFreeQuantity ?? 0))}</strong><button type="button" className="roma-remove" disabled={!!editing} onClick={() => changeQuantity(index, 0)} aria-label={`Supprimer ${item.label}`}>Supprimer</button></div>
+           </li>)}</ul>}
+       </section>
+       <aside className="roma-summary" aria-label="Récapitulatif du panier"><h2>Récapitulatif vérifié</h2>
+         <div><span>Sous-total</span><strong>{status === 'ready' && preview ? money(preview.subtotalCents) : '—'}</strong></div>
++        {preview?.loyaltyDiscountCents ? <div className="roma-summary-promo"><span>Carte fidélité — plat offert</span><strong>−{money(preview.loyaltyDiscountCents)}</strong></div> : null}
++        {preview?.discountCents ? <div className="roma-summary-promo"><span>{preview.promotion?.name ?? 'Promotion'}</span><strong>−{money(preview.discountCents)}</strong></div> : null}
+         <div><span>Livraison</span><span>À calculer selon le mode choisi</span></div>
+-        <div className="roma-summary-total"><span>Total</span><strong>{status === 'ready' && preview ? money(preview.subtotalCents) : '—'}</strong></div>
++        <div className="roma-summary-total"><span>Total</span><strong>{status === 'ready' && preview ? money(preview.totalCents ?? preview.subtotalCents) : '—'}</strong></div>
+         <Link href="/commande" className="roma-checkout">Prévisualiser livraison ou retrait →</Link>
+         <p>Les prix et le sous-total proviennent du serveur. Ce récapitulatif ne crée ni commande ni paiement.</p>
+       </aside>
+diff --git a/src/components/product-configurator.tsx b/src/components/product-configurator.tsx
+index f42bbe7..84c0c00 100644
+--- a/src/components/product-configurator.tsx
++++ b/src/components/product-configurator.tsx
+@@ -19,6 +19,7 @@ export default function ProductConfigurator({ product, initial, onSubmit, submit
+   const [extraIds, setExtraIds] = useState<string[]>(defaults.extraIds);
+   const [removedIngredients, setRemovedIngredients] = useState<string[]>(defaults.removedIngredients);
+   const availableExtras = product.extras.filter(extra => !extra.sizePrices || Object.hasOwn(extra.sizePrices, sizeId));
++  const includedIngredients = new Set((product.ingredients ?? []).map(name => name.toLocaleLowerCase('fr')));
+   const extraPrice = (extra: CatalogProduct['extras'][number]) => extra.sizePrices ? extra.sizePrices[sizeId] : extra.priceCents;
+   const unitCents = (product.sizes.find(size => size.id === sizeId)?.priceCents ?? product.baseCents) + availableExtras.filter(extra => extraIds.includes(extra.id)).reduce((sum, extra) => sum + extraPrice(extra), 0);
+   function toggleExtra(id: string) {
+@@ -40,11 +41,11 @@ export default function ProductConfigurator({ product, initial, onSubmit, submit
+       {availableExtras.length === 0 && <p>Aucun supplément disponible pour ce format.</p>}
+     </>}
+     {availableExtras.length > 0 && <fieldset className="catalog-extra-options"><legend>{product.extraSelectionMode === 'SINGLE' ? 'Supplément (au choix)' : 'Suppléments'}</legend>
+-      {product.extraSelectionMode === 'SINGLE' ? <>
++        {product.extraSelectionMode === 'SINGLE' ? <>
+         <label><input type="radio" name={`extras-${groupId}`} checked={extraIds.length === 0} onChange={() => { setExtraIds([]); }} /> Aucun</label>
+-        {availableExtras.map(extra => <label key={extra.id}><input type="radio" name={`extras-${groupId}`} checked={extraIds[0] === extra.id} onChange={() => { setExtraIds([extra.id]); }} /> {extra.nameFr} (+{euros(extraPrice(extra))})</label>)}
++        {availableExtras.map(extra => <label key={extra.id}><input type="radio" name={`extras-${groupId}`} checked={extraIds[0] === extra.id} onChange={() => { setExtraIds([extra.id]); }} /> {extra.nameFr}{includedIngredients.has(extra.nameFr.toLocaleLowerCase('fr')) ? ' — déjà inclus, portion en plus' : ''} (+{euros(extraPrice(extra))})</label>)}
+       </> : availableExtras.map(extra =>
+-        <label key={extra.id}><input type="checkbox" checked={extraIds.includes(extra.id)} onChange={() => toggleExtra(extra.id)} /> {extra.nameFr} (+{euros(extraPrice(extra))})</label>
++        <label key={extra.id}><input type="checkbox" checked={extraIds.includes(extra.id)} onChange={() => toggleExtra(extra.id)} /> {extra.nameFr}{includedIngredients.has(extra.nameFr.toLocaleLowerCase('fr')) ? ' — déjà inclus, portion en plus' : ''} (+{euros(extraPrice(extra))})</label>
+       )}
+     </fieldset>}
+     <p aria-live="polite"><strong>Prix : {euros(unitCents)}</strong></p>
+diff --git a/src/components/test-order-summary.tsx b/src/components/test-order-summary.tsx
+index 923f6d3..4269008 100644
+--- a/src/components/test-order-summary.tsx
++++ b/src/components/test-order-summary.tsx
+@@ -1,5 +1,6 @@
+ import type { TestOrderSnapshot } from '../lib/test-order-policy.mjs';
+ const money = (cents: number) => new Intl.NumberFormat('fr-BE', { style: 'currency', currency: 'EUR' }).format(cents / 100);
+-export default function TestOrderSummary({ items, totalCents }: { items: TestOrderSnapshot[]; totalCents: number }) {
+-  return <><ul>{items.map((item, index) => <li key={index}><strong>{item.quantity} × {item.label} — {money(item.totalCents)}</strong><p>{[item.sizeLabel, ...item.extraLabels.map(label => `Supplément ${label}`), ...item.removedIngredients.map(label => `Sans ${label}`)].filter(Boolean).join(' · ')}</p></li>)}</ul><p><strong>Total du test : {money(totalCents)}</strong> · Aucun paiement</p></>;
++export default function TestOrderSummary({ items, totalCents, subtotalCents = totalCents, discountCents = 0, loyaltyDiscountCents = 0, promotionName, promotionCode }: { items: TestOrderSnapshot[]; totalCents: number; subtotalCents?: number; discountCents?: number; loyaltyDiscountCents?: number; promotionName?: string | null; promotionCode?: string | null }) {
++  const promotionLabel = promotionName ? `${promotionName}${promotionCode ? ` (${promotionCode})` : ''}` : 'Promotion';
++  return <><ul>{items.map((item, index) => { const freeCount = item.loyaltyFreeQuantity ?? 0; return <li key={index}><strong>{item.quantity} × {item.label} — {money(item.totalCents - item.unitCents * freeCount)}</strong><p>{[item.sizeLabel, ...item.extraLabels.map(label => `Supplément ${label}`), ...item.removedIngredients.map(label => `Sans ${label}`), ...(freeCount ? [`${freeCount} plat${freeCount === 1 ? '' : 's'} offert${freeCount === 1 ? '' : 's'} par la carte fidélité`] : [])].filter(Boolean).join(' · ')}</p></li>; })}</ul>{subtotalCents !== totalCents && <p>Sous-total : {money(subtotalCents)}</p>}{loyaltyDiscountCents > 0 && <p>Carte fidélité — plat offert : −{money(loyaltyDiscountCents)}</p>}{discountCents > 0 && <p>{promotionLabel} : −{money(discountCents)}</p>}<p><strong>Total du test : {money(totalCents)}</strong> · Aucun paiement</p></>;
+ }
+diff --git a/src/lib/catalog-cart-preview.d.mts b/src/lib/catalog-cart-preview.d.mts
+index 25f9340..462992d 100644
+--- a/src/lib/catalog-cart-preview.d.mts
++++ b/src/lib/catalog-cart-preview.d.mts
+@@ -10,8 +10,16 @@ export type CatalogProduct = {
+   extras: Array<{ id: string; nameFr?: string; priceCents: number; sizePrices?: unknown; active: boolean }>;
+ };
+ export type CatalogCartPreview = {
+-  items: Array<{ productId: string; label: string; quantity: number; sizeId?: string; sizeLabel?: string; extraIds: string[]; extraLabels: string[]; removedIngredients: string[]; unitCents: number; totalCents: number }>;
++  items: Array<{ productId: string; label: string; quantity: number; sizeId?: string; sizeLabel?: string; extraIds: string[]; extraLabels: string[]; removedIngredients: string[]; unitCents: number; totalCents: number; loyaltyFreeQuantity?: number }>;
+   subtotalCents: number;
++  discountCents?: number;
++  loyaltyDiscountCents?: number;
++  loyaltyFreeDishCount?: number;
++  loyaltyPaidDishCount?: number;
++  totalCents?: number;
++  codeError?: string;
++  codeNotSelected?: boolean;
++  promotion?: { id: string; name: string; code: string | null } | null;
+   pizzaCount: number;
+   fulfillment: { eligible: boolean; minimum: number; dishCount: number; deliveryFeeCents: number };
+ };
+diff --git a/src/lib/catalog-management.d.mts b/src/lib/catalog-management.d.mts
+index 07fed48..026aecf 100644
+--- a/src/lib/catalog-management.d.mts
++++ b/src/lib/catalog-management.d.mts
+@@ -1,12 +1,12 @@
+ export type ManagerProduct = {
+-  id: string; nameFr: string; active: boolean; baseCents: number; catalogRevision: number;
+-  choiceLabel: string | null; removableIngredients: string[];
++  id: string; categoryId: string; nameFr: string; nameEn: string; active: boolean; baseCents: number; catalogRevision: number;
++  choiceLabel: string | null; ingredients: string[]; removableIngredients: string[];
+   category: { nameFr: string; fulfillmentCategory: 'PIZZA' | 'PASTA' | 'OTHER' };
+   sizes: Array<{ id: string; label: string; priceCents: number; active: boolean }>;
+   extras: Array<{ id: string; nameFr: string; priceCents: number; active: boolean; sizePrices: unknown }>;
+ };
+ export type CatalogEdit = {
+-  revision: number; nameFr: string; baseCents: number; active: boolean; removableIngredients: string[];
++  revision: number; nameFr: string; baseCents: number; active: boolean; ingredients: string[]; removableIngredients: string[];
+   sizes: Array<{ id: string; priceCents: number; active: boolean }>;
+   extras: Array<{ id?: string; nameFr: string; priceCents: number; active: boolean; sizePrices: Record<string, number> | null }>;
+ };
+diff --git a/src/lib/catalog-management.mjs b/src/lib/catalog-management.mjs
+index 32ba8ca..4f5258f 100644
+--- a/src/lib/catalog-management.mjs
++++ b/src/lib/catalog-management.mjs
+@@ -16,13 +16,19 @@ function active(value) { if (typeof value !== 'boolean') invalid(); return value
+ 
+ /** Validate a complete edit against the current database product, including ownership. */
+ export function validateCatalogEdit(input, product) {
+-  object(input, ['revision', 'nameFr', 'baseCents', 'active', 'removableIngredients', 'sizes', 'extras']);
++  object(input, ['revision', 'categoryId', 'nameFr', 'nameEn', 'baseCents', 'active', 'ingredients', 'removableIngredients', 'sizes', 'extras']);
+   if (!Number.isSafeInteger(input.revision) || input.revision < 0) invalid();
++  const categoryId = input.categoryId ?? product.categoryId;
++  const nameEn = input.nameEn ?? product.nameEn ?? input.nameFr;
++  const ingredients = input.ingredients ?? product.ingredients ?? [];
++  if (typeof categoryId !== 'string' || !categoryId || categoryId.length > 128) invalid();
+   const isPizza = product.category.fulfillmentCategory === 'PIZZA';
+   if (!Array.isArray(input.removableIngredients) || input.removableIngredients.length > 30 ||
+       new Set(input.removableIngredients).size !== input.removableIngredients.length ||
+       (!isPizza && input.removableIngredients.length)) invalid();
+   input.removableIngredients.forEach(value => text(value));
++  if (!Array.isArray(ingredients) || ingredients.length > 40 || new Set(ingredients).size !== ingredients.length) invalid();
++  ingredients.forEach(value => text(value));
+   if (!Array.isArray(input.sizes) || input.sizes.length !== product.sizes.length ||
+       new Set(input.sizes.map(size => size?.id)).size !== input.sizes.length) invalid();
+   const sizes = input.sizes.map(size => {
+@@ -45,7 +51,7 @@ export function validateCatalogEdit(input, product) {
+     }
+     return { ...(extra.id ? { id: extra.id } : {}), nameFr: text(extra.nameFr), priceCents: cents(extra.priceCents), active: active(extra.active), sizePrices };
+   });
+-  return { revision: input.revision, nameFr: text(input.nameFr), baseCents: cents(input.baseCents), active: active(input.active), removableIngredients: [...input.removableIngredients], sizes, extras };
++  return { revision: input.revision, categoryId, nameFr: text(input.nameFr), nameEn: text(nameEn), baseCents: cents(input.baseCents), active: active(input.active), ingredients: [...ingredients], removableIngredients: [...input.removableIngredients], sizes, extras };
+ }
+ 
+ export function isSameOriginMutation(request, configuredOrigin) {
+diff --git a/src/lib/catalog-types.ts b/src/lib/catalog-types.ts
+index 1bf9a72..78df5f0 100644
+--- a/src/lib/catalog-types.ts
++++ b/src/lib/catalog-types.ts
+@@ -1 +1 @@
+-export type CatalogProduct = { id: string; nameFr: string; baseCents: number; removableIngredients?: string[]; choiceLabel: string | null; extraSelectionMode: 'SINGLE' | 'MULTIPLE'; sizes: Array<{ id: string; label: string; priceCents: number }>; extras: Array<{ id: string; nameFr: string; priceCents: number; sizePrices?: Record<string, number> }> };
++export type CatalogProduct = { id: string; nameFr: string; baseCents: number; ingredients?: string[]; removableIngredients?: string[]; choiceLabel: string | null; extraSelectionMode: 'SINGLE' | 'MULTIPLE'; sizes: Array<{ id: string; label: string; priceCents: number }>; extras: Array<{ id: string; nameFr: string; priceCents: number; sizePrices?: Record<string, number> }> };
+diff --git a/src/lib/customer-loyalty.ts b/src/lib/customer-loyalty.ts
+new file mode 100644
+index 0000000..0b76e08
+--- /dev/null
++++ b/src/lib/customer-loyalty.ts
+@@ -0,0 +1,12 @@
++import 'server-only';
++import { prisma } from './db';
++
++export async function getCustomerLoyaltyStatus(userId: string) {
++  const [completed, reserved] = await Promise.all([
++    prisma.testOrder.aggregate({ where: { userId, status: 'COMPLETED' }, _sum: { loyaltyPaidDishCount: true } }),
++    prisma.testOrder.aggregate({ where: { userId, status: { notIn: ['CANCELLED', 'REJECTED'] }, loyaltyFreeDishCount: { gt: 0 } }, _sum: { loyaltyFreeDishCount: true } }),
++  ]);
++  const paidDishCount = completed._sum.loyaltyPaidDishCount ?? 0;
++  const reservedFreeDishCount = reserved._sum.loyaltyFreeDishCount ?? 0;
++  return { paidDishCount, reservedFreeDishCount, progress: paidDishCount % 10, rewardsAvailable: Math.max(Math.floor(paidDishCount / 10) - reservedFreeDishCount, 0), rewardsReserved: reservedFreeDishCount };
++}
+diff --git a/src/lib/global-pizza-ingredients.mjs b/src/lib/global-pizza-ingredients.mjs
+new file mode 100644
+index 0000000..ef25271
+--- /dev/null
++++ b/src/lib/global-pizza-ingredients.mjs
+@@ -0,0 +1,14 @@
++/** Add the shared ingredient catalogue as optional toppings to each pizza. */
++export function attachGlobalPizzaIngredients(products, ingredients) {
++  if (!Array.isArray(products) || !Array.isArray(ingredients)) throw new Error('INVALID_INGREDIENT_CATALOG');
++  return products.map(product => {
++    if (product.category?.fulfillmentCategory !== 'PIZZA') return product;
++    const catalogNames = new Set(ingredients.map(item => item.nameFr.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('fr')));
++    const specific = (product.extras ?? []).filter(extra => !catalogNames.has(extra.nameFr.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('fr')));
++    const shared = ingredients.filter(item => item.active).map(item => ({
++      id: item.id, nameFr: item.nameFr, nameEn: item.nameEn, priceCents: item.price33Cents, active: true,
++      sizePrices: product.sizes?.length ? Object.fromEntries(product.sizes.map(size => [size.id, /50\s*cm/i.test(size.label) ? item.price50Cents : item.price33Cents])) : null,
++    }));
++    return { ...product, extras: [...specific, ...shared] };
++  });
++}
+diff --git a/src/lib/ingredient-management.mjs b/src/lib/ingredient-management.mjs
+new file mode 100644
+index 0000000..5692f07
+--- /dev/null
++++ b/src/lib/ingredient-management.mjs
+@@ -0,0 +1,14 @@
++function invalid() { throw new Error('INVALID_INGREDIENT'); }
++function text(value) {
++  if (typeof value !== 'string' || !value.trim() || value.trim() !== value || value.length > 128) invalid();
++  return value;
++}
++function cents(value) {
++  if (!Number.isSafeInteger(value) || value < 0 || value > 2147483647) invalid();
++  return value;
++}
++export function validateIngredient(input) {
++  if (!input || typeof input !== 'object' || Array.isArray(input) || Object.keys(input).some(key => !['nameFr', 'nameEn', 'price33Cents', 'price50Cents', 'active'].includes(key))) invalid();
++  if (typeof input.active !== 'boolean') invalid();
++  return { nameFr: text(input.nameFr), nameEn: text(input.nameEn), price33Cents: cents(input.price33Cents), price50Cents: cents(input.price50Cents), active: input.active };
++}
+diff --git a/src/lib/loyalty.mjs b/src/lib/loyalty.mjs
+new file mode 100644
+index 0000000..9884c8a
+--- /dev/null
++++ b/src/lib/loyalty.mjs
+@@ -0,0 +1,27 @@
++export function calculateLoyaltyReward(products, items, completedPaidDishCount, reservedFreeDishCount) {
++  if (!Array.isArray(products) || !Array.isArray(items) || !Number.isSafeInteger(completedPaidDishCount) || !Number.isSafeInteger(reservedFreeDishCount)) throw new Error('INVALID_LOYALTY_STATE');
++  const productById = new Map(products.map(product => [product.id, product]));
++  const eligibleUnitPrices = [];
++  for (const [lineIndex, item] of items.entries()) {
++    const product = productById.get(item.productId);
++    if (!product || !['PIZZA', 'PASTA'].includes(product.category.fulfillmentCategory)) continue;
++    for (let index = 0; index < item.quantity; index++) eligibleUnitPrices.push({ lineIndex, priceCents: item.unitCents });
++  }
++  let paidDishCount = completedPaidDishCount;
++  let rewardsUsed = reservedFreeDishCount;
++  let freeDishCount = 0;
++  for (let index = 0; index < eligibleUnitPrices.length; index++) {
++    if (Math.floor(paidDishCount / 10) > rewardsUsed) {
++      freeDishCount++;
++      rewardsUsed++;
++    } else {
++      paidDishCount++;
++    }
++  }
++  const freeByLine = Array(items.length).fill(0);
++  const freePriceCents = eligibleUnitPrices.sort((a, b) => a.priceCents - b.priceCents).slice(0, freeDishCount).reduce((sum, dish) => {
++    freeByLine[dish.lineIndex]++;
++    return sum + dish.priceCents;
++  }, 0);
++  return { loyaltyPaidDishCount: paidDishCount - completedPaidDishCount, loyaltyFreeDishCount: freeDishCount, loyaltyDiscountCents: freePriceCents, loyaltyFreeByLine: freeByLine };
++}
+diff --git a/src/lib/menu-management.mjs b/src/lib/menu-management.mjs
+new file mode 100644
+index 0000000..13dd7f5
+--- /dev/null
++++ b/src/lib/menu-management.mjs
+@@ -0,0 +1,33 @@
++function invalid() { throw new Error('INVALID_MENU_ITEM'); }
++function text(value, max = 128) {
++  if (typeof value !== 'string' || !value.trim() || value.trim() !== value || value.length > max) invalid();
++  return value;
++}
++function cents(value) {
++  if (!Number.isSafeInteger(value) || value < 0 || value > 2147483647) invalid();
++  return value;
++}
++function list(value, max = 40) {
++  if (!Array.isArray(value) || value.length > max || new Set(value).size !== value.length) invalid();
++  return value.map(item => text(item));
++}
++export function validateMenuCategory(input) {
++  if (!input || typeof input !== 'object' || Array.isArray(input) || Object.keys(input).some(key => !['nameFr', 'nameEn', 'fulfillmentCategory', 'position'].includes(key))) invalid();
++  if (!['PIZZA', 'PASTA', 'OTHER'].includes(input.fulfillmentCategory) || !Number.isSafeInteger(input.position) || input.position < 0 || input.position > 10000) invalid();
++  return { nameFr: text(input.nameFr), nameEn: text(input.nameEn), fulfillmentCategory: input.fulfillmentCategory, position: input.position };
++}
++export function validateMenuItem(input) {
++  if (!input || typeof input !== 'object' || Array.isArray(input) || Object.keys(input).some(key => !['categoryId', 'nameFr', 'nameEn', 'baseCents', 'ingredients', 'removableIngredients', 'sizes', 'choiceLabel'].includes(key))) invalid();
++  if (typeof input.categoryId !== 'string' || !input.categoryId || input.categoryId.length > 128) invalid();
++  if (!Array.isArray(input.sizes) || input.sizes.length > 12 || new Set(input.sizes.map(size => size?.label)).size !== input.sizes.length) invalid();
++  const sizes = input.sizes.map(size => {
++    if (!size || typeof size !== 'object' || Object.keys(size).some(key => !['label', 'priceCents'].includes(key))) invalid();
++    return { label: text(size.label, 40), priceCents: cents(size.priceCents) };
++  });
++  const categoryId = input.categoryId;
++  const nameFr = text(input.nameFr);
++  const nameEn = text(input.nameEn);
++  const baseCents = cents(input.baseCents);
++  if (!sizes.length && baseCents <= 0) invalid();
++  return { categoryId, nameFr, nameEn, baseCents, ingredients: list(input.ingredients), removableIngredients: list(input.removableIngredients, 30), choiceLabel: input.choiceLabel == null || input.choiceLabel === '' ? null : text(input.choiceLabel, 60), active: false, sizes: { create: sizes } };
++}
+diff --git a/src/lib/promotion-management.mjs b/src/lib/promotion-management.mjs
+new file mode 100644
+index 0000000..48cff8d
+--- /dev/null
++++ b/src/lib/promotion-management.mjs
+@@ -0,0 +1,32 @@
++import { normalizePromotionCode } from './promotions.mjs';
++
++const keys = ['name', 'kind', 'code', 'discountType', 'value', 'minimumSubtotalCents', 'validFrom', 'validUntil', 'weekdays', 'startTime', 'endTime', 'usageLimit', 'active', 'revision'];
++
++export function validatePromotionInput(input, creating = false) {
++  const fail = () => { throw new Error('INVALID_PROMOTION'); };
++  if (!input || typeof input !== 'object' || Array.isArray(input) || Object.keys(input).some(key => !keys.includes(key))) fail();
++  if (typeof input.name !== 'string' || !input.name.trim() || input.name.trim().length > 100 || !['AUTOMATIC', 'CODE'].includes(input.kind) || !['PERCENT', 'FIXED'].includes(input.discountType)) fail();
++  if (input.kind === 'CODE' && (typeof input.code !== 'string' || !/^[A-Za-z0-9-]{3,32}$/.test(input.code.trim()))) fail();
++  if (input.kind === 'AUTOMATIC' && input.code != null && input.code !== '') fail();
++  if (!Number.isSafeInteger(input.value) || input.value < 1 || (input.discountType === 'PERCENT' ? input.value > 100 : input.value > 100_000_000)) fail();
++  if (!Number.isSafeInteger(input.minimumSubtotalCents) || input.minimumSubtotalCents < 0 || input.minimumSubtotalCents > 100_000_000) fail();
++  const date = value => {
++    if (value === null || value === '') return null;
++    if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value) || !Number.isFinite(Date.parse(`${value}T00:00:00.000Z`)) || new Date(`${value}T00:00:00.000Z`).toISOString().slice(0, 10) !== value) fail();
++    return new Date(`${value}T00:00:00.000Z`);
++  };
++  const validFrom = date(input.validFrom);
++  const validUntil = date(input.validUntil);
++  if (validFrom && validUntil && validUntil < validFrom) fail();
++  if (!Array.isArray(input.weekdays) || input.weekdays.length < 1 || input.weekdays.length > 7 || new Set(input.weekdays).size !== input.weekdays.length || !input.weekdays.every(day => Number.isSafeInteger(day) && day >= 1 && day <= 7)) fail();
++  const startTime = input.startTime === '' ? null : input.startTime;
++  const endTime = input.endTime === '' ? null : input.endTime;
++  if ((startTime === null) !== (endTime === null) || (startTime !== null && (typeof startTime !== 'string' || typeof endTime !== 'string' || !/^([01]\d|2[0-3]):[0-5]\d$/.test(startTime) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(endTime) || startTime >= endTime))) fail();
++  if (input.usageLimit !== null && (!Number.isSafeInteger(input.usageLimit) || input.usageLimit < 1 || input.usageLimit > 1_000_000)) fail();
++  if (typeof input.active !== 'boolean' || (!creating && (!Number.isSafeInteger(input.revision) || input.revision < 0))) fail();
++  return {
++    name: input.name.trim(), kind: input.kind, code: input.kind === 'CODE' ? normalizePromotionCode(input.code) : null,
++    discountType: input.discountType, value: input.value, minimumSubtotalCents: input.minimumSubtotalCents,
++    validFrom, validUntil, weekdays: input.weekdays, startTime, endTime, usageLimit: input.usageLimit, active: input.active,
++  };
++}
+diff --git a/src/lib/promotions.mjs b/src/lib/promotions.mjs
+new file mode 100644
+index 0000000..200769e
+--- /dev/null
++++ b/src/lib/promotions.mjs
+@@ -0,0 +1,49 @@
++export function normalizePromotionCode(value) {
++  if (typeof value !== 'string') return '';
++  return value.trim().toUpperCase();
++}
++
++export function promotionDiscount(promotion, subtotalCents, now = new Date()) {
++  if (!promotion || promotion.active !== true || !Number.isSafeInteger(subtotalCents) || subtotalCents < 0) return 0;
++  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Brussels', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(now);
++  const localDate = `${parts.find(part => part.type === 'year')?.value}-${parts.find(part => part.type === 'month')?.value}-${parts.find(part => part.type === 'day')?.value}`;
++  if (promotion.validFrom && localDate < new Date(promotion.validFrom).toISOString().slice(0, 10)) return 0;
++  if (promotion.validUntil && localDate > new Date(promotion.validUntil).toISOString().slice(0, 10)) return 0;
++  const weekdayLabel = new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Brussels', weekday: 'short' }).format(now);
++  const weekday = ({ Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 7 })[weekdayLabel];
++  if (!Array.isArray(promotion.weekdays) || !promotion.weekdays.includes(weekday)) return 0;
++  if (promotion.startTime && promotion.endTime) {
++    const timeParts = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Brussels', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(now);
++    const localTime = `${timeParts.find(part => part.type === 'hour')?.value}:${timeParts.find(part => part.type === 'minute')?.value}`;
++    if (localTime < promotion.startTime || localTime >= promotion.endTime) return 0;
++  }
++  if (promotion.usageLimit != null && promotion.usageCount >= promotion.usageLimit) return 0;
++  if (subtotalCents < promotion.minimumSubtotalCents) return 0;
++  if (promotion.discountType === 'PERCENT' && Number.isSafeInteger(promotion.value) && promotion.value >= 1 && promotion.value <= 100) {
++    return Math.min(subtotalCents, Math.floor(subtotalCents * promotion.value / 100));
++  }
++  if (promotion.discountType === 'FIXED' && Number.isSafeInteger(promotion.value) && promotion.value > 0) {
++    return Math.min(subtotalCents, promotion.value);
++  }
++  return 0;
++}
++
++export function selectPromotion({ automatic, codePromotion, code, subtotalCents, now = new Date() }) {
++  const normalizedCode = normalizePromotionCode(code);
++  const automaticDiscount = promotionDiscount(automatic, subtotalCents, now);
++  const codeMatches = !!normalizedCode && codePromotion && normalizePromotionCode(codePromotion.code) === normalizedCode;
++  const codeDiscount = codeMatches ? promotionDiscount(codePromotion, subtotalCents, now) : 0;
++  const chosen = codeDiscount > 0 && codeDiscount >= automaticDiscount ? codePromotion : automaticDiscount ? automatic : null;
++  const discountCents = chosen ? (chosen === codePromotion ? codeDiscount : automaticDiscount) : 0;
++  let codeError = '';
++  if (normalizedCode && !codeDiscount) {
++    const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Brussels', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(now);
++    const localDate = `${parts.find(part => part.type === 'year')?.value}-${parts.find(part => part.type === 'month')?.value}-${parts.find(part => part.type === 'day')?.value}`;
++    const weekdayLabel = new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Brussels', weekday: 'short' }).format(now);
++    const weekday = ({ Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 7 })[weekdayLabel];
++    const timeParts = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Brussels', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(now);
++    const localTime = `${timeParts.find(part => part.type === 'hour')?.value}:${timeParts.find(part => part.type === 'minute')?.value}`;
++    codeError = !codeMatches ? 'CODE_INVALIDE' : codePromotion.usageLimit != null && codePromotion.usageCount >= codePromotion.usageLimit ? 'CODE_EPUISE' : !codePromotion.active ? 'CODE_INACTIF' : codePromotion.validFrom && localDate < new Date(codePromotion.validFrom).toISOString().slice(0, 10) ? 'CODE_PAS_ENCORE_VALIDE' : codePromotion.validUntil && localDate > new Date(codePromotion.validUntil).toISOString().slice(0, 10) ? 'CODE_EXPIRE' : !codePromotion.weekdays.includes(weekday) || (codePromotion.startTime && (localTime < codePromotion.startTime || localTime >= codePromotion.endTime)) ? 'CODE_HORS_HORAIRE' : subtotalCents < codePromotion.minimumSubtotalCents ? 'MONTANT_MINIMUM_NON_ATTEINT' : 'CODE_INACTIF';
++  }
++  return { promotion: chosen ? { id: chosen.id, name: chosen.name, code: chosen.code ?? null } : null, discountCents, totalCents: subtotalCents - discountCents, codeError, codeNotSelected: !!codeDiscount && chosen !== codePromotion };
++}
+diff --git a/src/lib/public-catalog.mjs b/src/lib/public-catalog.mjs
+index a42b589..c2d83ad 100644
+--- a/src/lib/public-catalog.mjs
++++ b/src/lib/public-catalog.mjs
+@@ -26,6 +26,7 @@ export function buildPublicCatalog(categories) {
+           id: product.id,
+           nameFr: product.nameFr,
+           baseCents: assertPrice(product.baseCents),
++          ...(Array.isArray(product.ingredients) && product.ingredients.length ? { ingredients: product.ingredients } : {}),
+           ...(category.fulfillmentCategory === 'PIZZA' ? { removableIngredients: Array.isArray(product.removableIngredients) ? product.removableIngredients : [] } : {}),
+           choiceLabel: typeof product.choiceLabel === 'string' && product.choiceLabel.trim() ? product.choiceLabel : null,
+           extraSelectionMode: product.extraSelectionMode === 'SINGLE' ? 'SINGLE' : 'MULTIPLE',
+diff --git a/src/lib/staff-test-orders.ts b/src/lib/staff-test-orders.ts
+index 882c049..d6230ea 100644
+--- a/src/lib/staff-test-orders.ts
++++ b/src/lib/staff-test-orders.ts
+@@ -16,7 +16,7 @@ export async function listStaffTestOrders(filters: StaffTestFilters) {
+     const total = await tx.testOrder.count({ where });
+     const pages = Math.max(1, Math.ceil(total / STAFF_TEST_PAGE_SIZE));
+     const page = Math.min(filters.page, pages);
+-    const orders = await tx.testOrder.findMany({ where, select: { id: true, publicReference: true, status: true, placedAt: true, scheduledFor: true, contactName: true, phone: true, fulfillment: true, address: true, zoneId: true, comment: true, itemsSnapshot: true, totalCents: true, revision: true }, orderBy, skip: (page - 1) * STAFF_TEST_PAGE_SIZE, take: STAFF_TEST_PAGE_SIZE });
++    const orders = await tx.testOrder.findMany({ where, select: { id: true, publicReference: true, status: true, placedAt: true, scheduledFor: true, contactName: true, phone: true, fulfillment: true, address: true, zoneId: true, comment: true, itemsSnapshot: true, subtotalCents: true, loyaltyDiscountCents: true, discountCents: true, promotionName: true, promotionCode: true, totalCents: true, revision: true }, orderBy, skip: (page - 1) * STAFF_TEST_PAGE_SIZE, take: STAFF_TEST_PAGE_SIZE });
+     return { orders, total, page, pages };
+   }, { isolationLevel: 'RepeatableRead' });
+ }
+diff --git a/src/lib/test-order-policy.d.mts b/src/lib/test-order-policy.d.mts
+index bbd09ea..d42591c 100644
+--- a/src/lib/test-order-policy.d.mts
++++ b/src/lib/test-order-policy.d.mts
+@@ -1,5 +1,5 @@
+ import type { CatalogCartLine } from './catalog-cart.mjs';
+ export const TEST_STATUS_LABELS: Record<string, string>;
+ export function nextTestStatuses(status: string, fulfillment: string): string[];
+-export function validateTestOrder(input: unknown): { items: CatalogCartLine[]; mode: 'delivery' | 'pickup'; address?: string; zoneId?: string; scheduledFor?: string; contactName: string; phone: string; comment: string; requestKey: string; expectedTotalCents: number };
+-export type TestOrderSnapshot = { productId: string; label: string; quantity: number; sizeId?: string; sizeLabel?: string; extraIds: string[]; extraLabels: string[]; removedIngredients: string[]; unitCents: number; totalCents: number };
++export function validateTestOrder(input: unknown): { items: CatalogCartLine[]; mode: 'delivery' | 'pickup'; address?: string; zoneId?: string; scheduledFor?: string; contactName: string; phone: string; comment: string; requestKey: string; expectedTotalCents: number; promoCode: string };
++export type TestOrderSnapshot = { productId: string; label: string; quantity: number; sizeId?: string; sizeLabel?: string; extraIds: string[]; extraLabels: string[]; removedIngredients: string[]; unitCents: number; totalCents: number; loyaltyFreeQuantity?: number };
+diff --git a/src/lib/test-order-policy.mjs b/src/lib/test-order-policy.mjs
+index 6acc890..adf3e6d 100644
+--- a/src/lib/test-order-policy.mjs
++++ b/src/lib/test-order-policy.mjs
+@@ -5,14 +5,15 @@ export function nextTestStatuses(status, fulfillment) {
+ }
+ export function validateTestOrder(input) {
+   const fail = () => { throw new Error('INVALID_TEST_ORDER'); };
+-  if (!input || typeof input !== 'object' || Array.isArray(input) || Object.keys(input).some(key => !['items', 'mode', 'zoneId', 'scheduledFor', 'contactName', 'phone', 'address', 'comment', 'requestKey', 'expectedTotalCents'].includes(key))) fail();
++  if (!input || typeof input !== 'object' || Array.isArray(input) || Object.keys(input).some(key => !['items', 'mode', 'zoneId', 'scheduledFor', 'contactName', 'phone', 'address', 'comment', 'requestKey', 'expectedTotalCents', 'promoCode'].includes(key))) fail();
+   if (!['delivery', 'pickup'].includes(input.mode) || typeof input.requestKey !== 'string' || !/^[a-f0-9-]{36}$/i.test(input.requestKey) || !Number.isSafeInteger(input.expectedTotalCents) || input.expectedTotalCents < 0) fail();
+   const text = (value, max) => typeof value === 'string' && value.trim().length > 0 && value.trim().length <= max;
+   if (!text(input.contactName, 128) || !text(input.phone, 40) || !/^\+?[0-9 ()-]{7,30}$/.test(input.phone.trim()) || (input.comment !== undefined && (typeof input.comment !== 'string' || input.comment.length > 500))) fail();
+   if (input.mode === 'delivery' && (!text(input.address, 300) || !text(input.zoneId, 128))) fail();
+   if (input.mode === 'pickup' && (input.zoneId !== undefined || (input.address !== undefined && input.address !== ''))) fail();
++  if (input.promoCode !== undefined && (typeof input.promoCode !== 'string' || input.promoCode.length > 32)) fail();
+   if (input.scheduledFor !== undefined && (typeof input.scheduledFor !== 'string' || !/^\d{4}-\d\d-\d\dT\d\d:\d\d:00\.000Z$/.test(input.scheduledFor) || !Number.isFinite(Date.parse(input.scheduledFor)))) fail();
+   const items = readCatalogCart(JSON.stringify(input.items));
+   if (!items.length) fail();
+-  return { items, mode: input.mode, ...(input.mode === 'delivery' ? { address: input.address.trim(), zoneId: input.zoneId } : {}), ...(input.scheduledFor ? { scheduledFor: input.scheduledFor } : {}), contactName: input.contactName.trim(), phone: input.phone.trim(), comment: input.comment?.trim() ?? '', requestKey: input.requestKey, expectedTotalCents: input.expectedTotalCents };
++  return { items, mode: input.mode, ...(input.mode === 'delivery' ? { address: input.address.trim(), zoneId: input.zoneId } : {}), ...(input.scheduledFor ? { scheduledFor: input.scheduledFor } : {}), contactName: input.contactName.trim(), phone: input.phone.trim(), comment: input.comment?.trim() ?? '', requestKey: input.requestKey, expectedTotalCents: input.expectedTotalCents, promoCode: input.promoCode?.trim().toUpperCase() ?? '' };
+ }
+-- 
+2.52.0
+

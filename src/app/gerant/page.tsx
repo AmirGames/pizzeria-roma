@@ -21,11 +21,19 @@ export default async function ManagerDashboard() {
     { label: 'Prêts', status: 'READY', count: data.statuses.READY },
     { label: 'En livraison', status: 'OUT_FOR_DELIVERY', count: data.statuses.OUT_FOR_DELIVERY },
   ] as const;
+<<<<<<< Updated upstream
   return <main className="manager-page"><p className="manager-eyebrow">PIZZERIA ROMA · ESPACE PROFESSIONNEL</p><h1>Tableau de bord</h1><p className="manager-lede">Vue d’ensemble de l’activité en mode test.</p>
     <div className="manager-notice"><strong>Mode test</strong><span>Ces compteurs concernent uniquement les essais. Aucune préparation réelle ni aucun paiement.</span></div>
     <div className="manager-toolbar"><div><span className="manager-meta-label">Dernière actualisation</span><p>{data.refreshedAt.toLocaleString('fr-BE', { timeZone: 'Europe/Brussels' })} · heure de Bruxelles</p></div><RefreshTestOrders label="Actualiser le tableau de bord" /></div>
     <section aria-labelledby="dashboard-queue-title"><h2 id="dashboard-queue-title">File à traiter</h2><p>Essais encore actifs. Sélectionnez un compteur pour ouvrir la liste correspondante.</p>
       <nav className="manager-cards" aria-label="Compteurs de la file">{cards.map(card => <Link className="manager-card" key={card.status} href={staffTestHref({ ...defaults, status: card.status })}><h3>{card.label}</h3><p>{card.count}</p></Link>)}</nav>
+=======
+  return <main className="manager-page"><h1>Tableau de bord gérant</h1><p>Mode test : ces compteurs concernent uniquement les essais. Aucune préparation réelle ni aucun paiement.</p>
+    <nav className="manager-shortcuts" aria-label="Raccourcis gérant"><Link href="/gerant/carte">Gérer la carte</Link><Link href="/gerant/livraison">Livraison et créneaux</Link><Link href="/gerant/commandes-test">Ouvrir la file des essais</Link><RefreshTestOrders label="Actualiser le tableau de bord" /></nav>
+    <p>Actualisé à {data.refreshedAt.toLocaleString('fr-BE', { timeZone: 'Europe/Brussels' })} · heure de Bruxelles.</p>
+    <section aria-labelledby="dashboard-queue-title"><h2 id="dashboard-queue-title">File à traiter</h2><p>Essais encore actifs, quelle que soit leur date d’enregistrement. Chaque compteur ouvre la liste correspondante.</p>
+      <nav className={styles.cards} aria-label="Compteurs de la file">{cards.map(card => <Link className={styles.card} key={card.status} href={staffTestHref({ ...defaults, status: card.status })}><h3>{card.label}</h3><p>{card.count}</p></Link>)}</nav>
+>>>>>>> Stashed changes
     </section>
     <section aria-labelledby="dashboard-today-title"><h2 id="dashboard-today-title">Résumé du jour <span className="manager-section-date"><time dateTime={data.date}>{data.date.split('-').reverse().join('/')}</time></span></h2><p>Essais enregistrés de minuit à minuit en heure de Bruxelles.</p>
       <dl className="manager-cards">{[

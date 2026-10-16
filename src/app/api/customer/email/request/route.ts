@@ -10,13 +10,15 @@ export async function POST(request: Request) {
   if (!isSameOriginMutation(request, process.env.APP_ORIGIN)) return Response.json({ error: 'FORBIDDEN' }, { status: 403 });
   try {
     const input = await readJson(request, 4096) as { action?: string; email?: unknown };
-    if (!input || typeof input !== 'object' || Array.isArray(input) || !['verify', 'reset'].includes(input.action ?? '') || Object.keys(input).some(key => !['action', ...(input.action === 'reset' ? ['email'] : [])].includes(key))) throw new Error('INVALID_REQUEST');
-    const current = input.action === 'verify' ? await requireCustomer() : null;
-    const email = current?.email ?? normalizeRecoveryEmail(input.email);
+    if (!input || typeof input !== 'object' || Array.isArray(input) || !['verify', 'reset', 'change'].includes(input.action ?? '') || Object.keys(input).some(key => !['action', ...(input.action === 'verify' ? [] : ['email'])].includes(key))) throw new Error('INVALID_REQUEST');
+    const current = input.action === 'verify' || input.action === 'change' ? await requireCustomer() : null;
+    const email = input.action === 'verify' ? current!.email : normalizeRecoveryEmail(input.email);
+    if (input.action === 'change' && email === current!.email) throw new Error('INVALID_REQUEST');
     if (!localCustomerMailConfigured()) throw new Error('MAIL_UNAVAILABLE');
     localMailOrigin(process.env.LOCAL_MAIL_URL); emailLinkOrigin(process.env.APP_ORIGIN);
     if (!await prisma.$transaction(tx => consumeAuthAttempt(tx, email))) return Response.json({ error: 'TOO_MANY_ATTEMPTS' }, { status: 429, headers: { 'Retry-After': '900' } });
-    if (current) await sendCustomerLink(current.id, 'VERIFY_EMAIL');
+    if (input.action === 'verify') await sendCustomerLink(current!.id, 'VERIFY_EMAIL');
+    else if (input.action === 'change') await sendCustomerLink(current!.id, 'CHANGE_EMAIL', email);
     else {
       const user = await prisma.user.findFirst({ where: { email, role: 'CUSTOMER', disabledAt: null, customerCredential: { isNot: null } } });
       // Mail delivery failures must not reveal whether this account exists.
@@ -25,6 +27,7 @@ export async function POST(request: Request) {
     return Response.json({ ok: true }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     const code = error instanceof Error ? error.message : '';
-    return Response.json({ error: code === 'UNAUTHORIZED' ? code : code === 'INVALID_REQUEST' ? code : 'MAIL_UNAVAILABLE' }, { status: code === 'UNAUTHORIZED' ? 401 : code === 'INVALID_REQUEST' ? 400 : 503 });
+    const status = code === 'UNAUTHORIZED' ? 401 : code === 'INVALID_REQUEST' ? 400 : code === 'EMAIL_IN_USE' ? 409 : 503;
+    return Response.json({ error: status === 503 ? 'MAIL_UNAVAILABLE' : code }, { status, headers: { 'Cache-Control': 'no-store' } });
   }
 }

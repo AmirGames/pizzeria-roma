@@ -1,0 +1,1 @@
+ALTER TYPE "CustomerEmailPurpose" ADD VALUE 'CHANGE_EMAIL';
