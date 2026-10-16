@@ -4,6 +4,7 @@ import { spawn } from 'node:child_process';
 import { setTimeout } from 'node:timers/promises';
 import { PrismaClient } from '@prisma/client';
 import { createSessionToken } from '../../src/lib/session-token.mjs';
+import { availableSlots, listBookableDates } from '../../src/lib/delivery-slots.mjs';
 
 const enabled = process.env.RUN_DATABASE_TESTS === '1';
 
@@ -12,6 +13,9 @@ test('manager authentication and catalogue mutations against PostgreSQL and Next
   assert.match(database.pathname, /_test$/, 'Integration tests require a dedicated *_test database');
   const prisma = new PrismaClient();
   const origin = 'http://localhost:3100';
+  const now = new Date();
+  const scheduledFor = listBookableDates().slice(1).flatMap(date => availableSlots({ date, mode: 'pickup', now, pizzaCount: 1 })).at(0)?.value;
+  if (!scheduledFor) throw new Error('No bookable integration-test slot available');
   const server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '-p', '3100'], { env: { ...process.env, APP_ORIGIN: origin }, stdio: ['ignore', 'pipe', 'pipe'] });
   let output = '';
   server.stdout.on('data', value => { output += value; });
@@ -41,7 +45,7 @@ test('manager authentication and catalogue mutations against PostgreSQL and Next
     assert.match(setCookie, /HttpOnly/i);
     assert.match(setCookie, /Secure/i);
     const cookie = setCookie.split(';')[0];
-    const creation = { categoryId: category.id, nameFr: 'CI draft', price33Cents: 1300, removableIngredients: ['Tomate'] };
+    const creation = { categoryId: category.id, nameFr: 'CI draft', nameEn: 'CI draft', baseCents: 0, ingredients: ['Tomate'], sizes: [{ label: '33 cm', priceCents: 1300 }], removableIngredients: ['Tomate'] };
     assert.equal((await request('/api/manager/products', { method: 'POST', body: creation })).status, 403);
     assert.equal((await request('/api/manager/products', { method: 'POST', cookie, body: creation, requestOrigin: 'https://evil.example' })).status, 403);
     assert.equal((await request('/api/manager/products', { method: 'POST', cookie, body: { ...creation, active: true } })).status, 400);

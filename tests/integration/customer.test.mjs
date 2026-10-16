@@ -5,12 +5,16 @@ import { spawn } from 'node:child_process';
 import { setTimeout } from 'node:timers/promises';
 import { PrismaClient } from '@prisma/client';
 import { createSessionToken } from '../../src/lib/session-token.mjs';
+import { availableSlots, listBookableDates } from '../../src/lib/delivery-slots.mjs';
 
 const enabled = process.env.RUN_DATABASE_TESTS === '1';
 test('customer accounts, ownership, idempotent checkout and simulated staff workflow', { skip: !enabled, timeout: 120000 }, async () => {
   assert.match(new URL(process.env.DATABASE_URL).pathname, /_test$/);
   const prisma = new PrismaClient();
   const origin = 'http://localhost:3110';
+  const now = new Date();
+  const scheduledFor = listBookableDates().slice(1).flatMap(date => availableSlots({ date, mode: 'pickup', now, pizzaCount: 1 })).at(0)?.value;
+  if (!scheduledFor) throw new Error('No bookable integration-test slot available');
   const start = (port, flag) => spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '-p', String(port)], { env: { ...process.env, APP_ORIGIN: `http://localhost:${port}`, ENABLE_TEST_ORDERS: flag }, stdio: ['ignore', 'ignore', 'ignore'] });
   const server = start(3110, 'true');
   const disabledServer = start(3120, 'false');
@@ -52,7 +56,7 @@ test('customer accounts, ownership, idempotent checkout and simulated staff work
     const product = category.products[0];
     const small = product.sizes.find(size => size.label === '33 cm');
     const large = product.sizes.find(size => size.label === '50 cm');
-    const body = { items: [{ productId: product.id, sizeId: small.id, extraIds: [], removedIngredients: ['Tomate'], quantity: 1 }], mode: 'pickup', contactName: 'Client test', phone: '081 00 00 00', comment: 'Commentaire fictif', requestKey: randomUUID(), expectedTotalCents: 1200 };
+    const body = { items: [{ productId: product.id, sizeId: small.id, extraIds: [], removedIngredients: ['Tomate'], quantity: 1 }], mode: 'pickup', scheduledFor, contactName: 'Client test', phone: '081 00 00 00', comment: 'Commentaire fictif', requestKey: randomUUID(), expectedTotalCents: 1200 };
     assert.equal((await request('/api/test-orders', 'POST', body)).status, 401);
     assert.equal((await request('/api/test-orders', 'POST', body, cookie, 'https://evil.example')).status, 403);
     assert.equal((await request('/api/test-orders', 'POST', { ...body, userId: 'foreign' }, cookie)).status, 400);
