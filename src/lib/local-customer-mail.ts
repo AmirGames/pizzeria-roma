@@ -7,7 +7,7 @@ export async function sendCustomerLink(userId: string, purpose: 'VERIFY_EMAIL' |
   if (!localCustomerMailConfigured()) throw new Error('MAIL_UNAVAILABLE');
   const mailOrigin = localMailOrigin(process.env.LOCAL_MAIL_URL);
   const appOrigin = emailLinkOrigin(process.env.APP_ORIGIN);
-  const link = await prisma.$transaction(tx => prepareCustomerEmailToken(tx, userId, purpose, new Date(), emailOverride));
+  const link = await prisma.$transaction(tx => prepareCustomerEmailToken(tx, userId, purpose === 'CHANGE_EMAIL' ? 'VERIFY_EMAIL' : purpose, new Date()));
   if (!link) return;
   const verify = purpose === 'VERIFY_EMAIL';
   const changeEmail = purpose === 'CHANGE_EMAIL';

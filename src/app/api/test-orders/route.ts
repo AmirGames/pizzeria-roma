@@ -60,10 +60,10 @@ export async function POST(request: Request) {
         if (discount.totalCents !== input.expectedTotalCents) throw new Error('PRICE_CHANGED');
         if (discount.codeError) throw new Error('PROMO_CODE_INVALID');
         if (discount.promotion) {
-          const usage = await tx.promotion.updateMany({ where: { id: discount.promotion.id, active: true, ...(discount.promotion.code ? { code: discount.promotion.code } : {}), OR: [{ usageLimit: null }, { usageCount: { lt: (automatic?.id === discount.promotion.id ? automatic.usageLimit : codePromotion?.usageLimit) ?? 2147483647 } }] }, data: { usageCount: { increment: 1 } } });
+          const usage = await tx.promotion.updateMany({ where: { id: discount.promotion.id, active: true, ...(discount.promotion.code ? { code: discount.promotion.code } : {}), OR: [{ usageLimit: null }, { usageCount: { lt: (automatic?.id === discount.promotion.id ? automatic?.usageLimit : codePromotion?.usageLimit) ?? 2147483647 } }] }, data: { usageCount: { increment: 1 } } });
           if (usage.count !== 1) throw new Error('PROMOTION_UNAVAILABLE');
         }
-        const pizzaCount = input.items.reduce((count, item) => count + (products.find(product => product.id === item.productId)?.category.fulfillmentCategory === 'PIZZA' ? item.quantity : 0), 0);
+        const pizzaCount = input.items.reduce((count, item) => count + (products.find((product: { id: string; category: { fulfillmentCategory: string } }) => product.id === item.productId)?.category.fulfillmentCategory === 'PIZZA' ? item.quantity : 0), 0);
         const date = brusselsDateKey(scheduledFor);
         const day = brusselsDayWindow(new Date(`${date}T12:00:00.000Z`));
         const reservations = await tx.testOrder.groupBy({
@@ -73,7 +73,7 @@ export async function POST(request: Request) {
         });
         const usedBySlot = Object.fromEntries(reservations.map(row => [row.scheduledFor.toISOString(), row._sum.pizzaCount ?? 0]));
         const available = availableSlots({ date, mode: input.mode, now: new Date(), pizzaCount, usedBySlot, leadTimeMinutes: config.leadTimeMinutes, slotPizzaCapacity: config.slotPizzaCapacity });
-        if (!available.some(slot => slot.value === scheduledFor.toISOString())) throw new Error('SLOT_UNAVAILABLE');
+        if (!available.some((slot: { value: string }) => slot.value === scheduledFor.toISOString())) throw new Error('SLOT_UNAVAILABLE');
         return tx.testOrder.create({ data: {
           userId: user.id, requestKey: input.requestKey, requestHash, publicReference: `TEST-${randomUUID().replaceAll('-', '').slice(0, 20).toUpperCase()}`,
           fulfillment: input.mode === 'delivery' ? 'DELIVERY' : 'PICKUP', zoneId: trustedZoneId, scheduledFor, pizzaCount,
