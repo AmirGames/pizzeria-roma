@@ -42,12 +42,13 @@ test('a customer updates their profile and changes password while other sessions
     await page.getByText('Mes coordonnées et mon mot de passe', { exact: true }).click();
     await expect(page.getByLabel('Téléphone du profil')).toHaveValue('081 22 22 22');
     await page.getByRole('button', { name: 'Se déconnecter' }).click();
-    await page.getByLabel('Adresse e-mail').fill(email);
-    await page.getByLabel('Mot de passe').fill(password);
-    await page.getByRole('button', { name: 'Ouvrir mon espace' }).click();
+    const accountAccess = page.getByRole('region', { name: 'Accès client', exact: true });
+    await accountAccess.getByLabel('Adresse e-mail').fill(email);
+    await accountAccess.getByLabel('Mot de passe').fill(password);
+    await accountAccess.getByRole('button', { name: 'Ouvrir mon espace' }).click();
     await expect(page.getByText('Connexion ou inscription impossible.', { exact: false })).toBeVisible();
-    await page.getByLabel('Mot de passe').fill(newPassword);
-    await page.getByRole('button', { name: 'Ouvrir mon espace' }).click();
+    await accountAccess.getByLabel('Mot de passe').fill(newPassword);
+    await accountAccess.getByRole('button', { name: 'Ouvrir mon espace' }).click();
     await expect(page.getByRole('heading', { name: 'Bonjour Profil modifié' })).toBeVisible();
   } finally { await second.close(); }
 });

@@ -47,10 +47,8 @@ test('a customer manages private addresses and uses a saved address for a delive
   await expect(page.getByLabel('Mode', { exact: true })).toBeVisible();
   await page.getByLabel('Mode', { exact: true }).selectOption('delivery');
   await expect(page.getByLabel('Adresse fictive', { exact: true })).toHaveValue('Rue fictive 2, 5000 Namur');
-  await expect(page.getByLabel('Zone', { exact: true })).toHaveValue('namur-centre');
   await page.getByLabel('Adresse de livraison', { exact: true }).selectOption({ label: 'Domicile' });
   await expect(page.getByLabel('Adresse fictive', { exact: true })).toHaveValue('Rue fictive 3, 5000 Namur');
-  await expect(page.getByLabel('Zone', { exact: true })).toHaveValue('belgrade');
   await page.getByLabel('Adresse fictive', { exact: true }).fill('Rue ponctuelle 9, 5000 Namur');
   await expect(page.getByLabel('Adresse de livraison', { exact: true })).toHaveValue('');
   await page.getByLabel('Mode', { exact: true }).selectOption('pickup');

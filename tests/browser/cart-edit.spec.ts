@@ -39,7 +39,7 @@ test('edit saves the verified recipe, preserves quantity and merges equivalent l
   await page.getByRole('button', { name: 'Modifier les options de Pizza navigateur' }).first().click();
   await expect(page.getByLabel('Sans Tomate')).toBeChecked();
   await page.getByLabel('Sans Tomate').uncheck();
-  await page.getByLabel(/Chèvre/).uncheck();
+  await page.getByLabel('Supplément 1', { exact: true }).selectOption('');
   await page.getByRole('button', { name: 'Enregistrer la recette' }).click();
   await expect(page.getByRole('heading', { name: 'Modifier la recette' })).toHaveCount(0);
   await expect(page.locator('.roma-qty output')).toHaveText('3');

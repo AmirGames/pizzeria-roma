@@ -12,10 +12,10 @@ export async function selectTestSlot(page: Page, pizzaCount: number, mode: 'pick
     const result = await response.json() as { slots?: Array<{ value: string }> };
     const slot = result.slots?.[0];
     if (!slot) continue;
-    await expect.poll(() => dateSelect.locator('option').evaluateAll(options => options.some(option => (option as HTMLOptionElement).value === date))).toBe(true);
+    await expect.poll(() => dateSelect.locator('option').evaluateAll((options, target) => options.some(option => (option as HTMLOptionElement).value === target), date)).toBe(true);
     await dateSelect.selectOption(date);
     const slotSelect = page.getByLabel('Créneau de 15 minutes', { exact: true });
-    await expect.poll(() => slotSelect.locator('option').evaluateAll(options => options.some(option => (option as HTMLOptionElement).value === slot.value))).toBe(true);
+    await expect.poll(() => slotSelect.locator('option').evaluateAll((options, target) => options.some(option => (option as HTMLOptionElement).value === target), slot.value)).toBe(true);
     await slotSelect.selectOption(slot.value);
     return;
   }
