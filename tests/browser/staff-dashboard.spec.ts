@@ -30,13 +30,13 @@ test('a manager follows dashboard counters and sees the Brussels daily summary r
   const rows = specs.map((spec, i) => ({ id: `dashboard-${suffix}-${i}`, publicReference: `TEST-DASH-${suffix}-${i}`, userId: owner.id, requestKey: randomUUID(), requestHash: '0'.repeat(64), fulfillment: spec.fulfillment, contactName: 'Client fictif dashboard', phone: '081 00 00 00', status: spec.status, totalCents: 1200, itemsSnapshot: [{ productId: 'dashboard-fixture-product', label: 'Pizza tableau', quantity: 1, extraIds: [], extraLabels: [], removedIngredients: [], unitCents: 1200, totalCents: 1200 }], placedAt: new Date(spec.time) }));
   await prisma.testOrder.createMany({ data: rows });
   await page.goto('/gerant');
-  const counters = page.getByRole('navigation', { name: 'Compteurs de la file', exact: true });
+  const counters = page.getByRole('navigation', { name: 'Compteurs des commandes de test', exact: true });
   const counter = (label: string) => counters.getByRole('link', { name: new RegExp(`^${label}`) });
   await expect(counter('À traiter').locator('p')).toHaveText('6');
   await expect(counter('À accepter').locator('p')).toHaveText('2');
   await expect(counter('En préparation').locator('p')).toHaveText('1');
   await expect(counter('Prêts').locator('p')).toHaveText('1');
-  const today = page.getByRole('region', { name: 'Résumé du jour', exact: true });
+  const today = page.getByRole('region', { name: 'Résumé des essais du jour', exact: true });
   const daily = (label: string) => today.locator('dl > div').filter({ has: page.getByText(label, { exact: true }) }).locator('dd');
   await expect(today.locator('time')).toHaveAttribute('datetime', day.date);
   await expect(daily('Essais enregistrés')).toHaveText('7');

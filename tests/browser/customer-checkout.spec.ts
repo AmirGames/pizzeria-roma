@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { PrismaClient } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
+import { selectTestSlot } from './support/select-test-slot';
 const prisma = new PrismaClient();
 let categoryId: string;
 let email: string;
@@ -25,6 +26,8 @@ test('a customer registers, confirms a test and finds it again after signing in'
   await page.getByRole('button', { name: 'Créer mon compte de test' }).click();
   await expect(page.getByRole('heading', { name: 'Bonjour Client navigateur' })).toBeVisible();
   await page.getByRole('link', { name: 'Passer une commande de test' }).click();
+  await expect(page.getByRole('heading', { name: 'Livraison ou à emporter', exact: true })).toBeVisible();
+  await selectTestSlot(page, 1);
   await page.getByLabel('Téléphone fictif').fill('081 00 00 00');
   await page.getByLabel('Commentaire').fill('Essai navigateur');
   await expect(page.getByText('Total du test :')).toContainText('13,50');

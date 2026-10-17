@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { PrismaClient } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
+import { selectTestSlot } from './support/select-test-slot';
 const prisma = new PrismaClient();
 let email: string;
 let categoryId: string;
@@ -42,8 +43,8 @@ test('a customer manages private addresses and uses a saved address for a delive
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pizzeria-roma-catalog-cart-v1')!))).toEqual(cart);
   await page.getByRole('link', { name: 'Passer une commande de test' }).click();
   await expect(page).toHaveURL(/\/commande\/test$/);
-  await expect(page.getByRole('heading', { name: 'Passer une commande de test', exact: true })).toBeVisible();
-  await expect(page.getByLabel('Mode', { exact: true }), await page.locator('main').innerText()).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Livraison ou à emporter', exact: true })).toBeVisible();
+  await expect(page.getByLabel('Mode', { exact: true })).toBeVisible();
   await page.getByLabel('Mode', { exact: true }).selectOption('delivery');
   await expect(page.getByLabel('Adresse fictive', { exact: true })).toHaveValue('Rue fictive 2, 5000 Namur');
   await expect(page.getByLabel('Zone', { exact: true })).toHaveValue('namur-centre');
@@ -52,12 +53,14 @@ test('a customer manages private addresses and uses a saved address for a delive
   await expect(page.getByLabel('Zone', { exact: true })).toHaveValue('belgrade');
   await page.getByLabel('Adresse fictive', { exact: true }).fill('Rue ponctuelle 9, 5000 Namur');
   await expect(page.getByLabel('Adresse de livraison', { exact: true })).toHaveValue('');
+  await page.getByLabel('Mode', { exact: true }).selectOption('pickup');
   await page.getByLabel('Téléphone fictif').fill('081 00 00 00');
+  await selectTestSlot(page, 2);
   await page.getByRole('button', { name: 'Confirmer la commande de test' }).click();
   await expect(page.getByRole('heading', { name: 'Commande de test enregistrée' })).toBeVisible();
   const order = await prisma.testOrder.findFirstOrThrow({ where: { user: { email } } });
-  expect(order.address).toBe('Rue ponctuelle 9, 5000 Namur');
-  expect(order.zoneId).toBe('belgrade');
+  expect(order.address).toBeNull();
+  expect(order.zoneId).toBeNull();
   expect(order.totalCents).toBe(2400);
   await page.getByRole('link', { name: 'Mon espace client', exact: true }).click();
   await expect(book.getByRole('listitem').filter({ hasText: 'Domicile' })).toContainText('Rue fictive 3');

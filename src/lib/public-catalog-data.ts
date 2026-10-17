@@ -5,6 +5,7 @@ import { attachGlobalPizzaIngredients } from './global-pizza-ingredients.mjs';
 // @ts-ignore JavaScript module
 import { buildPublicCatalog } from './public-catalog.mjs';
 import type { CatalogProduct } from './catalog-types';
+import { testOrdersEnabled } from './test-mode';
 
 export type PublicCatalogCategory = { id: string; nameFr: string; products: CatalogProduct[] };
 
@@ -36,5 +37,8 @@ const loadCachedPublicCatalog = unstable_cache(queryPublicCatalog, ['public-cata
 });
 
 export async function loadPublicCatalog(): Promise<PublicCatalogCategory[]> {
+  // Test mode writes catalogue fixtures directly through Prisma; bypass the
+  // production cache so the test checkout and editors see them immediately.
+  if (testOrdersEnabled()) return queryPublicCatalog();
   return loadCachedPublicCatalog();
 }

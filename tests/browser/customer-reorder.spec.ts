@@ -1,6 +1,9 @@
 import { test, expect } from '@playwright/test';
 import { PrismaClient } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
+// @ts-ignore JavaScript module; covered by integration order tests
+import { nextTestSlot } from '../integration/test-slots.mjs';
+import { selectTestSlot } from './support/select-test-slot';
 const prisma = new PrismaClient();
 let email: string;
 let categoryId: string;
@@ -20,7 +23,7 @@ test('a customer confirms a repeat selection at current prices while preserving 
   expect((await page.request.post('http://localhost:3200/api/customer/auth', { headers, data: { action: 'register', name: 'Reprise navigateur', email, password: 'Browser-reorder-password' } })).status()).toBe(200);
   expect((await page.request.post('http://localhost:3200/api/customer/addresses', { headers, data: { label: 'Domicile test', address: 'Rue fictive 8, 5000 Namur', zoneId: 'namur-centre', isDefault: true } })).status()).toBe(201);
   const selection = { productId: product.id, sizeId: product.sizes[0].id, extraIds: [product.extras[0].id], removedIngredients: ['Tomate'], quantity: 2 };
-  const creation = await page.request.post('http://localhost:3200/api/test-orders', { headers, data: { items: [selection], mode: 'pickup', contactName: 'Reprise navigateur', phone: '081 00 00 00', comment: 'Ancien commentaire', requestKey: randomUUID(), expectedTotalCents: 2700 } });
+  const creation = await page.request.post('http://localhost:3200/api/test-orders', { headers, data: { items: [selection], mode: 'pickup', scheduledFor: await nextTestSlot(prisma, { pizzaCount: 2 }), contactName: 'Reprise navigateur', phone: '081 00 00 00', comment: 'Ancien commentaire', requestKey: randomUUID(), expectedTotalCents: 2700 } });
   expect(creation.status()).toBe(201);
   const { id } = await creation.json() as { id: string };
   await prisma.productSize.update({ where: { id: product.sizes[0].id }, data: { priceCents: 1400 } });
@@ -51,15 +54,15 @@ test('a customer confirms a repeat selection at current prices while preserving 
   await reorder.getByRole('link', { name: 'Voir mon panier', exact: true }).click();
   await expect(page.getByRole('complementary', { name: 'Récapitulatif du panier' })).toContainText('66,50');
   await page.getByRole('link', { name: 'Commander en mode test', exact: true }).click();
-  await page.getByLabel('Mode', { exact: true }).selectOption('delivery');
-  await expect(page.getByLabel('Adresse fictive', { exact: true })).toHaveValue('Rue fictive 8, 5000 Namur');
+  await page.getByLabel('Mode', { exact: true }).selectOption('pickup');
   await page.getByLabel('Téléphone fictif').fill('081 00 00 00');
+  await selectTestSlot(page, 4);
   await expect(page.getByText('Total du test :')).toContainText('66,50');
   await page.getByRole('button', { name: 'Confirmer la commande de test', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Commande de test enregistrée', exact: true })).toBeVisible();
   const repeated = await prisma.testOrder.findFirstOrThrow({ where: { user: { email }, id: { not: id } } });
   expect(repeated.totalCents).toBe(6650);
-  expect(repeated.address).toBe('Rue fictive 8, 5000 Namur');
+  expect(repeated.address).toBeNull();
   expect(repeated.comment).toBe('');
   expect((await prisma.testOrder.findUniqueOrThrow({ where: { id } })).totalCents).toBe(2700);
   expect(await prisma.testOrder.count({ where: { user: { email } } })).toBe(2);
