@@ -5,6 +5,7 @@ import { spawn } from 'node:child_process';
 import { setTimeout } from 'node:timers/promises';
 import { PrismaClient } from '@prisma/client';
 import { createSessionToken } from '../../src/lib/session-token.mjs';
+import { nextTestSlot } from './test-slots.mjs';
 
 test('reordering protects ownership and reconstructs current selections without mutating history', { skip: process.env.RUN_DATABASE_TESTS !== '1', timeout: 120000 }, async () => {
   assert.match(new URL(process.env.DATABASE_URL).pathname, /_test$/);
@@ -29,7 +30,7 @@ test('reordering protects ownership and reconstructs current selections without 
     const category = await prisma.menuCategory.create({ data: { nameFr: 'Reprise CI', nameEn: 'Reorder CI', fulfillmentCategory: 'PIZZA', products: { create: { nameFr: 'Pizza reprise', nameEn: 'Reorder pizza', baseCents: 0, removableIngredients: ['Tomate'], sizes: { create: { label: '33 cm', priceCents: 1200 } }, extras: { create: { nameFr: 'Chèvre', nameEn: 'Cheese', priceCents: 150 } } } } }, include: { products: { include: { sizes: true, extras: true } } } });
     categoryId = category.id;
     const product = category.products[0]; const size = product.sizes[0]; const extra = product.extras[0];
-    const body = { items: [{ productId: product.id, sizeId: size.id, extraIds: [extra.id], removedIngredients: ['Tomate'], quantity: 2 }], mode: 'pickup', contactName: 'Client fictif', phone: '081 00 00 00', comment: 'Ancien commentaire fictif', requestKey: randomUUID(), expectedTotalCents: 2700 };
+    const body = { items: [{ productId: product.id, sizeId: size.id, extraIds: [extra.id], removedIngredients: ['Tomate'], quantity: 2 }], mode: 'pickup', scheduledFor: await nextTestSlot(prisma, { pizzaCount: 2 }), contactName: 'Client fictif', phone: '081 00 00 00', comment: 'Ancien commentaire fictif', requestKey: randomUUID(), expectedTotalCents: 2700 };
     const creation = await request('/api/test-orders', body, owner.cookie);
     assert.equal(creation.status, 201);
     const { id } = await creation.json(); const path = `/api/test-orders/${id}/reorder`;

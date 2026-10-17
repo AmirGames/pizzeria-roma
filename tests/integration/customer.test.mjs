@@ -5,6 +5,7 @@ import { spawn } from 'node:child_process';
 import { setTimeout } from 'node:timers/promises';
 import { PrismaClient } from '@prisma/client';
 import { createSessionToken } from '../../src/lib/session-token.mjs';
+import { nextTestSlot } from './test-slots.mjs';
 
 const enabled = process.env.RUN_DATABASE_TESTS === '1';
 test('customer accounts, ownership, idempotent checkout and simulated staff workflow', { skip: !enabled, timeout: 120000 }, async () => {
@@ -52,7 +53,7 @@ test('customer accounts, ownership, idempotent checkout and simulated staff work
     const product = category.products[0];
     const small = product.sizes.find(size => size.label === '33 cm');
     const large = product.sizes.find(size => size.label === '50 cm');
-    const body = { items: [{ productId: product.id, sizeId: small.id, extraIds: [], removedIngredients: ['Tomate'], quantity: 1 }], mode: 'pickup', contactName: 'Client test', phone: '081 00 00 00', comment: 'Commentaire fictif', requestKey: randomUUID(), expectedTotalCents: 1200 };
+    const body = { items: [{ productId: product.id, sizeId: small.id, extraIds: [], removedIngredients: ['Tomate'], quantity: 1 }], mode: 'pickup', scheduledFor: await nextTestSlot(prisma), contactName: 'Client test', phone: '081 00 00 00', comment: 'Commentaire fictif', requestKey: randomUUID(), expectedTotalCents: 1200 };
     assert.equal((await request('/api/test-orders', 'POST', body)).status, 401);
     assert.equal((await request('/api/test-orders', 'POST', body, cookie, 'https://evil.example')).status, 403);
     assert.equal((await request('/api/test-orders', 'POST', { ...body, userId: 'foreign' }, cookie)).status, 400);
