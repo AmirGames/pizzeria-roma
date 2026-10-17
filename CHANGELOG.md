@@ -2,6 +2,8 @@
 
 ## 2026-10-18
 
+- Le message d’accueil précise qu’aucune commande ni paiement en ligne n’est possible tant que le checkout n’est pas ouvert.
+- La migration d’index tolère les index absents dans une base vierge, afin que le déploiement des migrations CI ne s’arrête pas avant la validation du schéma.
 - Le détail client d’une commande réelle suit automatiquement les changements d’état pendant cinq minutes, puis propose un bouton d’actualisation manuelle.
 - Après un paiement confirmé par Stripe, la page client revérifie automatiquement la synchronisation avec le webhook pendant 45 secondes et propose ensuite une vérification manuelle.
 - La file cuisine rappelle les réglages d’impression recommandés pour les tickets 80 mm : format du rouleau, échelle 100 % et en-têtes/pieds de page désactivés.

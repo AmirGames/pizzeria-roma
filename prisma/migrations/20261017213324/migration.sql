@@ -1,5 +1,5 @@
 -- DropIndex
-DROP INDEX "Order_promotionId_idx";
+DROP INDEX IF EXISTS "Order_promotionId_idx";
 
 -- DropIndex
-DROP INDEX "TestOrder_scheduledFor_status_idx";
+DROP INDEX IF EXISTS "TestOrder_scheduledFor_status_idx";
