@@ -58,7 +58,7 @@ test('customer accounts, ownership, idempotent checkout and simulated staff work
     assert.equal((await request('/api/test-orders', 'POST', body, cookie, 'https://evil.example')).status, 403);
     assert.equal((await request('/api/test-orders', 'POST', { ...body, userId: 'foreign' }, cookie)).status, 400);
     assert.equal((await request('/api/test-orders', 'POST', { ...body, expectedTotalCents: 1 }, cookie)).status, 409);
-    assert.equal((await request('/api/test-orders', 'POST', { ...body, mode: 'delivery', address: 'Rue fictive 1', zoneId: 'belgrade' }, cookie)).status, 400);
+    assert.equal((await request('/api/test-orders', 'POST', { ...body, mode: 'delivery', address: 'Rue fictive 1', zoneId: 'belgrade' }, cookie)).status, 422);
     const confirmations = await Promise.all([request('/api/test-orders', 'POST', body, cookie), request('/api/test-orders', 'POST', body, cookie)]);
     assert.deepEqual(confirmations.map(response => response.status).sort(), [200, 201]);
     const orders = await Promise.all(confirmations.map(response => response.json()));
