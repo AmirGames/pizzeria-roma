@@ -70,10 +70,17 @@ export async function POST(request: Request) {
     const user = await getCurrentUser();
     const loyaltyStatus = user?.role === 'CUSTOMER' ? await getCustomerLoyaltyStatus(user.id) : null;
     const loyalty = loyaltyStatus ? calculateLoyaltyReward(products, preview.items, loyaltyStatus.paidDishCount, loyaltyStatus.reservedFreeDishCount) : { loyaltyPaidDishCount: 0, loyaltyFreeDishCount: 0, loyaltyDiscountCents: 0, loyaltyFreeByLine: Array(preview.items.length).fill(0) };
-    const [automatic, codePromotion] = await Promise.all([
+    const [automaticRaw, codePromotionRaw] = await Promise.all([
       prisma.promotion.findFirst({ where: { kind: 'AUTOMATIC', active: true }, orderBy: { updatedAt: 'desc' } }),
       input.promoCode?.trim() ? prisma.promotion.findUnique({ where: { code: normalizePromotionCode(input.promoCode) } }) : Promise.resolve(null),
     ]);
+    const hasPastOrder = user?.role === 'CUSTOMER' ? !!await prisma.order.findFirst({ where: { userId: user.id, OR: [
+      { paymentStatus: { in: ['PAID', 'CREDITED'] } },
+      { paymentStatus: 'PENDING', status: 'PENDING', placedAt: { gt: new Date(Date.now() - 45 * 60_000) } },
+    ] }, select: { id: true } }) : true;
+    const eligibleForFirstOrder = user?.role === 'CUSTOMER' && !hasPastOrder;
+    const automatic = automaticRaw?.firstOrderOnly && !eligibleForFirstOrder ? null : automaticRaw;
+    const codePromotion = codePromotionRaw?.firstOrderOnly && !eligibleForFirstOrder ? null : codePromotionRaw;
     const discount = selectPromotion({ automatic, codePromotion, code: input.promoCode, subtotalCents: preview.subtotalCents - loyalty.loyaltyDiscountCents });
     return Response.json({ ...preview, ...discount, ...loyalty, items: preview.items.map((item, index) => ({ ...item, loyaltyFreeQuantity: loyalty.loyaltyFreeByLine[index] ?? 0 })) });
   } catch (error) {

@@ -1,9 +1,10 @@
 import Link from 'next/link';
 import styles from './contact.module.css';
+import ContactForm from './contact-form';
 
 export const metadata = {
   title: 'Contact | Pizzeria Roma · Namur',
-  description: 'Retrouvez Pizzeria Roma à Namur, consultez nos horaires et préparez votre visite.',
+  description: 'Retrouvez les horaires de Pizzeria Roma à Namur et écrivez-nous via le formulaire de contact.',
 };
 
 export default function ContactPage() {
@@ -45,6 +46,7 @@ export default function ContactPage() {
           </div>
         </article>
       </section>
+      <ContactForm />
     </main>
   );
 }

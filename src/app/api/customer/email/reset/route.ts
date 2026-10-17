@@ -6,9 +6,9 @@ import { redeemCustomerEmailToken } from '../../../../../lib/customer-email-link
 import { validatePasswordReset } from '../../../../../lib/customer-profile.mjs';
 import { hashCustomerPassword } from '../../../../../lib/customer-password.mjs';
 import { readJson } from '../../../../../lib/http-json';
-import { testOrdersEnabled } from '../../../../../lib/test-mode';
+import { customerAccountsEnabled } from '../../../../../lib/customer-accounts';
 export async function POST(request: Request) {
-  if (!testOrdersEnabled()) return Response.json({ error: 'NOT_FOUND' }, { status: 404 });
+  if (!customerAccountsEnabled()) return Response.json({ error: 'NOT_FOUND' }, { status: 404 });
   if (!isSameOriginMutation(request, process.env.APP_ORIGIN)) return Response.json({ error: 'FORBIDDEN' }, { status: 403 });
   try {
     const input = validatePasswordReset(await readJson(request, 4096));

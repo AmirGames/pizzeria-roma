@@ -52,3 +52,8 @@ Les compteurs actifs portent sur toutes les dates et reprennent les mêmes statu
 Le total quotidien comprend tous les statuts, distingue livraison/retrait et compte les essais actuellement CANCELLED/REJECTED. Il ne mesure pas les actions effectuées aujourd’hui ni un revenu. Les agrégats sont lus dans une transaction cohérente et aucune coordonnée client ni détail d’article n’est chargé par cette page. L’heure de lecture est affichée, avec une actualisation manuelle. Aucun changement de statut n’est effectué par le tableau lui-même.
 
 Les tests couvrent hiver, été, journées de 23/25 heures et changement d’année ; permissions, mode désactivé et absence de données personnelles ; exactitude des bornes quotidiennes, navigation vers les filtres, mise à jour depuis la file et actualisation du résumé. Aucune migration supplémentaire.
+## Commandes Stripe
+
+La file des commandes réelles propose le remboursement Stripe et l’avoir complet uniquement aux MANAGER. L’avoir remplace le remboursement et requiert la confirmation du gérant que le client propriétaire a accepté ; l’horodatage et l’identifiant gérant sont conservés au journal. Cette option n’est disponible que pour les commandes reliées à un compte client. Le suivi `/gerant/remboursements` est réservé aux MANAGER.
+
+Les remboursements Stripe avec confirmation immédiate annulent la commande ; les remboursements en attente passent à REFUND_REQUIRED et sont retirés de la file cuisine. `charge.refunded` confirme le remboursement et restitue le crédit précédemment utilisé ; `refund.failed` replace le paiement à traiter dans la file cuisine. L’identifiant idempotent inclut la révision de commande afin de permettre une nouvelle tentative après échec.

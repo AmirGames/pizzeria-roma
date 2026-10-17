@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import InstallPwa from './install-pwa';
 
 export default function SiteFooter() {
   return <footer className="site-footer" id="contact">
@@ -21,6 +22,7 @@ export default function SiteFooter() {
         <Link href="/commande">Livraison & retrait</Link>
         <Link href="/panier">Mon panier</Link>
       </nav>
+      <InstallPwa />
     </div>
     <div className="site-footer-bottom"><span>© {new Date().getFullYear()} Pizzeria Roma · Namur</span><span>Fait avec passion en Italie, servi à Namur</span></div>
   </footer>;

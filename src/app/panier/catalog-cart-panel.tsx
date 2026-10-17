@@ -10,9 +10,10 @@ import type { CatalogCartLine } from '../../lib/catalog-cart.mjs';
 type Preview = { items: Array<{ productId: string; label: string; quantity: number; sizeLabel?: string; extraIds: string[]; extraLabels: string[]; removedIngredients: string[]; unitCents: number; totalCents: number; loyaltyFreeQuantity?: number }>; subtotalCents: number; totalCents?: number; discountCents?: number; loyaltyDiscountCents?: number; promotion?: { name: string } | null };
 const money = (cents: number) => new Intl.NumberFormat('fr-BE', { style: 'currency', currency: 'EUR' }).format(cents / 100);
 
-export default function CatalogCartPanel({ items, setItems }: {
+export default function CatalogCartPanel({ items, setItems, realOrdersEnabled = false }: {
   items: CatalogCartLine[];
   setItems: Dispatch<SetStateAction<CatalogCartLine[]>>;
+  realOrdersEnabled?: boolean;
 }) {
   const [editing, setEditing] = useState<CatalogCartLine | null>(null);
   const [actionError, setActionError] = useState('');
@@ -24,7 +25,7 @@ export default function CatalogCartPanel({ items, setItems }: {
   useEffect(() => {
     const controller = new AbortController();
     setStatus('loading');
-    fetch('/api/cart/preview', {
+    fetch(realOrdersEnabled ? '/api/orders/preview' : '/api/cart/preview', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ items, mode: 'pickup' }),
@@ -45,7 +46,7 @@ export default function CatalogCartPanel({ items, setItems }: {
   }
 
   return <>
-    <div className="roma-cart-intro"><p className="eyebrow">VOTRE SÉLECTION</p><h1>Votre panier</h1><p>Prix et articles relus depuis la carte du restaurant. Aucune commande n’est envoyée.</p></div>
+    <div className="roma-cart-intro"><p className="eyebrow">VOTRE SÉLECTION</p><h1>Votre panier</h1><p>{realOrdersEnabled ? 'Articles et prix recalculés par le serveur avant le paiement sécurisé.' : 'Prix et articles relus depuis la carte du restaurant. Aucune commande n’est envoyée.'}</p></div>
     {editing && <CartItemEditor original={editing} onCancel={() => setEditing(null)} onApply={(original, replacement) => {
       const next = replaceCatalogCartItem(latestItems.current, original, replacement);
       latestItems.current = next; setItems(next); setEditing(null); setActionError('');
@@ -76,7 +77,12 @@ export default function CatalogCartPanel({ items, setItems }: {
         {preview?.discountCents ? <div className="roma-summary-promo"><span>{preview.promotion?.name ?? 'Promotion'}</span><strong>−{money(preview.discountCents)}</strong></div> : null}
         <div><span>Livraison</span><span>À calculer selon le mode choisi</span></div>
         <div className="roma-summary-total"><span>Total</span><strong>{status === 'ready' && preview ? money(preview.totalCents ?? preview.subtotalCents) : '—'}</strong></div>
-        <Link href="/commande" className="roma-checkout">Prévisualiser livraison ou retrait →</Link>
+        <section className="roma-cart-access" aria-labelledby="cart-access-title">
+          <h3 id="cart-access-title">Comment souhaitez-vous continuer ?</h3>
+          <Link href="/compte?retour=commande" className="roma-checkout">Créer un compte ou se connecter →</Link>
+          <Link href="/commande" className="roma-cart-guest">Continuer en invité →</Link>
+          <p>{realOrdersEnabled ? 'Choisissez de créer un compte, de vous connecter ou de continuer en invité.' : 'En invité, vous pouvez consulter les options de livraison et de retrait. Les commandes réelles ne sont pas encore ouvertes ; les commandes de test nécessitent un compte client.'}</p>
+        </section>
         <p>Les prix et le sous-total proviennent du serveur. Ce récapitulatif ne crée ni commande ni paiement.</p>
       </aside>
     </div>

@@ -15,11 +15,12 @@ export async function POST(request: Request) {
     let input;
     try { input = JSON.parse(raw); } catch { throw new Error('INVALID_ACCESS'); }
     if (!input || typeof input !== 'object' || Array.isArray(input) || Object.keys(input).length !== 1 || typeof input.token !== 'string') throw new Error('INVALID_ACCESS');
-    const token = await prisma.$transaction(tx => redeemManagerAccess(tx, input.token));
+    const token = await prisma.$transaction(tx => redeemManagerAccess(tx, input.token), { maxWait: 10_000, timeout: 10_000 });
     (await cookies()).set(SESSION_COOKIE, token, { ...SESSION_COOKIE_OPTIONS, secure: process.env.NODE_ENV !== 'development' });
     return Response.json({ ok: true }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     const invalid = error instanceof Error && error.message === 'INVALID_ACCESS';
+    if (!invalid) console.error('Manager session creation failed', error);
     return Response.json({ error: invalid ? 'INVALID_ACCESS' : 'SERVICE_UNAVAILABLE' }, { status: invalid ? 401 : 503 });
   }
 }

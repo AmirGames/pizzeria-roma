@@ -46,13 +46,13 @@ export default function PizzaCreator({ categories, ingredientChoices, onCreated 
     } catch { setError('Connexion interrompue. Rechargez la carte pour vérifier si le brouillon a été créé.'); }
     finally { setBusy(false); }
   }
-  return <details className="manager-creator"><summary>Ajouter un plat</summary>
-    {!categories.length ? <p>Créez d’abord une catégorie.</p> : <form onSubmit={create}><fieldset disabled={busy}><legend>Nouveau plat</legend><p>Le plat est créé en brouillon. Vous pourrez ajouter ses formats et suppléments avant de le publier.</p>
+  return <details className="manager-creator"><summary id="add-product">Ajouter un plat</summary>
+    {!categories.length ? <p>Créez d’abord une catégorie.</p> : <form onSubmit={create}><fieldset disabled={busy}><legend>Nouveau plat</legend><p>Renseignez son nom, sa catégorie, son prix et ses ingrédients. Le plat sera créé masqué ; vous pourrez vérifier sa fiche avant de l’afficher sur le site.</p>
       <label>Catégorie<select required value={categoryId} onChange={event => setCategoryId(event.target.value)}>{categories.map(category => <option key={category.id} value={category.id}>{category.nameFr}</option>)}</select></label>
       <label>Nom du plat<input required maxLength={128} value={nameFr} onChange={event => setNameFr(event.target.value)} /></label>
       <label>Nom anglais (facultatif)<input maxLength={128} value={nameEn} onChange={event => setNameEn(event.target.value)} /></label>
-      <label>Prix (€), si le plat n’a pas de formats<input inputMode="decimal" value={price} onChange={event => setPrice(event.target.value)} /></label>
-      <label>Formats et prix (un par ligne : 33 cm=12,00)<textarea rows={3} value={sizeLines} onChange={event => setSizeLines(event.target.value)} /></label>
+      <label>Prix (€) pour un plat sans plusieurs tailles<input inputMode="decimal" value={price} onChange={event => setPrice(event.target.value)} /><small>Exemple : 12,50. Laissez vide si vous renseignez des formats ci-dessous.</small></label>
+      <label>Tailles et prix, si le plat en a plusieurs<textarea rows={3} value={sizeLines} onChange={event => setSizeLines(event.target.value)} /><small>Une taille par ligne, par exemple : 33 cm=12,00</small></label>
       {isPizza ? <fieldset><legend>Ingrédients de la pizza</legend><p>Cochez sa composition : le client pourra retirer ces ingrédients ou en ajouter une portion supplémentaire depuis le catalogue.</p>{choices.length ? choices.map(ingredient => <label className="manager-check" key={ingredient}><input type="checkbox" checked={ingredients.includes(ingredient)} onChange={() => toggleIngredient(ingredient)} />{ingredient}</label>) : <p>Ajoutez d’abord les ingrédients dans le catalogue central ci-dessus.</p>}</fieldset> : <label>Composition / ingrédients, un par ligne<textarea rows={4} value={ingredientsText} onChange={event => setIngredientsText(event.target.value)} /></label>}
       <button type="submit">{busy ? 'Création…' : 'Créer le brouillon'}</button>
     </fieldset>{error && <p role="alert">{error}</p>}</form>}

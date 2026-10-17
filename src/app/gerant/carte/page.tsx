@@ -16,6 +16,6 @@ export default async function ManagerCatalogPage() {
     const categories = await prisma.menuCategory.findMany({ orderBy: [{ position: 'asc' }, { nameFr: 'asc' }] });
     const ingredients = await prisma.ingredient.findMany({ orderBy: { nameFr: 'asc' } });
     const products = await prisma.product.findMany({ orderBy: [{ categoryId: 'asc' }, { nameFr: 'asc' }], include: { category: true, sizes: { orderBy: { priceCents: 'asc' } }, extras: { orderBy: { nameFr: 'asc' } } } });
-    return <main className="manager-page"><p className="manager-eyebrow">MENU · PRODUITS ET PRIX</p><h1>Gérer la carte</h1><p className="manager-lede">Gérez les catégories, le catalogue central d’ingrédients et les plats.</p><CatalogEditor initialProducts={products} initialCategories={categories} initialIngredients={ingredients} /></main>;
+    return <main className="manager-page"><p className="manager-eyebrow">ESPACE GÉRANT · CARTE DU RESTAURANT</p><h1>Gérer la carte</h1><p className="manager-lede">Modifiez les plats et les prix affichés sur le site. Vos changements sont publiés lorsque vous cliquez sur « Enregistrer ».</p><CatalogEditor initialProducts={products} initialCategories={categories} initialIngredients={ingredients} /></main>;
   } catch { return <main className="manager-page"><p className="manager-eyebrow">MENU · PRODUITS ET PRIX</p><h1>Gérer la carte</h1><p role="alert">La carte est indisponible pour le moment. Réessayez plus tard.</p></main>; }
 }

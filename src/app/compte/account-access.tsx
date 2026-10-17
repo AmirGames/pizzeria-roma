@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
-export default function AccountAccess({ returnTo }: { returnTo: string }) {
+export default function AccountAccess({ returnTo, testMode = false, canRecover = false }: { returnTo: string; testMode?: boolean; canRecover?: boolean }) {
   const [action, setAction] = useState<'login' | 'register'>('login');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -17,13 +17,13 @@ export default function AccountAccess({ returnTo }: { returnTo: string }) {
     } catch { setError('Service indisponible. Réessayez plus tard.'); }
     finally { setBusy(false); }
   }
-  return <section aria-label="Accès client"><div className="customer-actions"><button type="button" aria-pressed={action === 'login'} onClick={() => { setAction('login'); setError(''); }}>Se connecter</button><button type="button" aria-pressed={action === 'register'} onClick={() => { setAction('register'); setError(''); }}>Créer un compte</button></div>
+  return <section className="customer-account-access" aria-label="Accès client"><div className="customer-actions"><button type="button" aria-pressed={action === 'login'} onClick={() => { setAction('login'); setError(''); }}>Se connecter</button><button type="button" aria-pressed={action === 'register'} onClick={() => { setAction('register'); setError(''); }}>Créer un compte</button></div>
     <form method="post" onSubmit={submit}><fieldset disabled={busy}><legend>{action === 'register' ? 'Inscription' : 'Connexion'}</legend>
       {action === 'register' && <label>Votre nom<input name="name" required maxLength={128} autoComplete="name" /></label>}
       <label>Adresse e-mail<input name="email" type="email" required maxLength={320} autoComplete="email" /></label>
       <label>Mot de passe<input name="password" type="password" required minLength={12} maxLength={128} autoComplete={action === 'register' ? 'new-password' : 'current-password'} /></label>
-      <p>12 caractères minimum. Cet espace est réservé aux essais ; les e-mails sont capturés dans la boîte mail locale si elle est configurée.</p>
-      <button type="submit">{busy ? 'Patientez…' : action === 'register' ? 'Créer mon compte de test' : 'Ouvrir mon espace'}</button>
-    </fieldset><Link href="/compte/mot-de-passe-oublie">Mot de passe oublié ?</Link>{error && <p role="alert">{error}</p>}</form>
+      <p>12 caractères minimum. La vérification de l’adresse e-mail et la récupération du mot de passe dépendent de la configuration du service d’envoi.</p>
+      <button type="submit">{busy ? 'Patientez…' : action === 'register' ? testMode ? 'Créer mon compte de test' : 'Créer mon compte' : 'Ouvrir mon espace'}</button>
+    </fieldset>{canRecover && <Link href="/compte/mot-de-passe-oublie">Mot de passe oublié ?</Link>}{error && <p role="alert">{error}</p>}</form>
   </section>;
 }

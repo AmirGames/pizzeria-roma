@@ -56,10 +56,20 @@ export async function POST(request: Request) {
           tx.promotion.findFirst({ where: { kind: 'AUTOMATIC', active: true }, orderBy: { updatedAt: 'desc' } }),
           input.promoCode ? tx.promotion.findUnique({ where: { code: input.promoCode } }) : Promise.resolve(null),
         ]);
-        const discount = selectPromotion({ automatic, codePromotion, code: input.promoCode, subtotalCents: preview.subtotalCents - loyalty.loyaltyDiscountCents });
+        const hasPastOrder = !!await tx.order.findFirst({ where: { userId: user.id, OR: [
+          { paymentStatus: { in: ['PAID', 'CREDITED'] } },
+          { paymentStatus: 'PENDING', status: 'PENDING', placedAt: { gt: new Date(Date.now() - 45 * 60_000) } },
+        ] }, select: { id: true } });
+        const eligibleForFirstOrder = !hasPastOrder;
+        const discount = selectPromotion({
+          automatic: automatic?.firstOrderOnly && !eligibleForFirstOrder ? null : automatic,
+          codePromotion: codePromotion?.firstOrderOnly && !eligibleForFirstOrder ? null : codePromotion,
+          code: input.promoCode, subtotalCents: preview.subtotalCents - loyalty.loyaltyDiscountCents,
+        });
         if (discount.totalCents !== input.expectedTotalCents) throw new Error('PRICE_CHANGED');
         if (discount.codeError) throw new Error('PROMO_CODE_INVALID');
-        if (discount.promotion) {
+        const firstOrderOnly = discount.promotion?.id === automatic?.id ? automatic?.firstOrderOnly : discount.promotion?.id === codePromotion?.id ? codePromotion?.firstOrderOnly : false;
+        if (discount.promotion && !firstOrderOnly) {
           const usage = await tx.promotion.updateMany({ where: { id: discount.promotion.id, active: true, ...(discount.promotion.code ? { code: discount.promotion.code } : {}), OR: [{ usageLimit: null }, { usageCount: { lt: (automatic?.id === discount.promotion.id ? automatic?.usageLimit : codePromotion?.usageLimit) ?? 2147483647 } }] }, data: { usageCount: { increment: 1 } } });
           if (usage.count !== 1) throw new Error('PROMOTION_UNAVAILABLE');
         }

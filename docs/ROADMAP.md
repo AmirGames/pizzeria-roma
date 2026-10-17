@@ -1,58 +1,50 @@
-# Roadmap GitHub
+# Roadmap
 
-## État des pull requests
+## État du projet
 
-Les PR GitHub **#1 à #18 sont fusionnées**. Les jalons produit ci-dessous décrivent le travail restant et ne reprennent pas nécessairement la numérotation des PR.
+Le dépôt local comprend le storefront, le catalogue, l’édition du panier, l’espace client en mode test, les outils gérant/cuisine et le socle serveur des commandes Stripe réelles. Le flux commercial reste désactivé par défaut et n’est pas prêt pour une ouverture publique.
 
-- [x] PR #1–#8 : fondations, catalogue, personnalisation, panier de démonstration et règles de livraison/retrait.
-- [x] PR #9 : connecter le panier de démonstration aux règles de livraison et de retrait.
-- [x] PR #10 : aperçu serveur des sélections depuis le catalogue Prisma.
-- [x] PR #11 : publier en lecture seule le catalogue actif.
-- [x] PR #12 : ajouter les sélections du catalogue au panier et recalculer côté serveur les prix et règles.
-- [x] PR #13 : aligner la roadmap et les règles commerciales.
-- [x] PR #14 : transcrire le menu daté du 14/10/2026.
-- [x] PR #15 : charger explicitement les 88 produits, tarifs et choix confirmés du menu 2026 dans le catalogue.
-- [x] PR #16 : synchroniser la documentation du projet.
-- [x] PR #17 : afficher l’état informatif des horaires hebdomadaires.
-- [x] PR #18 : appliquer 18h–22h aux jours fériés légaux belges, dimanche fermé.
+Les commandes de test sont isolées dans `TestOrder`. Elles ne déclenchent ni paiement, ni préparation réelle, ni réservation opérationnelle. La fusion du code ne déploie pas le site et n’applique aucune migration à une base.
 
-## Catalogue du menu actuel — PR #15 fusionnée
+## À obtenir ou confirmer auprès du restaurant
 
-La carte est transcrite dans [RESTAURANT_MENU_SOURCE.md](RESTAURANT_MENU_SOURCE.md) et les données structurées dans `prisma/menu-2026-10-14.mjs`. Après migration, le seed doit être lancé explicitement sur la base voulue ; aucune étape de build ou de déploiement ne le lance automatiquement. La fusion de la PR ne prouve pas que la base d’un environnement particulier a été amorcée.
+- [ ] Fournir la composition exacte des pizzas et les tarifs de chaque supplément, par format.
+- [ ] Confirmer les allergènes et les disponibilités des produits.
+- [ ] Confirmer les jours fériés de remplacement et les exceptions d’horaires.
+- [ ] Confirmer les frontières de livraison, minima et réglages opérationnels avant toute ouverture commerciale.
 
-- [x] Représenter côté serveur les choix de pâtes, les tarifs tagliatelle, les choix de desserts et le supplément fromage exclusif.
-- [ ] Obtenir du restaurant la liste et les prix individuels des suppléments pizza avant de les ajouter.
-- [ ] Confirmer auprès du restaurant les allergènes et disponibilités avant publication.
-- [x] Garder les catégories de fulfillment fiables côté serveur ; salades, viande, boissons et desserts restent `OTHER`. La règle concernant les desserts reste inchangée.
+Les informations manquantes ne doivent pas être déduites des noms des plats ou inventées dans le seed.
 
-Les règles de livraison et retrait restent inchangées. Aucune commande réelle ni aucun paiement n'est activé.
+## Avant une éventuelle prise de commandes commerciales
 
-## Horaires hebdomadaires — aperçu
+- [x] Socle serveur Stripe Checkout : prix et créneaux recalculés côté serveur, paiements Bancontact et carte (Apple Pay/Google Pay selon l’appareil), confirmation signée par webhook, file cuisine et ticket imprimable depuis le navigateur.
+- [ ] Créer/configurer le compte Stripe marchand, tester en mode test et activer explicitement les moyens de paiement. PayPal n’est pas prévu.
+- [x] Implémenter l’espace client des commandes réelles, l’historique/détail, les promotions dont l’offre première commande, les avoirs et remboursements gérant.
+- [ ] Appliquer les migrations réelles et tester le parcours complet paiement, avoir, remboursement, annulation et offre première commande avec Stripe en mode test.
+- [ ] Confirmer les informations légales, CGV, fiscalité, prix, disponibilité, horaires, zones/minima et capacités opérationnelles.
+- [ ] Préparer le pilote, la surveillance, les sauvegardes et les procédures d’exploitation.
+- [ ] Identifier l’imprimante et son ordinateur. L’impression actuelle ouvre la boîte d’impression du navigateur et nécessite une action du personnel.
+- [ ] Configurer et tester le compte Resend, le domaine expéditeur et la délivrabilité, puis valider/documenter la conservation des données de commande avant l’ouverture publique. Le branchement d’envoi client Resend est implémenté ; la suppression authentifiée du compte anonymise/dissocie les commandes réelles terminées et bloque les commandes ou avoirs actifs.
 
-La page `/commande` affiche un statut informatif calculé dans le fuseau `Europe/Brussels` à partir des horaires habituels. Selon le menu du 14/10/2026, les jours fériés légaux belges ont un horaire 18h–22h ; le dimanche reste fermé. Les jours de remplacement et exceptions spécifiques doivent être confirmés avec le restaurant. L’indicateur ne conditionne pas le checkout.
+Les commandes réelles restent désactivées tant que `ENABLE_REAL_ORDERS` n’est pas exactement `true`. Une clé Stripe `sk_live_` est aussi refusée sans `ENABLE_LIVE_PAYMENTS=true` et une origine HTTPS. Ne pas activer ces variables avant l’achèvement des points restants.
 
-## Couverture d’adresse et disponibilité en mode test
+## Améliorations produit envisagées
 
-- [x] Le client saisit son adresse sans placer de repère ; ICAR (Géoportail de Wallonie) fournit une position, éventuellement approximative sur la rue, et le serveur calcule la zone depuis les frontières dessinées par le gérant.
-- [x] Le gérant peut dessiner les frontières des zones sur `/gerant/livraison`.
-- [x] Créneaux de 15 minutes pendant les heures d’ouverture, jusqu’à 7 jours à l’avance ; capacité initiale de 7 pizzas par créneau et délai minimum initial de 30 minutes pour le retrait et la livraison modifiables par pas de 15 minutes.
-- [ ] Confirmer les frontières concrètes, horaires d’exception et valeurs opérationnelles avant une éventuelle ouverture commerciale.
-- [ ] Concevoir la création et le suivi des commandes avec autorisation serveur et processus de cuisine.
-- [ ] Étudier les paiements et remboursements après validation juridique, contractuelle et opérationnelle.
-- [ ] Préparer le pilote, la surveillance et les sauvegardes avant toute mise en production.
+- [x] PWA installable avec manifeste, icônes et page de secours hors ligne. Le catalogue, les prix et le checkout demandent toujours une connexion ; aucune commande n’est mise en attente hors ligne.
+- [ ] Traduction anglaise complète de la boutique, du panier, du checkout, des e-mails et de l’espace client.
+- [ ] Compléter les exigences de protection et d’exploitation des comptes clients pour une ouverture publique.
 
-Les fonctions d’adresse et de créneaux ne s’appliquent qu’aux essais. Tant que les validations commerciales et opérationnelles ne sont pas acquises, aucun checkout commercial, commande réelle ou paiement ne doit être activé. Ne pas modifier la règle des desserts sans confirmation.
+## Fonctionnalités déjà livrées
 
-À chaque PR : ajouter les tests appropriés, exécuter le typecheck et le build, et mettre à jour le README, le changelog et la documentation fonctionnelle concernée.
+- Catalogue du menu daté, panier avec validation des prix côté serveur, personnalisation des pizzas, promotions, fidélité et gestion de la carte.
+- Comptes clients de test, adresses privées, export JSON, historique et reprise de sélection, vérification e-mail et récupération de mot de passe locales.
+- Catalogue public mis en cache côté serveur ; les modifications du menu dans l’espace gérant invalident immédiatement le cache.
+- Fidélité des commandes réelles réservée au checkout, comptabilisée après terminaison, et détail de commande/exports présentant le calcul des remises.
+- Connexion, inscription, gestion du profil et des adresses activées quand les commandes réelles sont actives ; suppression du compte protégée par mot de passe, avec conservation prudente des commandes terminées et blocage en cas de commande ou d’avoir en cours.
+- Checkout réel connecté au carnet d’adresses client ; l’adresse enregistrée est revalidée contre les zones de livraison au checkout.
+- Tableau de bord gérant avec compteurs des commandes payées et chiffre du jour, plus suivi séparé des essais ; file gérant/cuisine actualisée automatiquement toutes les 20 secondes quand elle est visible, zones et créneaux.
+- Corrections de production, CI et affichage mobile jusqu’à la PR #33.
 
-## Proposition du 15/10/2026
+Les règles de livraison et de retrait documentées dans le README restent les règles de référence. Ne pas modifier les règles concernant les desserts sans confirmation du restaurant.
 
-Personnalisation interactive et espace gérant avec accès privé : voir [MANAGER.md](MANAGER.md) et [PIZZA_CUSTOMIZATION.md](PIZZA_CUSTOMIZATION.md). Ces changements ont été fusionnés dans la PR #20 ; aucun déploiement n’est effectué. Les compositions et tarifs des suppléments restent à fournir ; les migrations doivent être appliquées explicitement.
-
-## Proposition suivante — édition du panier
-
-Modification du format, des suppléments et des retraits directement depuis le panier, avec validation serveur et conservation des quantités. Les recettes identiques sont regroupées ; un changement externe du panier bloque une édition devenue obsolète. Tests du parcours dans Chromium.
-
-## Proposition — espace client et commandes locales
-
-Comptes clients et workflow de test explicites : inscription/connexion, coordonnées fictives, confirmation, historique et statut simulé gérant/cuisine. La prise de commandes commerciales, les paiements et la validation réelle des adresses restent désactivés. Voir [CUSTOMER_TESTS.md](CUSTOMER_TESTS.md).
+À chaque PR, ajouter les vérifications adaptées et synchroniser le README, le changelog et la documentation fonctionnelle concernée.

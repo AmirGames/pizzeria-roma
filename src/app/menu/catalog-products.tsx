@@ -25,6 +25,43 @@ const recipes: Record<string, string> = {
   '4 Formaggi': 'Tomates, mozzarella, Bel Paese, gorgonzola, taleggio',
 };
 
+// Photos that were confidently identified from the restaurant's image folder.
+// Products without a matching photo keep using the existing menu collage.
+const pizzaPhotoBySlug: Record<string, string> = {
+  margherita: 'margherita',
+  salami: 'salami-ou-chorizo',
+  chorizo: 'salami-ou-chorizo',
+  napoli: 'napoli',
+  prosciutto: 'prosciutto',
+  funghi: 'funghi',
+  'sole-mio': 'sole-mio',
+  hawai: 'hawaienne',
+  regina: 'regina',
+  viennese: 'viennese',
+  calzone: 'calzone',
+  capricciosa: 'capricciosa',
+  '4-stagioni': 'quattro-stagioni',
+  ortolana: 'ortolana',
+  brocoli: 'brocoli',
+  roma: 'roma',
+  colosseo: 'colosseo',
+  vegetarienne: 'vegetarienne',
+  maria: 'maria',
+  forestiere: 'forestiere',
+  merguez: 'merguez',
+  'mamma-mia': 'mamma-mia',
+  rucola: 'rucola',
+  exotic: 'exotic',
+  carpaccio: 'carpaccio',
+  tartiflette: 'tartiflette',
+  'al-tonno': 'al-tonno',
+  salmone: 'salmone',
+  'frutti-di-mare': 'frutti-di-mare',
+  scampi: 'scampi',
+  'mare-e-monte': 'mare-e-monte',
+  royale: 'royale',
+};
+
 function priceRange(product: CatalogProduct) {
   const prices = product.sizes.length ? product.sizes.map(size => size.priceCents) : [product.baseCents];
   const lowest = Math.min(...prices);
@@ -79,7 +116,8 @@ function ProductCard({ product, onAdd, index, isPizza, itemPhotoIndex, itemPhoto
   const name = displayName ?? product.nameFr;
   const photoIndex = isPizza ? thumbnailIndex(product.nameFr, index) : itemPhotoIndex ?? index % 6;
   const position = `${(photoIndex % 3) * 50}% ${itemPhotoIndex !== undefined ? Math.floor(photoIndex / 3) * 50 : photoIndex < 3 ? 0 : 100}%`;
-  const photoUrl = isPizza ? '/roma-pizzas.png' : itemPhotoIndex !== undefined ? itemPhotoSource === 'pasta' ? '/roma-pasta-items.png' : '/roma-menu-items.png' : '/roma-categories-portrait.png';
+  const pizzaPhoto = isPizza ? pizzaPhotoBySlug[categorySlug(product.nameFr)] : undefined;
+  const photoUrl = pizzaPhoto ? `/pizzas/${pizzaPhoto}.webp` : isPizza ? '/roma-pizzas.webp' : itemPhotoIndex !== undefined ? itemPhotoSource === 'pasta' ? '/roma-pasta-items.webp' : '/roma-menu-items.webp' : '/roma-categories-portrait.webp';
   const ingredients = product.ingredients?.length ? product.ingredients.join(', ') : recipes[product.nameFr] ?? (product.removableIngredients?.length ? product.removableIngredients.join(', ') : '');
   const sizes = product.sizes.map(size => size.label).join(' · ');
   return <article className={`catalog-product${allowCustomization ? '' : ' catalog-product-simple'}`} onChange={() => setAdded(false)} onClick={event => {
@@ -88,7 +126,9 @@ function ProductCard({ product, onAdd, index, isPizza, itemPhotoIndex, itemPhoto
     if (!(target instanceof Element) || target.closest('button, a, input, select, textarea, label, .catalog-product-options, [role="status"], [role="alert"]')) return;
     setCustomizing(open => !open);
   }}>
-    <div className="catalog-product-art" aria-hidden="true" style={{ backgroundImage: `url('${photoUrl}')`, backgroundPosition: position, backgroundSize: isPizza || itemPhotoIndex === undefined ? '300% 200%' : '300% 300%' }} />
+    <div className="catalog-product-art" aria-hidden="true" style={pizzaPhoto ? undefined : { backgroundImage: `url('${photoUrl}')`, backgroundPosition: position, backgroundSize: isPizza || itemPhotoIndex === undefined ? '300% 200%' : '300% 300%' }}>
+      {pizzaPhoto && <img src={photoUrl} alt="" loading="lazy" decoding="async" />}
+    </div>
     <div className="catalog-product-copy">
       {allowCustomization
         ? <button type="button" className="catalog-product-name" onClick={() => setCustomizing(open => !open)} aria-expanded={customizing}>{product.nameFr}</button>
@@ -105,22 +145,18 @@ function ProductCard({ product, onAdd, index, isPizza, itemPhotoIndex, itemPhoto
   </article>;
 }
 
-export default function CatalogProducts() {
-  const [categories, setCategories] = useState<CatalogCategory[]>([]);
-  const [status, setStatus] = useState<'loading' | 'ready' | 'unavailable'>('loading');
+export default function CatalogProducts({ initialCategories }: { initialCategories: CatalogCategory[] }) {
+  const [categories] = useState<CatalogCategory[]>(initialCategories);
   const [activeCategory, setActiveCategory] = useState('');
   const [query, setQuery] = useState('');
   const [error, setError] = useState('');
   const { items, setItems } = useCatalogCart();
 
   useEffect(() => {
-    const controller = new AbortController();
-    fetch('/api/catalog', { signal: controller.signal, cache: 'no-store' })
-      .then(async response => { if (!response.ok) throw new Error('CATALOG_UNAVAILABLE'); return response.json() as Promise<{ categories?: CatalogCategory[] }>; })
-      .then(result => { const next = Array.isArray(result.categories) ? result.categories : []; const requested = new URLSearchParams(window.location.search).get('category'); const match = requested ? next.find(category => categorySlug(category.nameFr) === requested)?.id : ''; setCategories(next); setActiveCategory(current => current || match || next[0]?.id || ''); setStatus('ready'); })
-      .catch(error => { if (error.name !== 'AbortError') setStatus('unavailable'); });
-    return () => controller.abort();
-  }, []);
+    const requested = new URLSearchParams(window.location.search).get('category');
+    const match = requested ? categories.find(category => categorySlug(category.nameFr) === requested)?.id : '';
+    setActiveCategory(current => current || match || categories[0]?.id || '');
+  }, [categories]);
 
   function add(line: Omit<CatalogCartLine, 'quantity'>) {
     try {
@@ -157,8 +193,6 @@ export default function CatalogProducts() {
   const itemPhotoSource = currentCategorySlug.startsWith('pates') ? 'pasta' : 'menu';
   const allowCustomization = !/^(boissons?|desserts?)$/.test(currentCategorySlug);
 
-  if (status === 'loading') return <p className="catalog-message" aria-live="polite">Chargement de la carte…</p>;
-  if (status === 'unavailable') return <p className="catalog-message" role="status">La carte n’est pas disponible pour le moment.</p>;
   if (categories.length === 0) return <p className="catalog-message" role="status">Les plats et tarifs seront affichés après validation et publication de la carte.</p>;
   return <>
     {error && <p role="alert" className="roma-error">{error}</p>}

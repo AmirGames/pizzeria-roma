@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { isWithinRestaurantService } from '../lib/fulfillment.mjs';
+import { realOrdersEnabled, stripeReady } from '../lib/real-orders';
 import styles from './home.module.css';
 
 const categories = [
@@ -18,13 +19,14 @@ export const metadata = {
 
 export default function HomePage() {
   const openNow = isWithinRestaurantService(new Date());
+  const onlineOrdersAvailable = realOrdersEnabled() && stripeReady();
   return <main className={styles.home}>
     <section className={styles.hero}>
       <div className={styles.heroCopy}>
         <h1>De véritables<br />saveurs italiennes<br />à Namur</h1>
         <p className={styles.intro}>Pizzas artisanales, pâtes, salades et bien plus encore.<br />À emporter ou en livraison, toujours avec passion.</p>
-        <p className={styles.notice}>Site de présentation : aucune commande ni paiement disponible pour le moment.</p>
-        <div className={styles.actions}><Link className={styles.primary} href="/menu">Commander maintenant <span aria-hidden="true">→</span></Link><Link className={styles.secondary} href="/menu">Voir la carte</Link></div>
+        <p className={styles.notice}>{onlineOrdersAvailable ? 'Commandes en ligne ouvertes · paiement sécurisé.' : 'Site de présentation : les commandes en ligne ne sont pas encore disponibles.'}</p>
+        <div className={styles.actions}><Link className={styles.primary} href="/menu">{onlineOrdersAvailable ? 'Commander maintenant' : 'Découvrir la carte'} <span aria-hidden="true">→</span></Link><Link className={styles.secondary} href="/menu">Voir la carte</Link></div>
       </div>
       <div className={styles.heroFoot}>
         <div><span aria-hidden="true">◷</span><p><b>{openNow ? 'Ouvert aujourd’hui' : 'Nos horaires'}</b><br />11h30–14h00 | 18h00–22h00<br />(Samedi : 18h00–22h00)</p></div>

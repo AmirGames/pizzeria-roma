@@ -1,11 +1,12 @@
 import { prisma } from '../../../../lib/db';
 import { requireCustomer } from '../../../../lib/customer-session';
 import { testOrdersEnabled } from '../../../../lib/test-mode';
+import { realOrdersEnabled } from '../../../../lib/real-orders';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  if (!testOrdersEnabled()) return Response.json({ error: 'NOT_FOUND' }, { status: 404 });
+  if (!testOrdersEnabled() && !realOrdersEnabled()) return Response.json({ error: 'NOT_FOUND' }, { status: 404 });
   try {
     const user = await requireCustomer();
     const data = await prisma.user.findFirst({
@@ -47,7 +48,15 @@ export async function GET() {
             fulfillment: true,
             status: true,
             totalCents: true,
+            subtotalCents: true,
+            discountCents: true,
+            loyaltyDiscountCents: true,
+            loyaltyPaidDishCount: true,
+            loyaltyFreeDishCount: true,
+            promotionName: true,
+            creditAppliedCents: true,
             currency: true,
+            itemsSnapshot: true,
             placedAt: true,
             updatedAt: true,
             items: { select: { nameSnapshot: true, quantity: true, unitPriceCents: true } },

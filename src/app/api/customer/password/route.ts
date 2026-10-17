@@ -4,9 +4,9 @@ import { isSameOriginMutation } from '../../../../lib/catalog-management.mjs';
 import { validatePasswordChange } from '../../../../lib/customer-profile.mjs';
 import { hashCustomerPassword, verifyCustomerPassword } from '../../../../lib/customer-password.mjs';
 import { readJson } from '../../../../lib/http-json';
-import { testOrdersEnabled } from '../../../../lib/test-mode';
+import { customerAccountsEnabled } from '../../../../lib/customer-accounts';
 export async function POST(request: Request) {
-  if (!testOrdersEnabled()) return Response.json({ error: 'NOT_FOUND' }, { status: 404 });
+  if (!customerAccountsEnabled()) return Response.json({ error: 'NOT_FOUND' }, { status: 404 });
   try {
     const user = await requireCustomer();
     if (!isSameOriginMutation(request, process.env.APP_ORIGIN)) return Response.json({ error: 'FORBIDDEN' }, { status: 403 });

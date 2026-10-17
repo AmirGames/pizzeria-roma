@@ -2,9 +2,9 @@ import { requireCustomer } from './customer-session';
 import { isSameOriginMutation } from './catalog-management.mjs';
 import { listCustomerAddresses, mutateCustomerAddress } from './customer-addresses';
 import { readJson } from './http-json';
-import { testOrdersEnabled } from './test-mode';
+import { customerAccountsEnabled } from './customer-accounts';
 export async function customerAddressRequest(request: Request, method: 'GET' | 'POST' | 'PATCH' | 'DELETE', id?: string) {
-  if (!testOrdersEnabled()) return Response.json({ error: 'NOT_FOUND' }, { status: 404 });
+  if (!customerAccountsEnabled()) return Response.json({ error: 'NOT_FOUND' }, { status: 404 });
   try {
     const user = await requireCustomer();
     if (method !== 'GET' && !isSameOriginMutation(request, process.env.APP_ORIGIN)) return Response.json({ error: 'FORBIDDEN' }, { status: 403 });

@@ -10,8 +10,9 @@ type ExtraDraft = { id?: string; nameFr: string; price: string; active: boolean;
 type Category = { id: string; nameFr: string; nameEn: string; fulfillmentCategory: 'PIZZA' | 'PASTA' | 'OTHER'; position: number };
 type Ingredient = { id: string; nameFr: string; nameEn: string; price33Cents: number; price50Cents: number; active: boolean };
 const euroInput = (cents: number) => (cents / 100).toFixed(2).replace('.', ',');
+const normalizeName = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('fr');
 
-function ProductEditor({ product, categories, ingredientChoices, onSaved }: { product: ManagerProduct; categories: Category[]; ingredientChoices: string[]; onSaved: (product: ManagerProduct) => void }) {
+function ProductEditor({ product, categories, ingredientChoices, onSaved, onDirty }: { product: ManagerProduct; categories: Category[]; ingredientChoices: string[]; onSaved: (product: ManagerProduct) => void; onDirty: () => void }) {
   const [nameFr, setNameFr] = useState(product.nameFr);
   const [nameEn, setNameEn] = useState(product.nameEn);
   const [categoryId, setCategoryId] = useState(product.categoryId);
@@ -55,23 +56,26 @@ function ProductEditor({ product, categories, ingredientChoices, onSaved }: { pr
         return;
       }
       const result = await response.json() as { product: ManagerProduct };
+      event.currentTarget.dataset.dirty = 'false';
       onSaved(result.product);
     } catch { setStatus('La connexion a été interrompue. Rechargez la page pour vérifier si les changements ont été enregistrés.'); }
     finally { setSaving(false); }
   }
-  return <form className="manager-product" onSubmit={save}>
-    <fieldset disabled={saving}><legend>{product.nameFr}</legend>
-      <label>Nom de l’article<input required maxLength={128} value={nameFr} onChange={event => setNameFr(event.target.value)} /></label>
-      <label>Nom anglais<input maxLength={128} value={nameEn} onChange={event => setNameEn(event.target.value)} /></label>
+  return <form className="manager-product" onChange={event => { event.currentTarget.dataset.dirty = 'true'; onDirty(); }} onClick={event => { if (event.target instanceof Element && event.target.closest('button[type="button"]')) { event.currentTarget.dataset.dirty = 'true'; onDirty(); } }} onSubmit={save}>
+    <header className="manager-product-heading"><div><p>Fiche du plat</p><h2>{product.nameFr}</h2><span>Modifiez les champs, puis enregistrez pour publier.</span></div><span className={`manager-product-state${active ? ' is-active' : ''}`}>{active ? 'Visible sur le site' : 'Masqué aux clients'}</span></header>
+    <fieldset disabled={saving}><legend>Informations principales</legend>
+      <label>Nom affiché sur le menu<input required maxLength={128} value={nameFr} onChange={event => setNameFr(event.target.value)} /></label>
       <label>Catégorie<select value={categoryId} onChange={event => setCategoryId(event.target.value)}>{categories.map(category => <option key={category.id} value={category.id}>{category.nameFr}</option>)}</select></label>
-      <label className="manager-check"><input type="checkbox" checked={active} onChange={event => setActive(event.target.checked)} /> Disponible sur la carte</label>
-      {sizes.length === 0 && <label>Prix (€)<input required inputMode="decimal" value={basePrice} onChange={event => setBasePrice(event.target.value)} /></label>}
-      {sizes.length > 0 && <fieldset><legend>Formats et prix</legend>{sizes.map((size, index) => <div className="manager-size" key={size.id}>
-        <label>{size.label} (€)<input required inputMode="decimal" value={size.price} onChange={event => setSizes(current => current.map((item, i) => i === index ? { ...item, price: event.target.value } : item))} /></label>
-        <label className="manager-check"><input type="checkbox" checked={size.active} onChange={event => setSizes(current => current.map((item, i) => i === index ? { ...item, active: event.target.checked } : item))} /> Disponible</label>
+      <label className="manager-check"><input type="checkbox" checked={active} onChange={event => setActive(event.target.checked)} /> Afficher ce plat sur le site</label>
+      <p className="manager-help">Si vous décochez cette case, le plat sera simplement masqué. Il ne sera pas supprimé.</p>
+      {sizes.length === 0 && <label>Prix de vente (€)<input required inputMode="decimal" value={basePrice} onChange={event => setBasePrice(event.target.value)} /><small>Exemple : 12,50</small></label>}
+      {sizes.length > 0 && <fieldset><legend>Formats et prix</legend><p className="manager-help">Chaque format et son prix sont affichés séparément au client.</p>{sizes.map((size, index) => <div className="manager-size" key={size.id}>
+        <label>{size.label} · prix (€)<input required inputMode="decimal" value={size.price} onChange={event => setSizes(current => current.map((item, i) => i === index ? { ...item, price: event.target.value } : item))} /></label>
+        <label className="manager-check"><input type="checkbox" checked={size.active} onChange={event => setSizes(current => current.map((item, i) => i === index ? { ...item, active: event.target.checked } : item))} /> Proposer ce format</label>
       </div>)}</fieldset>}
-      {isPizza ? <fieldset><legend>Composition de la pizza</legend><p>Chaque ingrédient coché s’affiche au client et peut être retiré sans réduire le prix. Un supplément peut aussi être ajouté, même s’il est déjà inclus.</p>{choices.map(ingredient => <label className="manager-check" key={ingredient}><input type="checkbox" checked={selectedIngredients.includes(ingredient)} onChange={() => setSelectedIngredients(current => current.includes(ingredient) ? current.filter(item => item !== ingredient) : [...current, ingredient])} />{ingredient}</label>)}</fieldset> : <label>Composition / ingrédients affichés au client (un par ligne)<textarea rows={5} value={composition} onChange={event => setComposition(event.target.value)} /></label>}
-      <fieldset><legend>Suppléments</legend>
+      <details className="manager-advanced"><summary>Nom en anglais (facultatif)</summary><label>Nom anglais<input maxLength={128} value={nameEn} onChange={event => setNameEn(event.target.value)} /></label></details>
+      {isPizza ? <fieldset><legend>Ingrédients de la pizza</legend><p className="manager-help">Cochez les ingrédients présents. Le client pourra demander à en retirer ou à en ajouter.</p><div className="manager-ingredient-checks">{choices.map(ingredient => <label className="manager-check" key={ingredient}><input type="checkbox" checked={selectedIngredients.includes(ingredient)} onChange={() => setSelectedIngredients(current => current.includes(ingredient) ? current.filter(item => item !== ingredient) : [...current, ingredient])} />{ingredient}</label>)}</div></fieldset> : <label>Ingrédients affichés au client (un par ligne)<textarea rows={5} value={composition} onChange={event => setComposition(event.target.value)} /><small>Écrivez un ingrédient par ligne.</small></label>}
+      <fieldset><legend>Suppléments proposés</legend><p className="manager-help">Ajoutez, masquez ou modifiez le prix des suppléments que le client peut choisir.</p>
         {extras.map((extra, index) => <fieldset key={extra.id ?? `new-${index}`}><legend>Supplément {index + 1}</legend>
           <label>Nom<input required maxLength={128} value={extra.nameFr} onChange={event => updateExtra(index, { nameFr: event.target.value })} /></label>
           <label className="manager-check"><input type="checkbox" checked={extra.active} onChange={event => updateExtra(index, { active: event.target.checked })} /> Disponible</label>
@@ -81,7 +85,7 @@ function ProductEditor({ product, categories, ingredientChoices, onSaved }: { pr
         </fieldset>)}
         <button type="button" disabled={extras.length >= 20} onClick={() => setExtras(current => [...current, { nameFr: '', price: '0,00', active: false, bySize: isPizza && sizes.length > 0, sizePrices: {} }])}>Ajouter un supplément</button>
       </fieldset>
-      <button className="catalog-add" type="submit">{saving ? 'Enregistrement…' : 'Enregistrer et publier cet article'}</button>
+      <button className="catalog-add" type="submit">{saving ? 'Enregistrement…' : 'Enregistrer les modifications'}</button>
     </fieldset>
     {status && <p role="alert">{status}</p>}
   </form>;
@@ -122,7 +126,7 @@ function IngredientEditor({ initialIngredients, onSaved }: { initialIngredients:
     } catch { setStatus('Création impossible. Vérifiez le nom et votre session gérant.'); }
     finally { setBusy(false); }
   }
-  return <details className="manager-creator"><summary>Ingrédients & suppléments ({ingredients.length})</summary><p>Chaque ingrédient actif est proposé en supplément sur toutes les pizzas. Les tarifs sont réglables par format ; ceux du menu, 1,50 € et 3,00 €, sont proposés par défaut.</p>
+  return <details className="manager-creator"><summary id="ingredients">Gérer les ingrédients et suppléments ({ingredients.length})</summary><p>Les ingrédients cochés ici peuvent être proposés en supplément sur les pizzas. Les prix peuvent varier selon le format.</p>
     {ingredients.map(item => <fieldset className="manager-ingredient-row" key={item.id}><legend>{item.nameFr}</legend><label>Nom<input value={item.nameFr} maxLength={128} disabled={busy} onChange={event => update(item.id, { nameFr: event.target.value })} /></label><label>Nom anglais<input value={item.nameEn} maxLength={128} disabled={busy} onChange={event => update(item.id, { nameEn: event.target.value })} /></label><label>Supplément 33 cm (€)<input inputMode="decimal" value={priceDrafts[item.id]?.price33 ?? euroInput(item.price33Cents)} disabled={busy} onChange={event => setPriceDrafts(current => ({ ...current, [item.id]: { price33: event.target.value, price50: current[item.id]?.price50 ?? euroInput(item.price50Cents) } }))} /></label><label>Supplément 50 cm (€)<input inputMode="decimal" value={priceDrafts[item.id]?.price50 ?? euroInput(item.price50Cents)} disabled={busy} onChange={event => setPriceDrafts(current => ({ ...current, [item.id]: { price33: current[item.id]?.price33 ?? euroInput(item.price33Cents), price50: event.target.value } }))} /></label><label className="manager-check"><input type="checkbox" checked={item.active} disabled={busy} onChange={event => update(item.id, { active: event.target.checked })} /> Proposé en supplément</label><button type="button" disabled={busy} onClick={() => void save(item)}>Enregistrer</button></fieldset>)}
     <form onSubmit={add}><fieldset disabled={busy}><legend>Ajouter un ingrédient</legend><label>Nom<input required maxLength={128} value={draft.nameFr} onChange={event => setDraft(current => ({ ...current, nameFr: event.target.value }))} /></label><label>Nom anglais (facultatif)<input maxLength={128} value={draft.nameEn} onChange={event => setDraft(current => ({ ...current, nameEn: event.target.value }))} /></label><label>Prix en supplément 33 cm (€)<input required inputMode="decimal" value={draft.price33} onChange={event => setDraft(current => ({ ...current, price33: event.target.value }))} /></label><label>Prix en supplément 50 cm (€)<input required inputMode="decimal" value={draft.price50} onChange={event => setDraft(current => ({ ...current, price50: event.target.value }))} /></label><button type="submit">Ajouter au catalogue central</button></fieldset></form>{status && <p role="status">{status}</p>}
   </details>;
@@ -157,7 +161,7 @@ function CategoryEditor({ initialCategories, onSaved }: { initialCategories: Cat
     } catch { setStatus('Création impossible. Vérifiez les champs et votre session gérant.'); }
     finally { setBusy(false); }
   }
-  return <details className="manager-creator"><summary>Catégories du menu ({categories.length})</summary>
+  return <details className="manager-creator"><summary id="categories">Gérer les catégories ({categories.length})</summary>
     {categories.map((category, index) => <fieldset key={category.id}><legend>{category.nameFr}</legend><label>Nom<input value={category.nameFr} maxLength={128} onChange={event => setCategories(current => current.map((item, i) => i === index ? { ...item, nameFr: event.target.value } : item))} /></label><label>Nom anglais<input value={category.nameEn} maxLength={128} onChange={event => setCategories(current => current.map((item, i) => i === index ? { ...item, nameEn: event.target.value } : item))} /></label><label>Type<select value={category.fulfillmentCategory} onChange={event => setCategories(current => current.map((item, i) => i === index ? { ...item, fulfillmentCategory: event.target.value as Category['fulfillmentCategory'] } : item))}><option value="PIZZA">Pizzas</option><option value="PASTA">Pâtes</option><option value="OTHER">Autres plats</option></select></label><label>Ordre d’affichage<input type="number" min={0} max={10000} value={category.position} onChange={event => setCategories(current => current.map((item, i) => i === index ? { ...item, position: Number(event.target.value) } : item))} /></label><button type="button" disabled={busy} onClick={() => void saveCategory(category)}>Enregistrer cette catégorie</button></fieldset>)}
     <form onSubmit={addCategory}><fieldset disabled={busy}><legend>Ajouter une catégorie</legend><label>Nom<input required maxLength={128} value={nameFr} onChange={event => setNameFr(event.target.value)} /></label><label>Nom anglais (facultatif)<input maxLength={128} value={nameEn} onChange={event => setNameEn(event.target.value)} /></label><label>Type<select value={kind} onChange={event => setKind(event.target.value as Category['fulfillmentCategory'])}><option value="PIZZA">Pizzas</option><option value="PASTA">Pâtes</option><option value="OTHER">Autres plats</option></select></label><button type="submit">Ajouter la catégorie</button></fieldset></form>
     {status && <p role="status">{status}</p>}
@@ -169,9 +173,10 @@ export default function CatalogEditor({ initialProducts, initialCategories, init
   const [categories, setCategories] = useState(initialCategories);
   const [ingredients, setIngredients] = useState(initialIngredients);
   const [search, setSearch] = useState('');
-  const [selectedId, setSelectedId] = useState(initialProducts[0]?.id ?? '');
+  const [selectedId, setSelectedId] = useState(initialProducts.find(product => normalizeName(product.nameFr) === 'margherita')?.id ?? initialProducts.find(product => product.category.fulfillmentCategory === 'PIZZA')?.id ?? initialProducts[0]?.id ?? '');
   const [logoutError, setLogoutError] = useState('');
   async function logout() {
+    if (document.querySelector('.manager-product[data-dirty="true"]') && !window.confirm('Vos dernières modifications ne sont pas enregistrées. Quitter quand même ?')) return;
     try {
       const response = await fetch('/api/manager/session', { method: 'DELETE', headers: { 'Content-Type': 'application/json' } });
       if (!response.ok) throw new Error();
@@ -179,30 +184,52 @@ export default function CatalogEditor({ initialProducts, initialCategories, init
     } catch { setLogoutError('Déconnexion impossible. Réessayez.'); }
   }
   const [saved, setSaved] = useState('');
-  const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('fr');
-  const filteredProducts = products.filter(product => normalize(`${product.nameFr} ${product.category.nameFr}`).includes(normalize(search)));
-  const visibleProducts = products.filter(product => product.id === selectedId || filteredProducts.includes(product));
+  const filteredProducts = products.filter(product => normalizeName(`${product.nameFr} ${product.category.nameFr}`).includes(normalizeName(search))).sort((a, b) => {
+    const categoryOrder = (categories.find(category => category.id === a.categoryId)?.position ?? 0) - (categories.find(category => category.id === b.categoryId)?.position ?? 0);
+    return categoryOrder || a.nameFr.localeCompare(b.nameFr, 'fr');
+  });
   const selected = products.find(product => product.id === selectedId);
   const ingredientChoices = [...new Set([...ingredients.map(item => item.nameFr), ...products.filter(product => product.category.fulfillmentCategory === 'PIZZA').flatMap(product => product.ingredients ?? [])])].sort((a, b) => a.localeCompare(b, 'fr'));
+  function chooseProduct(id: string) {
+    if (id === selectedId) return;
+    const dirty = document.querySelector<HTMLFormElement>('.manager-product[data-dirty="true"]');
+    if (dirty && !window.confirm('Vous avez des modifications non enregistrées. Les abandonner et changer de plat ?')) return;
+    setSelectedId(id);
+    setSaved('');
+  }
   return <section aria-label="Éditeur de carte">
-    <button type="button" onClick={logout}>Se déconnecter</button>
+    <div className="manager-catalog-topline"><p>Choisissez une action pour commencer. Les changements sur un plat ne sont visibles sur le site qu’après enregistrement.</p><button type="button" className="manager-logout-button" onClick={logout}>Se déconnecter</button></div>
     {logoutError && <p role="alert">{logoutError}</p>}
-    <CategoryEditor initialCategories={categories} onSaved={nextCategories => { setCategories(nextCategories); setProducts(current => current.map(product => { const category = nextCategories.find(item => item.id === product.categoryId); return category ? { ...product, category: { nameFr: category.nameFr, fulfillmentCategory: category.fulfillmentCategory } } : product; })); }} />
-    <IngredientEditor initialIngredients={ingredients} onSaved={nextIngredients => {
-      const renamed = new Map(ingredients.filter(item => nextIngredients.some(next => next.id === item.id && next.nameFr !== item.nameFr)).map(item => [item.nameFr, nextIngredients.find(next => next.id === item.id)!.nameFr]));
-      setIngredients(nextIngredients);
-      if (renamed.size) setProducts(current => current.map(product => {
-        const affected = (product.ingredients ?? []).some(name => renamed.has(name)) || product.removableIngredients.some(name => renamed.has(name));
-        return { ...product, ingredients: (product.ingredients ?? []).map(name => renamed.get(name) ?? name), removableIngredients: product.removableIngredients.map(name => renamed.get(name) ?? name), catalogRevision: product.catalogRevision + (affected ? 1 : 0) };
-      }));
-    }} />
-    <PizzaCreator categories={categories} ingredientChoices={ingredientChoices} onCreated={product => { setProducts(current => [...current, product]); setSelectedId(product.id); setSearch(''); setSaved('Brouillon créé. Configurez les formats et suppléments puis activez « Disponible sur la carte » pour publier.'); }} />
-    <label>Rechercher un article<input type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Nom ou catégorie" /></label>
-    <p role="status">{filteredProducts.length} article(s) correspondant à la recherche. L’article sélectionné reste accessible.</p>
-    <label>Article à modifier<select value={selectedId} onChange={event => { setSelectedId(event.target.value); setSaved(''); }}>
-      {visibleProducts.map(product => <option key={product.id} value={product.id}>{product.category.nameFr} — {product.nameFr}{product.active ? '' : ' (indisponible)'}</option>)}
-    </select></label>
-    <p role="status">{saved}</p>
-    {selected ? <ProductEditor key={`${selected.id}-${selected.catalogRevision}`} product={selected} categories={categories} ingredientChoices={ingredientChoices} onSaved={updated => { setProducts(current => current.map(product => product.id === updated.id ? updated : product)); setSaved('Article enregistré. La carte a été mise à jour.'); }} /> : <p>Aucun article dans la carte.</p>}
+    <nav className="manager-catalog-shortcuts" aria-label="Actions de la carte">
+      <a href="#products">Modifier un plat</a><a href="#add-product">Ajouter un plat</a><a href="#ingredients">Ingrédients et suppléments</a><a href="#categories">Catégories</a><a className="manager-catalog-preview" href="/menu" target="_blank" rel="noreferrer">Voir la carte du site ↗</a>
+    </nav>
+    <div className="manager-catalog-tools" id="products">
+      <div><h2>Modifier un plat</h2><p>Recherchez un nom, sélectionnez-le, puis modifiez sa fiche.</p></div>
+      <label className="manager-catalog-search">Rechercher dans la carte<input type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Ex. Margherita, pâtes…" /></label>
+    </div>
+    <p className="manager-catalog-count" role="status">{filteredProducts.length} plat(s) trouvé(s){search ? ` pour « ${search} »` : ''}.</p>
+    <div className="manager-catalog-layout">
+      <nav className="manager-product-picker" aria-label="Choisir un plat à modifier">
+        {!filteredProducts.length ? <p>Aucun plat ne correspond. Essayez un autre nom.</p> : filteredProducts.map(product => <button type="button" className={product.id === selectedId ? 'is-selected' : ''} aria-pressed={product.id === selectedId} key={product.id} onClick={() => chooseProduct(product.id)}>
+          <span><strong>{product.nameFr}</strong><small>{product.category.nameFr}</small></span><em className={product.active ? 'is-active' : ''}>{product.active ? 'En ligne' : 'Masqué'}</em>
+        </button>)}
+      </nav>
+      <div className="manager-product-edit-area">
+        {saved && <p className="manager-catalog-saved" role="status">✓ {saved}</p>}
+        {selected ? <ProductEditor key={`${selected.id}-${selected.catalogRevision}`} product={selected} categories={categories} ingredientChoices={ingredientChoices} onDirty={() => setSaved('')} onSaved={updated => { setProducts(current => current.map(product => product.id === updated.id ? updated : product)); setSaved(updated.active ? 'Modifications enregistrées et visibles sur le site.' : 'Modifications enregistrées. Ce plat reste masqué aux clients.'); }} /> : <p>Aucun plat dans la carte.</p>}
+      </div>
+    </div>
+    <div className="manager-catalog-secondary">
+      <PizzaCreator categories={categories} ingredientChoices={ingredientChoices} onCreated={product => { setProducts(current => [...current, product]); setSelectedId(product.id); setSearch(''); setSaved('Brouillon créé. Complétez les formats et ingrédients, puis cochez « Afficher ce plat sur le site » pour le publier.'); }} />
+      <IngredientEditor initialIngredients={ingredients} onSaved={nextIngredients => {
+        const renamed = new Map(ingredients.filter(item => nextIngredients.some(next => next.id === item.id && next.nameFr !== item.nameFr)).map(item => [item.nameFr, nextIngredients.find(next => next.id === item.id)!.nameFr]));
+        setIngredients(nextIngredients);
+        if (renamed.size) setProducts(current => current.map(product => {
+          const affected = (product.ingredients ?? []).some(name => renamed.has(name)) || product.removableIngredients.some(name => renamed.has(name));
+          return { ...product, ingredients: (product.ingredients ?? []).map(name => renamed.get(name) ?? name), removableIngredients: product.removableIngredients.map(name => renamed.get(name) ?? name), catalogRevision: product.catalogRevision + (affected ? 1 : 0) };
+        }));
+      }} />
+      <CategoryEditor initialCategories={categories} onSaved={nextCategories => { setCategories(nextCategories); setProducts(current => current.map(product => { const category = nextCategories.find(item => item.id === product.categoryId); return category ? { ...product, category: { nameFr: category.nameFr, fulfillmentCategory: category.fulfillmentCategory } } : product; })); }} />
+    </div>
   </section>;
 }

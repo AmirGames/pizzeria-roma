@@ -1,6 +1,7 @@
 import { prisma } from '../../../../../lib/db';
 import { requirePermission } from '../../../../../lib/auth';
 import { isSameOriginMutation } from '../../../../../lib/catalog-management.mjs';
+import { invalidatePublicCatalog } from '../../../../../lib/public-catalog-cache';
 // @ts-ignore JavaScript module
 import { validateIngredient } from '../../../../../lib/ingredient-management.mjs';
 
@@ -29,6 +30,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       return updated;
     });
     if (!ingredient) return Response.json({ error: 'INGREDIENT_NOT_FOUND' }, { status: 404 });
+    invalidatePublicCatalog();
     return Response.json({ ingredient }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     const code = error instanceof Error ? error.message : '';

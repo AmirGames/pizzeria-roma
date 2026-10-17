@@ -1,13 +1,13 @@
-import { localCustomerMailConfigured, sendCustomerLink } from '../../../../lib/local-customer-mail';
+import { customerMailConfigured, sendCustomerLink } from '../../../../lib/local-customer-mail';
 import { Prisma } from '@prisma/client';
 import { prisma } from '../../../../lib/db';
 import { isSameOriginMutation } from '../../../../lib/catalog-management.mjs';
 import { validateCustomerAuth, hashCustomerPassword, verifyCustomerPassword } from '../../../../lib/customer-password.mjs';
 import { consumeAuthAttempt, issueCustomerSession, issueVerifiedCustomerSession, setCustomerCookie } from '../../../../lib/customer-session';
-import { testOrdersEnabled } from '../../../../lib/test-mode';
+import { customerAccountsEnabled } from '../../../../lib/customer-accounts';
 
 export async function POST(request: Request) {
-  if (!testOrdersEnabled()) return Response.json({ error: 'NOT_FOUND' }, { status: 404 });
+  if (!customerAccountsEnabled()) return Response.json({ error: 'NOT_FOUND' }, { status: 404 });
   if (!isSameOriginMutation(request, process.env.APP_ORIGIN)) return Response.json({ error: 'FORBIDDEN' }, { status: 403 });
   try {
     const raw = await request.text();
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
       token = await prisma.$transaction(tx => issueVerifiedCustomerSession(tx, user.id, user.customerCredential!.passwordHash));
     }
     await setCustomerCookie(token);
-    if (input.action === 'register' && localCustomerMailConfigured()) {
+    if (input.action === 'register' && customerMailConfigured()) {
       const created = await prisma.user.findUnique({ where: { email: input.email }, select: { id: true } });
       if (created) { try { await sendCustomerLink(created.id, 'VERIFY_EMAIL'); } catch { /* Account and session remain usable; the customer can resend. */ } }
     }

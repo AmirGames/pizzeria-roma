@@ -1,6 +1,7 @@
 import { prisma } from '../../../../lib/db';
 import { requirePermission } from '../../../../lib/auth';
 import { isSameOriginMutation } from '../../../../lib/catalog-management.mjs';
+import { invalidatePublicCatalog } from '../../../../lib/public-catalog-cache';
 // @ts-ignore JavaScript module
 import { validateMenuCategory } from '../../../../lib/menu-management.mjs';
 
@@ -13,6 +14,7 @@ export async function POST(request: Request) {
     let input: unknown;
     try { input = JSON.parse(raw); } catch { return Response.json({ error: 'INVALID_CATEGORY' }, { status: 400 }); }
     const category = await prisma.menuCategory.create({ data: validateMenuCategory(input) });
+    invalidatePublicCatalog();
     return Response.json({ category }, { status: 201, headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     const code = error instanceof Error ? error.message : '';

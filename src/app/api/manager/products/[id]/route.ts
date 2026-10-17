@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '../../../../../lib/db';
 import { requirePermission } from '../../../../../lib/auth';
 import { isSameOriginMutation, validateCatalogEdit } from '../../../../../lib/catalog-management.mjs';
+import { invalidatePublicCatalog } from '../../../../../lib/public-catalog-cache';
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
@@ -36,6 +37,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       }
       return tx.product.findUniqueOrThrow({ where: { id }, include: { category: true, sizes: { orderBy: { priceCents: 'asc' } }, extras: { orderBy: { nameFr: 'asc' } } } });
     });
+    invalidatePublicCatalog();
     return Response.json({ product }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     const code = error instanceof Error ? error.message : '';

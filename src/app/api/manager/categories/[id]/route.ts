@@ -1,6 +1,7 @@
 import { prisma } from '../../../../../lib/db';
 import { requirePermission } from '../../../../../lib/auth';
 import { isSameOriginMutation } from '../../../../../lib/catalog-management.mjs';
+import { invalidatePublicCatalog } from '../../../../../lib/public-catalog-cache';
 // @ts-ignore JavaScript module
 import { validateMenuCategory } from '../../../../../lib/menu-management.mjs';
 
@@ -16,6 +17,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     const result = await prisma.menuCategory.updateMany({ where: { id }, data: validateMenuCategory(input) });
     if (!result.count) return Response.json({ error: 'CATEGORY_NOT_FOUND' }, { status: 404 });
     const category = await prisma.menuCategory.findUniqueOrThrow({ where: { id } });
+    invalidatePublicCatalog();
     return Response.json({ category }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     const code = error instanceof Error ? error.message : '';

@@ -8,13 +8,17 @@ Les étapes récentes couvrent l’édition du panier ([#21](https://github.com/
 
 Le projet peut être essayé en local. **Les commandes commerciales et les paiements restent désactivés.** Les essais sont enregistrés dans `TestOrder`, séparément de `Order` ; aucun e-mail externe, ordre de préparation réelle ou réservation de créneau n’est envoyé. La fusion du code n’applique aucune migration à votre base et ne déploie pas le site.
 
+Le flux de commandes Stripe est derrière `ENABLE_REAL_ORDERS` (désactivé par défaut) : Bancontact et carte Stripe, avec Apple Pay/Google Pay lorsque disponibles, commande invité ou compte, historique client et file cuisine avec impression manuelle. Le gérant peut rembourser un paiement via Stripe ou, avec l’accord du client connecté, accorder un avoir à la place. Le client connecté peut utiliser son solde au prochain checkout ; le solde est réservé pendant le paiement et consommé seulement après confirmation. Les promotions automatiques peuvent être réservées à la première commande d’un client connecté et sont recalculées avant le paiement. PayPal n’est pas proposé. La base locale, le compte Stripe, les tests de bout en bout, les promotions/fidélité réelles et les validations d’exploitation restent à finaliser avant toute ouverture.
+
+Le site est installable comme PWA et propose une page de secours si la connexion est coupée. Le catalogue, les tarifs et les commandes ne fonctionnent pas hors ligne ; le site ne met aucune commande en attente localement.
+
 ## Fonctionnalités disponibles
 
 - Catalogue du menu du 14/10/2026, avec les compositions de pizzas et les compositions explicitement décrites pour les pâtes relevées depuis les photos du menu, ainsi que les formats, choix de pâtes, desserts et suppléments configurés.
 - Personnalisation d’une pizza prédéfinie : retrait d’ingrédients autorisés **sans réduction du prix**, et suppléments à prix fixe ou selon le format.
 - Panier catalogue : modification des recettes, conservation des quantités et regroupement des recettes identiques, avec contrôle serveur des prix et options.
 - Espace gérant : création et classement des catégories, création de plats avec formats et prix, gestion de leur composition, des ingrédients retirables, des suppléments et des disponibilités. Les nouveaux plats restent en brouillon jusqu’à publication explicite.
-- Promotions gérant : remises automatiques et codes promo en pourcentage ou montant fixe, avec période, jours, heures de validité, minimum de panier et plafond d’utilisations. Les remises sont calculées côté serveur et enregistrées sur les essais.
+- Promotions gérant : remises automatiques et codes promo en pourcentage ou montant fixe, avec période, jours, heures de validité, minimum de panier et plafond d’utilisations. Une remise automatique peut être réservée à la première commande d’un client connecté. Les montants sont recalculés avant le checkout Stripe.
 - Carte de fidélité client : une pizza ou des pâtes terminées ajoutent un crédit ; après 10 plats payés, le plat éligible le moins cher est offert. Les annulations et refus ne donnent aucun crédit.
 - En mode test : inscription/connexion client, profil nom/téléphone, changement de mot de passe, confirmation, historique privé et annulation des essais en attente.
 - Carnet privé de dix adresses en mode test : ajout, modification, suppression, adresse par défaut et sélection au checkout.
@@ -123,20 +127,18 @@ Garder ce lien privé. Utiliser des comptes distincts pour les parcours client e
 | `/menu` | Carte et personnalisation avant ajout au panier |
 | `/panier` | Sélection catalogue et modification des recettes ; démonstration fictive séparée si aucun article catalogue |
 | `/commande` | Aperçu livraison/retrait, zones et horaires |
-<<<<<<< Updated upstream
-| `/compte` | Inscription, connexion, profil, carte de fidélité et historique client en mode test |
-=======
 | `/compte` | Inscription, connexion, profil, adresses, export des données et historique client en mode test |
 | `/api/customer/export` | Téléchargement privé des données du client connecté |
->>>>>>> Stashed changes
+| `/api/health` | Vérification minimale de la disponibilité de PostgreSQL pour la supervision |
 | `/compte/mot-de-passe-oublie` | Demande d’un lien de récupération dans Mailpit |
 | `/compte/verifier` et `/compte/reinitialiser` | Confirmation des liens à usage unique reçus localement |
 | `/commande/test` | Confirmation d’un essai pour un client connecté |
 | `/compte/commandes/[id]` | Détail et suivi d’un essai appartenant au client |
 | `/gerant/connexion` | Connexion par lien privé |
-| `/gerant` | Tableau de bord des essais, réservé au gérant |
+| `/gerant` | Tableau de bord des commandes réelles et essais selon les fonctions activées, réservé au gérant |
 | `/gerant/carte` | Édition de la carte, réservée au gérant |
 | `/gerant/promotions` | Création et activation des promotions et codes promo, réservée au gérant |
+| `/gerant/commandes` | File des commandes réelles payées, ticket imprimable, réservé au gérant et à la cuisine |
 | `/gerant/commandes-test` | Suivi simulé, réservé au gérant et à la cuisine |
 | `/gerant/livraison` | Réglage des créneaux et dessin des zones, réservé au gérant |
 
@@ -158,7 +160,6 @@ En mode test, le client saisit son adresse sans placer de repère. ICAR renvoie 
 
 Les créneaux simulés durent 15 minutes et sont proposés pendant les horaires d’ouverture, jusqu’à 7 jours à l’avance. La configuration initiale limite chaque créneau à 7 pizzas ; le délai minimum initial est de 30 minutes pour le retrait et la livraison. Le gérant peut modifier ces valeurs, par pas de 15 minutes pour le délai. Les jours fériés légaux belges affichent un service informatif 18h–22h, sauf dimanche fermé.
 
-<<<<<<< Updated upstream
 ## Promotions et codes promo
 
 Dans `/gerant/promotions`, un compte MANAGER peut créer une remise automatique ou un code à saisir au checkout. La remise peut être un pourcentage entier ou un montant fixe en euros. Chaque offre peut avoir une date de début et de fin inclusives, un ou plusieurs jours de la semaine, une plage horaire, un minimum de panier et un nombre maximum d’utilisations. Sans période de dates, l’offre n’a pas de borne de date ; sans plage horaire, elle est valable toute la journée. Les horaires et jours sont évalués en `Europe/Brussels` ; l’heure de fin est exclue (par exemple 12h00–13h00 s’arrête à 13h00).
@@ -177,10 +178,7 @@ La fidélité utilise les commandes de test car les ventes réelles sont désact
 
 Dans `/gerant/carte`, le gérant peut ajouter ou renommer une catégorie, définir son type (pizzas, pâtes ou autres plats) et son ordre d’affichage. Le catalogue central « Ingrédients & suppléments » gère chaque ingrédient une seule fois, son activation comme supplément et ses tarifs 33/50 cm (1,50 €/3,00 € par défaut, modifiables). Les ingrédients actifs sont proposés sur toutes les pizzas. À la création d’une pizza, le gérant coche sa composition ; ces ingrédients sont affichés au client et peuvent être retirés. Le client peut aussi ajouter une portion d’un ingrédient déjà inclus, au tarif du format choisi. Renommer un ingrédient répercute le nouveau nom dans les compositions enregistrées. Les plats de pâtes gardent leur propre composition. Les plats existants peuvent changer de catégorie et leur prix, formats, suppléments spécifiques et disponibilité restent modifiables depuis cette page.
 
-La vérification e-mail et la récupération du mot de passe sont disponibles avec Mailpit en local. Un service d’envoi externe, la suppression/export du compte et les exigences d’exploitation restent à préparer avant l’ouverture publique de l’espace client. La PWA, la traduction complète et les paiements sont des objectifs, pas des fonctions annoncées comme terminées.
-=======
 La vérification e-mail et la récupération du mot de passe sont disponibles avec Mailpit en local. L’export JSON des données du compte est disponible en mode test. Un service d’envoi externe, la suppression du compte et les exigences d’exploitation restent à préparer avant l’ouverture publique de l’espace client. La PWA, la traduction complète et les paiements sont des objectifs, pas des fonctions annoncées comme terminées.
->>>>>>> Stashed changes
 
 ## Vérifications
 

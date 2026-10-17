@@ -1,5 +1,35 @@
 # Changelog
 
+## 2026-10-18
+
+- Le détail client d’une commande réelle suit automatiquement les changements d’état pendant cinq minutes, puis propose un bouton d’actualisation manuelle.
+- Après un paiement confirmé par Stripe, la page client revérifie automatiquement la synchronisation avec le webhook pendant 45 secondes et propose ensuite une vérification manuelle.
+- La file cuisine rappelle les réglages d’impression recommandés pour les tickets 80 mm : format du rouleau, échelle 100 % et en-têtes/pieds de page désactivés.
+- La file cuisine des commandes payées s’actualise automatiquement toutes les 20 secondes lorsque l’onglet est visible ; l’actualisation manuelle reste accessible.
+- La confirmation de commande n’affiche plus l’adresse de livraison complète ; l’identifiant Stripe présent dans l’URL n’est pas transmis comme référent.
+- La carte publique est mise en cache côté serveur pour éviter de relire tout le catalogue à chaque visite ; toute modification de produits, catégories ou ingrédients depuis l’espace gérant invalide ce cache immédiatement.
+- Le détail des commandes réelles dans l’espace client présente les articles offerts et sépare fidélité, promotions, avoir et paiement.
+- L’export JSON du client est disponible en mode commandes réelles et contient les montants de remise, fidélité, avoir et les articles commandés.
+- Suppression de compte protégée par le mot de passe : profil, adresses, sessions et commandes de test supprimés ; les commandes réelles terminées sont dissociées et leurs coordonnées effacées. La suppression est bloquée pour une commande ou un avoir encore actif.
+- Correction d’un verrou d’activation : connexion, création de compte, profil, mot de passe et carnet d’adresses clients fonctionnent aussi lorsque seules les commandes réelles sont activées ; les e-mails locaux restent réservés au mode test.
+- Le webhook Stripe ne traite une erreur d’unicité comme un doublon que si l’identifiant de l’événement est réellement enregistré ; sinon Stripe reçoit une erreur et peut réessayer.
+- Le checkout réel connecté propose les adresses du carnet client et présélectionne l’adresse par défaut ; chaque adresse choisie est revalidée contre les zones de livraison avant d’autoriser la commande.
+- Vérification, récupération et changement d’adresse e-mail utilisent Mailpit en mode test et Resend configurable en mode commandes réelles ; les pages et actions de confirmation sont ouvertes dans les deux modes.
+
+## 2026-10-17
+
+- Ajout d’une PWA installable, avec manifeste, icônes et page de secours affichée lors d’une coupure réseau ; aucune donnée ni commande n’est stockée hors ligne.
+- Le tableau de bord gérant affiche maintenant les compteurs des commandes réelles payées et les recettes du jour, séparément des essais ; la navigation masque les files désactivées.
+- La page Livraison indique l’état réel du checkout et de Stripe au lieu d’afficher systématiquement le mode test.
+- Les offres existantes de l’administration des promotions sont sélectionnées dans une liste et les conditions avancées sont repliées par défaut.
+- Ajout d’une remise automatique réservée à la première commande d’un client connecté ; son montant est recalculé côté serveur et enregistré avec la commande réelle.
+- Ajout d’un endpoint `/api/health` qui confirme uniquement l’état de disponibilité de PostgreSQL, sans exposer de configuration.
+- Ajout des avoirs clients : journal de crédits, accord client attesté pour l’octroi par le gérant, utilisation complète ou partielle au checkout connecté, réservation pendant Stripe puis consommation/restauration selon le résultat du paiement.
+- Ajout d’une page gérant réservée aux MANAGER pour suivre les remboursements Stripe en attente, avec l’accès depuis la file des commandes.
+- Ajout côté gérant d’une action de remboursement complet via Stripe avec confirmation, idempotence et synchronisation par webhook ; le remboursement est réservé aux rôles autorisés et annule la commande une fois confirmé.
+- Ajout de l’historique des commandes réelles dans l’espace client et d’une page de détail protégée par le compte propriétaire, avec suivi, état du paiement, créneau et articles.
+- Le compte distingue maintenant les achats réels des essais de commande, selon les fonctionnalités activées.
+
 ## 2026-10-15
 
 - Ajout en mode test du dessin des zones, de la vérification ICAR avec adresse approximative acceptée, des créneaux de 15 minutes et du réglage de capacité/délai minimum de retrait et livraison. Aucun traitement réel n’est activé.
