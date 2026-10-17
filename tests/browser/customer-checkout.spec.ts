@@ -37,7 +37,7 @@ test('a customer registers, confirms a test and finds it again after signing in'
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('pizzeria-roma-catalog-cart-v1')!))).toEqual([]);
   const order = await prisma.testOrder.findFirstOrThrow({ where: { user: { email } } });
   expect(order.totalCents).toBe(1350);
-  await page.getByRole('link', { name: 'Mon espace client', exact: true }).click();
+  await page.getByRole('link', { name: /Mon espace client/ }).click();
   await expect(page.getByRole('link', { name: order.publicReference })).toBeVisible();
   await page.getByRole('button', { name: 'Se déconnecter' }).click();
   await page.getByLabel('Adresse e-mail').fill(email);

@@ -36,7 +36,7 @@ test('a manager follows dashboard counters and sees the Brussels daily summary r
   await expect(counter('À accepter').locator('p')).toHaveText('2');
   await expect(counter('En préparation').locator('p')).toHaveText('1');
   await expect(counter('Prêts').locator('p')).toHaveText('1');
-  const today = page.getByRole('region', { name: 'Résumé des essais du jour', exact: true });
+  const today = page.locator('section[aria-labelledby="dashboard-today-title"]');
   const daily = (label: string) => today.locator('dl > div').filter({ has: page.getByText(label, { exact: true }) }).locator('dd');
   await expect(today).toContainText(day.date.split('-').reverse().join('/'));
   await expect(daily('Essais enregistrés')).toHaveText('7');

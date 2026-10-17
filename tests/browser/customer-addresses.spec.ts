@@ -60,7 +60,7 @@ test('a customer manages private addresses and uses a saved address for a delive
   expect(order.address).toBeNull();
   expect(order.zoneId).toBeNull();
   expect(order.totalCents).toBe(2400);
-  await page.getByRole('link', { name: 'Mon espace client', exact: true }).click();
+  await page.getByRole('link', { name: /Mon espace client/ }).click();
   await expect(book.getByRole('listitem').filter({ hasText: 'Domicile' })).toContainText('Rue fictive 3');
   await book.getByRole('button', { name: 'Supprimer Travail', exact: true }).click();
   await book.getByRole('button', { name: 'Confirmer la suppression', exact: true }).click();

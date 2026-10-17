@@ -56,7 +56,7 @@ test('a customer confirms a repeat selection at current prices while preserving 
   await page.getByRole('link', { name: 'Commander en mode test', exact: true }).click();
   await page.getByLabel('Mode', { exact: true }).selectOption('pickup');
   await page.getByLabel('Téléphone fictif').fill('081 00 00 00');
-  await selectTestSlot(page, 4);
+  await selectTestSlot(page, 7);
   await expect(page.getByText('Total du test :')).toContainText('66,50');
   await page.getByRole('button', { name: 'Confirmer la commande de test', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Commande de test enregistrée', exact: true })).toBeVisible();
