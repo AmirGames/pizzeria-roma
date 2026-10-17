@@ -58,7 +58,7 @@ test('customer accounts, ownership, idempotent checkout and simulated staff work
     assert.equal((await request('/api/test-orders', 'POST', body, cookie, 'https://evil.example')).status, 403);
     assert.equal((await request('/api/test-orders', 'POST', { ...body, userId: 'foreign' }, cookie)).status, 400);
     assert.equal((await request('/api/test-orders', 'POST', { ...body, expectedTotalCents: 1 }, cookie)).status, 409);
-    assert.equal((await request('/api/test-orders', 'POST', { ...body, mode: 'delivery', address: 'Rue fictive 1', zoneId: 'belgrade' }, cookie)).status, 422);
+    assert.equal((await request('/api/test-orders', 'POST', { ...body, mode: 'delivery', address: '', zoneId: 'belgrade' }, cookie)).status, 400);
     const confirmations = await Promise.all([request('/api/test-orders', 'POST', body, cookie), request('/api/test-orders', 'POST', body, cookie)]);
     assert.deepEqual(confirmations.map(response => response.status).sort(), [200, 201]);
     const orders = await Promise.all(confirmations.map(response => response.json()));
@@ -87,11 +87,11 @@ test('customer accounts, ownership, idempotent checkout and simulated staff work
     }
     assert.equal((await request(`/api/test-orders/${id}`, 'PATCH', { revision: 4 }, cookie)).status, 409);
     assert.equal((await (await request(`/api/test-orders/${id}`, 'GET', undefined, cookie)).json()).order.status, 'COMPLETED');
-    const delivery = await request('/api/test-orders', 'POST', { ...body, requestKey: randomUUID(), mode: 'delivery', zoneId: 'belgrade', address: 'Rue fictive 1', items: [{ productId: product.id, sizeId: large.id, extraIds: [], quantity: 1 }], expectedTotalCents: 2400 }, cookie);
-    assert.equal(delivery.status, 201);
-    const deliveryId = (await delivery.json()).id;
-    assert.equal((await request(`/api/test-orders/${deliveryId}`, 'PATCH', { revision: 0 }, otherCookie)).status, 409);
-    assert.equal((await request(`/api/test-orders/${deliveryId}`, 'PATCH', { revision: 0 }, cookie)).status, 200);
+    const secondOrder = await request('/api/test-orders', 'POST', { ...body, requestKey: randomUUID(), scheduledFor: await nextTestSlot(prisma), items: [{ productId: product.id, sizeId: large.id, extraIds: [], quantity: 1 }], expectedTotalCents: 2400 }, cookie);
+    assert.equal(secondOrder.status, 201);
+    const secondOrderId = (await secondOrder.json()).id;
+    assert.equal((await request(`/api/test-orders/${secondOrderId}`, 'PATCH', { revision: 0 }, otherCookie)).status, 409);
+    assert.equal((await request(`/api/test-orders/${secondOrderId}`, 'PATCH', { revision: 0 }, cookie)).status, 200);
     assert.equal((await request('/api/customer/session', 'DELETE', undefined, cookie)).status, 200);
     assert.equal((await request(`/api/test-orders/${id}`, 'GET', undefined, cookie)).status, 401);
     const loggedIn = await request('/api/customer/auth', 'POST', { action: 'login', email, password });
