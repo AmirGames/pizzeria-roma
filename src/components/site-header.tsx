@@ -13,7 +13,7 @@ export default function SiteHeader({ showTestLinks = false, locale = 'fr' }: { s
   const t = getMessages(locale).header;
   const [count, setCount] = useState(0);
   const pathname = usePathname();
-  const isStorefrontPage = pathname === '/' || pathname.startsWith('/menu') || pathname === '/commande' || pathname === '/contact' || pathname === '/a-propos';
+  const isHomePage = pathname === '/';
   useEffect(() => {
     const refresh = () => setCount(readCatalogCart(window.localStorage.getItem(CATALOG_CART_STORAGE_KEY)).reduce((total, item) => total + item.quantity, 0));
     refresh();
@@ -21,7 +21,7 @@ export default function SiteHeader({ showTestLinks = false, locale = 'fr' }: { s
     window.addEventListener('catalog-cart-change', refresh);
     return () => { window.removeEventListener('storage', refresh); window.removeEventListener('catalog-cart-change', refresh); };
   }, []);
-  return <header className={`${styles.header} ${isStorefrontPage ? styles.homeHeader : ''}`}>
+  return <header className={`${styles.header} ${isHomePage ? styles.homeHeader : ''}`}>
     <Link href="/" className={styles.logo} aria-label={t.homeLabel}><span>PIZZERIA</span><strong>ROMA</strong><small>NAMUR</small></Link>
     <nav className={styles.nav} aria-label={t.navigationLabel}>
       <Link href="/" aria-current={pathname === '/' ? 'page' : undefined}>{t.home}</Link><Link href="/menu" aria-current={pathname.startsWith('/menu') ? 'page' : undefined}>{t.menu}</Link><Link href="/commande" aria-current={pathname.startsWith('/commande') ? 'page' : undefined}>{t.delivery}</Link><Link href="/a-propos" aria-current={pathname === '/a-propos' ? 'page' : undefined}>{t.story}</Link><Link href="/contact" aria-current={pathname === '/contact' ? 'page' : undefined}>{t.contact}</Link>
