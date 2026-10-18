@@ -6,6 +6,7 @@ import ServiceWorkerRegister from '../components/service-worker-register';
 import RestaurantJsonLd from '../components/restaurant-json-ld';
 import { testOrdersEnabled } from '../lib/test-mode';
 import { siteMetadataBase } from '../lib/site-seo';
+import { getSiteLocale } from '../lib/locale';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,6 +26,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = { themeColor: '#071b16' };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="fr-BE"><body suppressHydrationWarning><RestaurantJsonLd /><ServiceWorkerRegister /><SiteHeader showTestLinks={testOrdersEnabled()} />{children}<SiteFooter /></body></html>;
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const locale = await getSiteLocale();
+  return <html lang={locale === 'en' ? 'en' : 'fr-BE'}><body suppressHydrationWarning><RestaurantJsonLd /><ServiceWorkerRegister /><SiteHeader showTestLinks={testOrdersEnabled()} locale={locale} />{children}<SiteFooter locale={locale} /></body></html>;
 }

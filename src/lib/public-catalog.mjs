@@ -1,4 +1,5 @@
 import { validateSizePrices } from './extra-pricing.mjs';
+import { englishMenuTerm } from './menu-translation.mjs';
 
 const allowedCategories = new Set(['PIZZA', 'PASTA', 'OTHER']);
 
@@ -15,6 +16,7 @@ export function buildPublicCatalog(categories) {
     .map(category => ({
       id: category.id,
       nameFr: category.nameFr,
+      nameEn: typeof category.nameEn === 'string' && category.nameEn.trim() && category.nameEn !== category.nameFr ? category.nameEn : englishMenuTerm(category.nameFr),
       position: category.position,
       products: (Array.isArray(category.products) ? category.products : [])
         .filter(product => product && product.active === true && typeof product.id === 'string' && typeof product.nameFr === 'string')
@@ -25,13 +27,14 @@ export function buildPublicCatalog(categories) {
           return {
           id: product.id,
           nameFr: product.nameFr,
+          nameEn: typeof product.nameEn === 'string' && product.nameEn.trim() && product.nameEn !== product.nameFr ? product.nameEn : englishMenuTerm(product.nameFr),
           baseCents: assertPrice(product.baseCents),
           ...(Array.isArray(product.ingredients) && product.ingredients.length ? { ingredients: product.ingredients } : {}),
           ...(category.fulfillmentCategory === 'PIZZA' ? { removableIngredients: Array.isArray(product.removableIngredients) ? product.removableIngredients : [] } : {}),
           choiceLabel: typeof product.choiceLabel === 'string' && product.choiceLabel.trim() ? product.choiceLabel : null,
           extraSelectionMode: product.extraSelectionMode === 'SINGLE' ? 'SINGLE' : 'MULTIPLE',
           sizes: (Array.isArray(product.sizes) ? product.sizes : []).filter(size => size && size.active === true).map(size => ({ id: size.id, label: size.label, priceCents: assertPrice(size.priceCents) })),
-          extras: (Array.isArray(product.extras) ? product.extras : []).filter(extra => extra && extra.active === true).map(extra => ({ id: extra.id, nameFr: extra.nameFr, priceCents: assertPrice(extra.priceCents), ...(extra.sizePrices != null ? { sizePrices: validateSizePrices(extra.sizePrices) } : {}) })),
+          extras: (Array.isArray(product.extras) ? product.extras : []).filter(extra => extra && extra.active === true).map(extra => ({ id: extra.id, nameFr: extra.nameFr, nameEn: typeof extra.nameEn === 'string' && extra.nameEn.trim() && extra.nameEn !== extra.nameFr ? extra.nameEn : englishMenuTerm(extra.nameFr), priceCents: assertPrice(extra.priceCents), ...(extra.sizePrices != null ? { sizePrices: validateSizePrices(extra.sizePrices) } : {}) })),
           };
         }).sort((a, b) => a.nameFr.localeCompare(b.nameFr, 'fr')),
     }))

@@ -7,18 +7,18 @@ import { buildPublicCatalog } from './public-catalog.mjs';
 import type { CatalogProduct } from './catalog-types';
 import { testOrdersEnabled } from './test-mode';
 
-export type PublicCatalogCategory = { id: string; nameFr: string; products: CatalogProduct[] };
+export type PublicCatalogCategory = { id: string; nameFr: string; nameEn: string; products: CatalogProduct[] };
 
 async function queryPublicCatalog(): Promise<PublicCatalogCategory[]> {
   const [categories, ingredients] = await Promise.all([
     prisma.menuCategory.findMany({
       orderBy: [{ position: 'asc' }, { nameFr: 'asc' }],
       select: {
-        id: true, nameFr: true, position: true, fulfillmentCategory: true,
+        id: true, nameFr: true, nameEn: true, position: true, fulfillmentCategory: true,
         products: { where: { active: true }, select: {
-          id: true, nameFr: true, active: true, baseCents: true, ingredients: true, removableIngredients: true, choiceLabel: true, extraSelectionMode: true,
+          id: true, nameFr: true, nameEn: true, active: true, baseCents: true, ingredients: true, removableIngredients: true, choiceLabel: true, extraSelectionMode: true,
           sizes: { where: { active: true }, orderBy: [{ priceCents: 'asc' }, { label: 'asc' }], select: { id: true, label: true, priceCents: true, active: true } },
-          extras: { where: { active: true }, select: { id: true, nameFr: true, priceCents: true, sizePrices: true, active: true } },
+          extras: { where: { active: true }, select: { id: true, nameFr: true, nameEn: true, priceCents: true, sizePrices: true, active: true } },
         } },
       },
     }),

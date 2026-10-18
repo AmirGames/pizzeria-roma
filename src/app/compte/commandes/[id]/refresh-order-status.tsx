@@ -2,11 +2,13 @@
 
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import type { SiteLocale } from '../../../../lib/locale';
 
 const REFRESH_INTERVAL_MS = 20_000;
 const MAX_AUTOMATIC_REFRESHES = 15;
 
-export default function RefreshOrderStatus() {
+export default function RefreshOrderStatus({ locale = 'fr' }: { locale?: SiteLocale }) {
+  const en = locale === 'en';
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [stopped, setStopped] = useState(false);
@@ -32,7 +34,7 @@ export default function RefreshOrderStatus() {
   }, [router]);
 
   return <section aria-live="polite">
-    <p>{stopped ? 'Le suivi automatique est en pause.' : 'Suivi automatique : actualisation toutes les 20 secondes tant que cette page est ouverte.'}</p>
-    {stopped && <button type="button" disabled={pending} onClick={() => startTransition(() => router.refresh())}>Actualiser le suivi</button>}
+    <p>{stopped ? (en ? 'Automatic updates are paused.' : 'Le suivi automatique est en pause.') : (en ? 'Automatic updates: every 20 seconds while this page is open.' : 'Suivi automatique : actualisation toutes les 20 secondes tant que cette page est ouverte.')}</p>
+    {stopped && <button type="button" disabled={pending} onClick={() => startTransition(() => router.refresh())}>{en ? 'Refresh status' : 'Actualiser le suivi'}</button>}
   </section>;
 }

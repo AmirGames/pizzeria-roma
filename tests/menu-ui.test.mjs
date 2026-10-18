@@ -8,6 +8,6 @@ test('menu uses live categories and reports whether online ordering is ready', (
   assert.doesNotMatch(page, /menu-category-index/);
   assert.match(page, /categories\.length === 0/);
   assert.match(page, /realOrdersEnabled\(\) && stripeReady\(\)/);
-  assert.match(page, /commandes en ligne disponibles/);
-  assert.match(page, /paiement sécurisé seront disponibles après la configuration finale/);
+  assert.match(page, /t\.noticeOpen/);
+  assert.match(page, /t\.noticeSetup/);
 });

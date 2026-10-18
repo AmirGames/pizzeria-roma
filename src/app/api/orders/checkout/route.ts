@@ -14,6 +14,7 @@ import { resolveWalloniaDeliveryAddress } from '../../../../lib/wallonia-deliver
 import { validateScheduledFor, availableSlots, brusselsDateKey } from '../../../../lib/delivery-slots.mjs';
 import { brusselsDayWindow } from '../../../../lib/staff-dashboard.mjs';
 import { configuredStripeMethods, realOrdersEnabled, stripeReady } from '../../../../lib/real-orders';
+import { getSiteLocale } from '../../../../lib/locale';
 // @ts-ignore JavaScript module
 import { selectPromotion } from '../../../../lib/promotions.mjs';
 
@@ -164,7 +165,7 @@ export async function POST(request: Request) {
 
     const form = new URLSearchParams();
     const fields: Record<string,string> = {
-      mode: 'payment', locale: 'fr', customer_email: input.email, client_reference_id: order.id,
+      mode: 'payment', locale: await getSiteLocale(), customer_email: input.email, client_reference_id: order.id,
       success_url: `${origin.origin}/commande/confirmation?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin.origin}/commande/paiement-annule?reference=${encodeURIComponent(order.publicReference)}`,
       'line_items[0][quantity]': '1', 'line_items[0][price_data][currency]': 'eur',

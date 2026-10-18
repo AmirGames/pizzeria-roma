@@ -2,8 +2,10 @@
 
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import type { SiteLocale } from '../../../lib/locale';
 
-export default function RefreshPaymentStatus() {
+export default function RefreshPaymentStatus({ locale = 'fr' }: { locale?: SiteLocale }) {
+  const en = locale === 'en';
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [stopped, setStopped] = useState(false);
@@ -29,7 +31,7 @@ export default function RefreshPaymentStatus() {
   }, [router]);
 
   return <section aria-live="polite">
-    <p>{stopped ? 'La confirmation prend plus de temps que prévu.' : 'Vérification automatique de la confirmation du paiement…'}</p>
-    {stopped && <button type="button" disabled={pending} onClick={() => startTransition(() => router.refresh())}>Vérifier à nouveau</button>}
+    <p>{stopped ? (en ? 'Confirmation is taking longer than expected.' : 'La confirmation prend plus de temps que prévu.') : (en ? 'Automatically checking payment confirmation…' : 'Vérification automatique de la confirmation du paiement…')}</p>
+    {stopped && <button type="button" disabled={pending} onClick={() => startTransition(() => router.refresh())}>{en ? 'Check again' : 'Vérifier à nouveau'}</button>}
   </section>;
 }

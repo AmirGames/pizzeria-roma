@@ -31,11 +31,14 @@ Les commandes réelles restent désactivées tant que `ENABLE_REAL_ORDERS` n’e
 ## Améliorations produit envisagées
 
 - [x] PWA installable avec manifeste, icônes et page de secours hors ligne. Le catalogue, les prix et le checkout demandent toujours une connexion ; aucune commande n’est mise en attente hors ligne.
-- [ ] Traduction anglaise complète de la boutique, du panier, du checkout, des e-mails et de l’espace client.
+- [x] Auditer et harmoniser les textes fixes en anglais dans la boutique, le panier, le checkout, les e-mails de compte, l’espace client et les écrans d’erreur. Les recettes et zones courantes ont aussi leurs libellés anglais dans les aperçus et historiques.
+- [ ] Ajouter une saisie bilingue pour les textes libres gérant encore enregistrés en français uniquement, notamment les promotions et les textes personnalisés de la page d’accueil.
 - [ ] Compléter les exigences de protection et d’exploitation des comptes clients pour une ouverture publique.
 
 ## Fonctionnalités déjà livrées
 
+- [x] Éditeur gérant de la page d’accueil : textes du bandeau, boutons, image parmi les médias installés, section histoire et métadonnées SEO, avec sauvegarde en base et contrôle de révision.
+- [x] Tableau de bord gérant consultable avant l’activation des commandes, avec état de préparation des services, migrations de l’éditeur d’accueil et raccourcis d’administration sans exposition de secrets.
 - Catalogue du menu daté, panier avec validation des prix côté serveur, personnalisation des pizzas, promotions, fidélité et gestion de la carte.
 - Comptes clients de test, adresses privées, export JSON, historique et reprise de sélection, vérification e-mail et récupération de mot de passe locales.
 - Catalogue public mis en cache côté serveur ; les modifications du menu dans l’espace gérant invalident immédiatement le cache.

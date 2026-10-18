@@ -6,10 +6,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { addCatalogCartItem } from '../../lib/catalog-cart.mjs';
 import type { CatalogCartLine } from '../../lib/catalog-cart.mjs';
 import { useCatalogCart } from '../../lib/use-catalog-cart';
+import type { SiteLocale } from '../../lib/locale';
+import { getMessages } from '../../i18n/messages';
+// @ts-ignore JavaScript module
+import { englishIngredientList } from '../../lib/menu-translation.mjs';
 
-type CatalogCategory = { id: string; nameFr: string; products: CatalogProduct[] };
+type CatalogCategory = { id: string; nameFr: string; nameEn: string; products: CatalogProduct[] };
 type CatalogEntry = { product: CatalogProduct; displayName?: string; selectedSizeId?: string };
-const money = (cents: number) => new Intl.NumberFormat('fr-BE', { style: 'currency', currency: 'EUR' }).format(cents / 100);
+const money = (cents: number, locale: SiteLocale = 'fr') => new Intl.NumberFormat(locale === 'en' ? 'en-BE' : 'fr-BE', { style: 'currency', currency: 'EUR' }).format(cents / 100);
 
 function categorySlug(name: string) {
   return name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('fr-BE').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -62,11 +66,11 @@ const pizzaPhotoBySlug: Record<string, string> = {
   royale: 'royale',
 };
 
-function priceRange(product: CatalogProduct) {
+function priceRange(product: CatalogProduct, locale: SiteLocale) {
   const prices = product.sizes.length ? product.sizes.map(size => size.priceCents) : [product.baseCents];
   const lowest = Math.min(...prices);
   const highest = Math.max(...prices);
-  return lowest === highest ? money(lowest) : `${money(lowest)} – ${money(highest)}`;
+  return lowest === highest ? money(lowest, locale) : `${money(lowest, locale)} – ${money(highest, locale)}`;
 }
 
 function thumbnailIndex(name: string, fallback: number) {
@@ -107,18 +111,23 @@ function menuItemPhotoIndex(categoryName: string, product: CatalogProduct, displ
   return undefined;
 }
 
-function ProductCard({ product, onAdd, index, isPizza, itemPhotoIndex, itemPhotoSource, allowCustomization, displayName, selectedSizeId }: { product: CatalogProduct; onAdd: (line: Omit<CatalogCartLine, 'quantity'>) => boolean; index: number; isPizza: boolean; itemPhotoIndex?: number; itemPhotoSource?: 'pasta' | 'menu'; allowCustomization: boolean; displayName?: string; selectedSizeId?: string }) {
+function ProductCard({ product, onAdd, index, isPizza, itemPhotoIndex, itemPhotoSource, allowCustomization, displayName, selectedSizeId, locale }: { product: CatalogProduct; onAdd: (line: Omit<CatalogCartLine, 'quantity'>) => boolean; index: number; isPizza: boolean; itemPhotoIndex?: number; itemPhotoSource?: 'pasta' | 'menu'; allowCustomization: boolean; displayName?: string; selectedSizeId?: string; locale: SiteLocale }) {
+  const t = getMessages(locale).catalog;
   const [added, setAdded] = useState(false);
   const [customizing, setCustomizing] = useState(false);
   const directChoices = !allowCustomization && !selectedSizeId && product.sizes.length > 1 ? product.sizes : [];
   const selectedSize = product.sizes.find(size => size.id === selectedSizeId);
   const sizeId = selectedSizeId ?? product.sizes[0]?.id;
-  const name = displayName ?? product.nameFr;
+  const name = displayName ?? (locale === 'en' ? product.nameEn : product.nameFr);
   const photoIndex = isPizza ? thumbnailIndex(product.nameFr, index) : itemPhotoIndex ?? index % 6;
   const position = `${(photoIndex % 3) * 50}% ${itemPhotoIndex !== undefined ? Math.floor(photoIndex / 3) * 50 : photoIndex < 3 ? 0 : 100}%`;
   const pizzaPhoto = isPizza ? pizzaPhotoBySlug[categorySlug(product.nameFr)] : undefined;
   const photoUrl = pizzaPhoto ? `/pizzas/${pizzaPhoto}.webp` : isPizza ? '/roma-pizzas.webp' : itemPhotoIndex !== undefined ? itemPhotoSource === 'pasta' ? '/roma-pasta-items.webp' : '/roma-menu-items.webp' : '/roma-categories-portrait.webp';
-  const ingredients = product.ingredients?.length ? product.ingredients.join(', ') : recipes[product.nameFr] ?? (product.removableIngredients?.length ? product.removableIngredients.join(', ') : '');
+  const included = product.ingredients?.length ? product.ingredients : product.removableIngredients?.length ? product.removableIngredients : [];
+  const recipeFallback = recipes[product.nameFr]?.split(', ') ?? [];
+  const ingredients = included.length
+    ? (locale === 'en' ? englishIngredientList(included) : included).join(', ')
+    : recipeFallback.length ? (locale === 'en' ? englishIngredientList(recipeFallback) : recipeFallback).join(', ') : '';
   const sizes = product.sizes.map(size => size.label).join(' · ');
   return <article className={`catalog-product${allowCustomization ? '' : ' catalog-product-simple'}`} onChange={() => setAdded(false)} onClick={event => {
     if (!allowCustomization) return;
@@ -131,21 +140,22 @@ function ProductCard({ product, onAdd, index, isPizza, itemPhotoIndex, itemPhoto
     </div>
     <div className="catalog-product-copy">
       {allowCustomization
-        ? <button type="button" className="catalog-product-name" onClick={() => setCustomizing(open => !open)} aria-expanded={customizing}>{product.nameFr}</button>
+        ? <button type="button" className="catalog-product-name" onClick={() => setCustomizing(open => !open)} aria-expanded={customizing}>{name}</button>
       : <h4 className="catalog-product-name">{name}</h4>}
-      <p>{selectedSize ? 'Dessert' : directChoices.length ? `Choisissez : ${directChoices.map(size => size.label).join(' ou ')}` : ingredients || (sizes ? `Formats : ${sizes}` : product.choiceLabel ?? 'À la carte')}</p>
-      {allowCustomization && <button type="button" className="catalog-personalize" onClick={() => setCustomizing(open => !open)} aria-expanded={customizing}>{customizing ? 'Fermer les options' : 'Personnaliser'}</button>}
+      <p>{selectedSize ? t.dessert : directChoices.length ? `${t.choose} : ${directChoices.map(size => size.label).join(` ${t.or} `)}` : ingredients || (sizes ? `${t.sizes} : ${sizes}` : product.choiceLabel ? locale === 'en' ? englishIngredientList([product.choiceLabel])[0] : product.choiceLabel : t.àLaCarte)}</p>
+      {allowCustomization && <button type="button" className="catalog-personalize" onClick={() => setCustomizing(open => !open)} aria-expanded={customizing}>{customizing ? t.closeOptions : t.customize}</button>}
     </div>
-    <strong className="catalog-product-price">{selectedSize ? money(selectedSize.priceCents) : priceRange(product)}</strong>
+    <strong className="catalog-product-price">{selectedSize ? money(selectedSize.priceCents, locale) : priceRange(product, locale)}</strong>
     {directChoices.length
-      ? <div className="catalog-direct-choices">{directChoices.map(size => <button type="button" className="catalog-quick-add catalog-quick-add-choice" key={size.id} onClick={() => setAdded(onAdd({ productId: product.id, sizeId: size.id, extraIds: [], removedIngredients: [] }))}>Ajouter · {size.label}</button>)}</div>
-      : <button type="button" className="catalog-quick-add" onClick={() => setAdded(onAdd({ productId: product.id, ...(sizeId ? { sizeId } : {}), extraIds: [], removedIngredients: [] }))}><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3h2l2.2 12.1a2 2 0 0 0 2 1.6h8.9a2 2 0 0 0 1.9-1.5L22 8H6"/><circle cx="10" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>Ajouter</button>}
-    {allowCustomization && customizing && <div className="catalog-product-options"><ProductConfigurator product={product} onSubmit={line => setAdded(onAdd(line))} /></div>}
-    {added && <p role="status" className="catalog-product-added">Ajouté au panier ✓</p>}
+      ? <div className="catalog-direct-choices">{directChoices.map(size => <button type="button" className="catalog-quick-add catalog-quick-add-choice" key={size.id} onClick={() => setAdded(onAdd({ productId: product.id, sizeId: size.id, extraIds: [], removedIngredients: [] }))}>{t.add} · {size.label}</button>)}</div>
+      : <button type="button" className="catalog-quick-add" onClick={() => setAdded(onAdd({ productId: product.id, ...(sizeId ? { sizeId } : {}), extraIds: [], removedIngredients: [] }))}><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3h2l2.2 12.1a2 2 0 0 0 2 1.6h8.9a2 2 0 0 0 1.9-1.5L22 8H6"/><circle cx="10" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>{t.add}</button>}
+    {allowCustomization && customizing && <div className="catalog-product-options"><ProductConfigurator product={product} locale={locale} onSubmit={line => setAdded(onAdd(line))} /></div>}
+    {added && <p role="status" className="catalog-product-added">{t.added}</p>}
   </article>;
 }
 
-export default function CatalogProducts({ initialCategories }: { initialCategories: CatalogCategory[] }) {
+export default function CatalogProducts({ initialCategories, locale = 'fr' }: { initialCategories: CatalogCategory[]; locale?: SiteLocale }) {
+  const t = getMessages(locale).catalog;
   const [categories] = useState<CatalogCategory[]>(initialCategories);
   const [activeCategory, setActiveCategory] = useState('');
   const [query, setQuery] = useState('');
@@ -164,7 +174,7 @@ export default function CatalogProducts({ initialCategories }: { initialCategori
       setError('');
       return true;
     } catch {
-      setError('Le panier est complet ou la quantité maximale est atteinte.');
+      setError(t.cartLimit);
       return false;
     }
   }
@@ -185,21 +195,22 @@ export default function CatalogProducts({ initialCategories }: { initialCategori
     });
   }, [currentCategory]);
   const visibleProducts = useMemo(() => categoryProducts.filter(entry => {
-    const search = query.trim().toLocaleLowerCase('fr-BE');
-    return !search || (entry.displayName ?? entry.product.nameFr).toLocaleLowerCase('fr-BE').includes(search) || (!entry.selectedSizeId && entry.product.nameFr.toLocaleLowerCase('fr-BE').includes(search));
+    const search = query.trim().toLocaleLowerCase(locale === 'en' ? 'en-BE' : 'fr-BE');
+    const primaryName = entry.displayName ?? (locale === 'en' ? entry.product.nameEn : entry.product.nameFr);
+    return !search || primaryName.toLocaleLowerCase(locale === 'en' ? 'en-BE' : 'fr-BE').includes(search) || entry.product.nameFr.toLocaleLowerCase('fr-BE').includes(search) || entry.product.nameEn.toLocaleLowerCase('en-BE').includes(search);
   }), [categoryProducts, query]);
   const isPizza = /pizza/i.test(currentCategory?.nameFr ?? '');
   const currentCategorySlug = categorySlug(currentCategory?.nameFr ?? '');
   const itemPhotoSource = currentCategorySlug.startsWith('pates') ? 'pasta' : 'menu';
   const allowCustomization = !/^(boissons?|desserts?)$/.test(currentCategorySlug);
 
-  if (categories.length === 0) return <p className="catalog-message" role="status">Les plats et tarifs seront affichés après validation et publication de la carte.</p>;
+  if (categories.length === 0) return <p className="catalog-message" role="status">{t.emptyCatalog}</p>;
   return <>
     {error && <p role="alert" className="roma-error">{error}</p>}
-    <nav className="catalog-category-tabs" aria-label="Catégories du menu">{categories.map(category => <button type="button" key={category.id} aria-pressed={activeCategory === category.id} onClick={() => setActiveCategory(category.id)}>{category.nameFr}</button>)}</nav>
+    <nav className="catalog-category-tabs" aria-label={t.categoriesLabel}>{categories.map(category => <button type="button" key={category.id} aria-pressed={activeCategory === category.id} onClick={() => setActiveCategory(category.id)}>{locale === 'en' ? category.nameEn : category.nameFr}</button>)}</nav>
     <section className="catalog-current-category" aria-labelledby="catalog-active-title">
-      <div className="catalog-category-title"><h3 id="catalog-active-title">Nos {(currentCategory?.nameFr ?? 'plats').toLocaleLowerCase('fr-BE')}</h3><label className="catalog-search"><span aria-hidden="true">⌕</span><input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Rechercher une pizza…" aria-label="Rechercher une pizza" /></label></div>
-      {!visibleProducts.length ? <p className="catalog-message">Aucun article ne correspond à votre recherche dans cette catégorie.</p> : <div className="catalog-products">{visibleProducts.map((entry, index) => <ProductCard key={`${entry.product.id}-${entry.selectedSizeId ?? 'default'}`} product={entry.product} displayName={entry.displayName} selectedSizeId={entry.selectedSizeId} onAdd={add} index={index} isPizza={isPizza} itemPhotoIndex={menuItemPhotoIndex(currentCategory?.nameFr ?? '', entry.product, entry.displayName)} itemPhotoSource={itemPhotoSource} allowCustomization={allowCustomization} />)}</div>}
+      <div className="catalog-category-title"><h3 id="catalog-active-title">{locale === 'en' ? (currentCategory?.nameEn ?? t.dishesFallback) : t.categoryTitle(currentCategory?.nameFr ?? t.dishesFallback)}</h3><label className="catalog-search"><span aria-hidden="true">⌕</span><input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder={t.searchPlaceholder} aria-label={t.searchLabel} /></label></div>
+      {!visibleProducts.length ? <p className="catalog-message">{t.noSearchResults}</p> : <div className="catalog-products">{visibleProducts.map((entry, index) => <ProductCard key={`${entry.product.id}-${entry.selectedSizeId ?? 'default'}`} product={entry.product} displayName={entry.displayName} selectedSizeId={entry.selectedSizeId} onAdd={add} index={index} isPizza={isPizza} itemPhotoIndex={menuItemPhotoIndex(currentCategory?.nameFr ?? '', entry.product, entry.displayName)} itemPhotoSource={itemPhotoSource} allowCustomization={allowCustomization} locale={locale} />)}</div>}
     </section>
   </>;
 }

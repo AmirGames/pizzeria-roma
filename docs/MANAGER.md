@@ -2,6 +2,10 @@
 
 ## Fonctionnement
 
+`/gerant/accueil` permet à un compte MANAGER de modifier le titre, les textes, les libellés des boutons, l’image du bandeau, la section histoire et les métadonnées SEO de l’accueil. Une liste d’images déjà installées évite de saisir un chemin de fichier. Les textes sont validés côté serveur, et une révision empêche d’écraser silencieusement les changements d’un autre gérant. Le bouton « Enregistrer et publier » applique les changements immédiatement. La migration `20261023100000_homepage_content` doit être appliquée à la base cible avec `npx prisma migrate deploy`.
+
+Le tableau `/gerant` reste accessible au MANAGER même si les modes test et commandes réelles sont désactivés. Il présente alors les réglages de préparation (base/carte, migration de l’éditeur d’accueil, zones, Stripe/webhook, ouverture des commandes, e-mails) sans afficher de secret et propose les raccourcis d’administration.
+
 `/gerant/carte` permet à un gérant connecté de modifier le nom français, la disponibilité et les prix des articles existants. Pour les pizzas : ingrédients retirables et suppléments avec prix fixe ou par format. Un tarif de format laissé vide signifie que le supplément n'est pas proposé dans ce format. Les prix nuls sont autorisés explicitement ; aucun tarif n'est inventé par le système.
 
 Les formats existants sont conservés, avec prix et disponibilité modifiables. Un formulaire permet de créer une pizza en brouillon dans une catégorie PIZZA existante : prix 33 cm obligatoire, format 50 cm facultatif et ingrédients retirables. Le brouillon reste invisible aux clients jusqu’à son activation explicite dans l’éditeur. Le nom anglais est initialement identique au nom français. La création de catégories, les autres types de produits, l’ajout de formats à un article existant, la traduction anglaise et les allergènes ne font pas partie de cet écran. Une recherche par nom ou catégorie facilite la sélection des articles. Retirer un supplément du formulaire le désactive en base ; il reste visible comme indisponible après rechargement. Au maximum 20 suppléments sont soumis dans une modification.

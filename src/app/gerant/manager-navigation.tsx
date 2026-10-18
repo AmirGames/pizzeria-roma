@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 
 const links = [
   { href: '/gerant', label: 'Tableau de bord' },
+  { href: '/gerant/accueil', label: 'Page d’accueil' },
   { href: '/gerant/carte', label: 'La carte' },
   { href: '/gerant/promotions', label: 'Promotions' },
   { href: '/gerant/livraison', label: 'Livraison' },

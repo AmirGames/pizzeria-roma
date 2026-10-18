@@ -18,6 +18,8 @@ Le site est installable comme PWA et propose une page de secours si la connexion
 - Personnalisation d’une pizza prédéfinie : retrait d’ingrédients autorisés **sans réduction du prix**, et suppléments à prix fixe ou selon le format.
 - Panier catalogue : modification des recettes, conservation des quantités et regroupement des recettes identiques, avec contrôle serveur des prix et options.
 - Espace gérant : création et classement des catégories, création de plats avec formats et prix, gestion de leur composition, des ingrédients retirables, des suppléments et des disponibilités. Les nouveaux plats restent en brouillon jusqu’à publication explicite.
+- Éditeur de page d’accueil pour les gérants : textes du bandeau et de l’histoire, libellés des boutons, choix d’une image déjà installée et métadonnées SEO Google. Accès via `/gerant/accueil` après application de la migration `20261023100000_homepage_content`.
+- Tableau de bord gérant accessible avant l’ouverture commerciale, avec état synthétique de la base/carte, des zones, de Stripe/webhook, des e-mails et des commandes réelles.
 - Promotions gérant : remises automatiques et codes promo en pourcentage ou montant fixe, avec période, jours, heures de validité, minimum de panier et plafond d’utilisations. Une remise automatique peut être réservée à la première commande d’un client connecté. Les montants sont recalculés avant le checkout Stripe.
 - Carte de fidélité client : une pizza ou des pâtes terminées ajoutent un crédit ; après 10 plats payés, le plat éligible le moins cher est offert. Les annulations et refus ne donnent aucun crédit.
 - En mode test : inscription/connexion client, profil nom/téléphone, changement de mot de passe, confirmation, historique privé et annulation des essais en attente.

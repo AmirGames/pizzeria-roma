@@ -9,6 +9,10 @@ import { attachGlobalPizzaIngredients } from '../../../../lib/global-pizza-ingre
 import { selectPromotion } from '../../../../lib/promotions.mjs';
 // @ts-ignore JavaScript module
 import { calculateLoyaltyReward } from '../../../../lib/loyalty.mjs';
+import { getSiteLocale } from '../../../../lib/locale';
+import type { CatalogCartPreview } from '../../../../lib/catalog-cart-preview.mjs';
+// @ts-ignore JavaScript module
+import { localizeCatalogPreviewItems } from '../../../../lib/localize-catalog-preview.mjs';
 
 export async function POST(request: Request) {
   if (!realOrdersEnabled()) return Response.json({ error: 'NOT_FOUND' }, { status: 404 });
@@ -26,7 +30,7 @@ export async function POST(request: Request) {
       prisma.product.findMany({ where: { id: { in: ids }, active: true }, include: { category: true, sizes: true, extras: true } }),
       prisma.ingredient.findMany({ where: { active: true } }),
     ]);
-    const preview = previewCatalogCart(attachGlobalPizzaIngredients(products, ingredients), selections, { mode: input.mode as 'delivery'|'pickup', zoneId: input.zoneId as string | undefined });
+    const preview = previewCatalogCart(attachGlobalPizzaIngredients(products, ingredients), selections, { mode: input.mode as 'delivery'|'pickup', zoneId: input.zoneId as string | undefined }) as CatalogCartPreview;
     const [user, automaticRaw] = await Promise.all([
       getCurrentUser(),
       prisma.promotion.findFirst({ where: { kind: 'AUTOMATIC', active: true }, orderBy: { updatedAt: 'desc' } }),
@@ -41,7 +45,8 @@ export async function POST(request: Request) {
     ] }, select: { id: true } }) : true;
     const automatic = automaticRaw?.firstOrderOnly && (user?.role !== 'CUSTOMER' || hasPastOrder) ? null : automaticRaw;
     const discount = selectPromotion({ automatic, subtotalCents: preview.subtotalCents - loyalty.loyaltyDiscountCents });
-    return Response.json({ ...preview, ...discount, ...loyalty, items: preview.items.map((item, index) => ({ ...item, loyaltyFreeQuantity: loyalty.loyaltyFreeByLine[index] ?? 0 })) }, { headers: { 'Cache-Control': 'no-store' } });
+    const locale = await getSiteLocale();
+    return Response.json({ ...preview, ...discount, ...loyalty, items: localizeCatalogPreviewItems(preview.items, products, locale).map((item: CatalogCartPreview['items'][number], index: number) => ({ ...item, loyaltyFreeQuantity: loyalty.loyaltyFreeByLine[index] ?? 0 })) }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     const code = error instanceof Error ? error.message : '';
     const status = code === 'PRODUCT_UNAVAILABLE' ? 404 : ['INVALID_CART','INVALID_REMOVALS','INVALID_EXTRAS','INVALID_SIZE','INVALID_COUNT','INVALID_MODE','UNKNOWN_ZONE','INVALID_PRICE','PRICE_OVERFLOW'].includes(code) ? 400 : 503;

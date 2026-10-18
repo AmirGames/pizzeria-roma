@@ -14,7 +14,7 @@ try {
 export const siteMetadataBase = parsedOrigin;
 export const absoluteSiteUrl = (path: string) => new URL(path, siteMetadataBase).toString();
 
-export function publicPageMetadata(title: string, description: string, path: string): Metadata {
+export function publicPageMetadata(title: string, description: string, path: string, locale: 'fr' | 'en' = 'fr'): Metadata {
   const brandedTitle = `${title} | Pizzeria Roma`;
   return {
     title: brandedTitle,
@@ -25,9 +25,9 @@ export function publicPageMetadata(title: string, description: string, path: str
       description,
       url: path,
       siteName: 'Pizzeria Roma',
-      locale: 'fr_BE',
+      locale: locale === 'en' ? 'en_BE' : 'fr_BE',
       type: 'website',
-      images: [{ url: '/roma-hero.png', alt: 'Pizzeria Roma à Namur' }],
+      images: [{ url: '/roma-hero.png', alt: locale === 'en' ? 'Pizzeria Roma in Namur' : 'Pizzeria Roma à Namur' }],
     },
     twitter: { card: 'summary_large_image', title: brandedTitle, description, images: ['/roma-hero.png'] },
   };

@@ -66,7 +66,13 @@ const pizzas = [
   ['burrata-pesto','Burrata Pesto',1850,4100], ['burrata-balsamique','Burrata Balsamique',1950,4100],
   ['burrata-truffe','Burrata à l’huile de truffe',1950,4100], ['truffe','Truffe',1950,4100],
 ].map(([slug, nameFr, price33, price50]) => ({
-  id: `${menuId}-pizza-${slug}`, nameFr, nameEn: nameFr, baseCents: 0, active: true,
+  id: `${menuId}-pizza-${slug}`, nameFr, nameEn: ({
+    hawai: 'Hawaiian', chevre: 'Goat Cheese', viennese: 'Vienna Sausage', '4-stagioni': 'Four Seasons',
+    '4-formaggi': 'Four Cheeses', ortolana: 'Garden Vegetables', brocoli: 'Broccoli', vegetarienne: 'Vegetarian',
+    forestiere: 'Forestière', 'hamburger-cheese': 'Cheeseburger', rucola: 'Arugula', 'al-tonno': 'Tuna',
+    salmone: 'Salmon', 'frutti-di-mare': 'Seafood', 'mare-e-monte': 'Sea and Mountain',
+    'burrata-balsamique': 'Burrata Balsamic', 'burrata-truffe': 'Burrata Truffle', truffe: 'Truffle',
+  })[slug] ?? nameFr, baseCents: 0, active: true,
   ingredients: pizzaIngredients[slug] ?? [],
   sizes: [size(slug, '33cm', '33 cm', price33), ...(price50 === null ? [] : [size(slug, '50cm', '50 cm', price50)])],
   extras: [],
@@ -100,7 +106,12 @@ const pastaIngredients = {
   tortelli: ['Pâtes fraîches farcies à la mozzarella di bufala campana', 'Tomate basilic', 'Pesto genovese', 'Roquette', 'Pignons de pin grillés'],
 };
 const pastas = pastaRows.map(([slug, nameFr, priceCents, hasShapeChoice]) => ({
-  id: `${menuId}-pasta-${slug}`, nameFr, nameEn: nameFr, baseCents: priceCents, active: true,
+  id: `${menuId}-pasta-${slug}`, nameFr, nameEn: ({
+    bolognese: 'Bolognese', 'jambon-creme': 'Ham and Cream', 'tomate-creme': 'Tomato and Cream',
+    'al-forno': 'Baked Pasta', tonnata: 'Tuna Sauce', scampis: 'Prawns', 'al-salmone': 'Salmon',
+    '4-formaggi': 'Four Cheeses', 'ravioles-champignons': 'Mushroom Ravioli', maison: 'House Special',
+    'fruits-de-mer': 'Seafood', 'tortellini-jambon-creme': 'Ham and Cream Tortellini', lasagne: 'Lasagna',
+  })[slug] ?? nameFr, baseCents: priceCents, active: true,
   ingredients: pastaIngredients[slug] ?? [],
   choiceLabel: hasShapeChoice ? 'Type de pâtes' : null,
   extraSelectionMode: 'SINGLE',
@@ -126,7 +137,7 @@ const salads = [
   ['adriatica','Adriatica',1450], ['tricolore','Tricolore',1400], ['salade-de-pates','Salade de pâtes',1500],
   ['roma','Roma',1550], ['septentrionale','Septentrionale',1650], ['hawaienne','Hawaïenne',1450],
   ['burrata','Burrata',1750],
-].map(([slug, nameFr, price]) => product('salad',slug,`Salade ${nameFr}`,`${nameFr} salad`,price));
+].map(([slug, nameFr, price]) => product('salad',slug,`Salade ${nameFr}`,`${({ italienne: 'Italian', meridionale: 'Southern Italian', adriatica: 'Adriatic', tricolore: 'Three-Colour', septentrionale: 'Northern Italian', hawaienne: 'Hawaiian', 'salade-de-pates': 'Pasta' })[slug] ?? nameFr} salad`,price));
 const meat = [product('meat','ossobuco','Ossobuco','Ossobuco',2700)];
 const drinks = [
   product('drink','coca','Coca 33 cl','Coca-Cola 33 cl',250),

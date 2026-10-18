@@ -1,19 +1,20 @@
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
 import { requirePermission } from '../../lib/auth';
 import { testOrdersEnabled } from '../../lib/test-mode';
-import { realOrdersEnabled } from '../../lib/real-orders';
+import { realOrdersEnabled, stripeReady } from '../../lib/real-orders';
+import { customerMailConfigured } from '../../lib/local-customer-mail';
 import { loadStaffDashboard } from '../../lib/staff-dashboard-data';
 import { parseStaffTestFilters, staffTestHref } from '../../lib/staff-test-filters.mjs';
 import { brusselsDayWindow } from '../../lib/staff-dashboard.mjs';
 import { prisma } from '../../lib/db';
+// @ts-ignore JavaScript module
+import { DELIVERY_ZONES } from '../../lib/fulfillment.mjs';
 import RefreshTestOrders from '../../components/refresh-test-orders';
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Tableau de bord gérant | Pizzeria Roma', robots: { index: false, follow: false } };
 export default async function ManagerDashboard() {
   const showTests = testOrdersEnabled();
   const showRealOrders = realOrdersEnabled();
-  if (!showTests && !showRealOrders) notFound();
   try { await requirePermission('reports:read'); }
   catch (error) { if (!(error instanceof Error) || error.message !== 'FORBIDDEN') throw error; return <main className="manager-page"><p className="manager-eyebrow">PIZZERIA ROMA · ESPACE PROFESSIONNEL</p><h1>Accès gérant requis</h1><p>Connectez-vous pour accéder aux outils de gestion.</p><Link className="manager-button-link" href="/gerant/connexion">Connexion gérant</Link>{showRealOrders&&<p><Link href="/gerant/commandes">Ouvrir les commandes réelles</Link></p>}{showTests&&<p><Link href="/gerant/commandes-test">Ouvrir les essais</Link></p>}</main>; }
   const data = showTests ? await loadStaffDashboard() : null;
@@ -27,6 +28,41 @@ export default async function ManagerDashboard() {
     const countFor = (status: string) => groups.find(group => group.status === status)?._count._all ?? 0;
     return { active: countFor('ACCEPTED') + countFor('PREPARING') + countFor('READY') + countFor('OUT_FOR_DELIVERY'), accepted: countFor('ACCEPTED'), preparing: countFor('PREPARING'), ready: countFor('READY'), delivery: countFor('OUT_FOR_DELIVERY'), todayCount: today._count._all, todayTotalCents: today._sum.totalCents ?? 0, date: day.date };
   })() : null;
+  const readiness = await (async () => {
+    try {
+      const [configuredZones, activeProducts, homepageTable] = await Promise.all([
+        prisma.deliveryZoneBoundary.findMany({ select: { zoneId: true } }),
+        prisma.product.count({ where: { active: true } }),
+        prisma.$queryRaw<Array<{ exists: boolean }>>`SELECT EXISTS (
+          SELECT 1 FROM information_schema.tables
+          WHERE table_schema = current_schema() AND table_name = 'HomePageContent'
+        ) AS "exists"`,
+      ]);
+      const zones = new Set(configuredZones.map(zone => zone.zoneId));
+      const stripeKey = process.env.STRIPE_SECRET_KEY ?? '';
+      const stripeMode = stripeKey.startsWith('sk_live_') ? 'live' : 'test';
+      return {
+        database: true,
+        catalog: activeProducts > 0,
+        homepageContent: homepageTable[0]?.exists === true,
+        zones: DELIVERY_ZONES.every((zone: { id: string }) => zones.has(zone.id)),
+        stripe: stripeReady(),
+        stripeMode,
+        orders: showRealOrders,
+        email: customerMailConfigured(),
+      };
+    } catch {
+      return { database: false, catalog: false, homepageContent: false, zones: false, stripe: false, stripeMode: 'test', orders: showRealOrders, email: false };
+    }
+  })();
+  const readinessItems = [
+    { label: 'Base de données et carte', ready: readiness.database && readiness.catalog, detail: readiness.database ? readiness.catalog ? 'La base répond et des produits sont publiés.' : 'La base répond, mais aucun produit actif n’est publié.' : 'La base ou ses migrations est indisponible.' },
+    { label: 'Éditeur de page d’accueil', ready: readiness.homepageContent, detail: readiness.homepageContent ? 'Le contenu de la page peut être sauvegardé.' : 'Appliquez la migration 20261023100000_homepage_content pour activer la sauvegarde.' },
+    { label: 'Zones de livraison', ready: readiness.zones, detail: readiness.zones ? 'Toutes les zones prévues ont une frontière enregistrée.' : 'Une ou plusieurs zones ne sont pas encore dessinées.' },
+    { label: 'Stripe et webhook', ready: readiness.stripe, detail: readiness.stripe ? `Configuration ${readiness.stripeMode} détectée. Aucun secret n’est affiché.` : 'Clés Stripe, URL publique et signature webhook à configurer.' },
+    { label: 'Commandes réelles', ready: readiness.orders, detail: readiness.orders ? 'Le mode commandes réelles est activé dans la configuration serveur.' : 'Le checkout reste fermé tant que le gérant ne l’active pas côté serveur.' },
+    { label: 'E-mails de compte client', ready: readiness.email, detail: readiness.email ? 'Le canal d’e-mail prévu pour cet environnement est configuré.' : 'Le canal de vérification et récupération d’e-mail n’est pas configuré.' },
+  ];
   const cards = [
     { label: 'À traiter', status: 'active', count: data?.active ?? 0 },
     { label: 'À accepter', status: 'PENDING', count: data?.statuses.PENDING ?? 0 },
@@ -36,6 +72,9 @@ export default async function ManagerDashboard() {
     { label: 'En livraison', status: 'OUT_FOR_DELIVERY', count: data?.statuses.OUT_FOR_DELIVERY ?? 0 },
   ] as const;
   return <main className="manager-page"><p className="manager-eyebrow">PIZZERIA ROMA · ESPACE PROFESSIONNEL</p><h1>Tableau de bord</h1><p className="manager-lede">Vue d’ensemble de l’activité du restaurant.</p>
+    <section aria-labelledby="readiness-title"><h2 id="readiness-title">Préparation du site</h2><p>État des réglages utiles avant d’ouvrir les commandes. Les clés secrètes ne sont jamais affichées ici.</p>
+      <ul className="manager-readiness">{readinessItems.map(item => <li key={item.label}><span className={item.ready ? 'is-ready' : 'is-pending'} aria-hidden="true">{item.ready ? '✓' : '!'}</span><div><strong>{item.label}</strong><p>{item.detail}</p></div></li>)}</ul>
+    </section>
     {showRealOrders && realSummary && <section aria-labelledby="dashboard-real-title"><h2 id="dashboard-real-title">Commandes réelles</h2><div className="manager-notice"><strong>Commandes payées</strong><span>Ces chiffres couvrent uniquement les paiements confirmés et les commandes réglées par avoir.</span></div>
       <nav className="manager-cards" aria-label="Résumé des commandes réelles"><Link className="manager-card" href="/gerant/commandes"><h3>À traiter</h3><p>{realSummary.active}</p></Link><div className="manager-card"><dt>À préparer</dt><dd>{realSummary.accepted}</dd></div><div className="manager-card"><dt>En préparation</dt><dd>{realSummary.preparing}</dd></div><div className="manager-card"><dt>Prêtes</dt><dd>{realSummary.ready}</dd></div><div className="manager-card"><dt>En livraison</dt><dd>{realSummary.delivery}</dd></div></nav>
       <p><strong>Aujourd’hui ({realSummary.date.split('-').reverse().join('/')}):</strong> {realSummary.todayCount} commande(s) · {new Intl.NumberFormat('fr-BE', { style: 'currency', currency: 'EUR' }).format(realSummary.todayTotalCents / 100)} encaissés.</p><p><Link href="/gerant/commandes">Ouvrir la file cuisine et les commandes →</Link></p>

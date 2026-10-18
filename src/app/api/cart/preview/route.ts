@@ -9,6 +9,10 @@ import { previewCatalogCart } from '../../../../lib/catalog-cart-preview.mjs';
 import { normalizePromotionCode, selectPromotion } from '../../../../lib/promotions.mjs';
 // @ts-ignore JavaScript module
 import { calculateLoyaltyReward } from '../../../../lib/loyalty.mjs';
+import { getSiteLocale } from '../../../../lib/locale';
+import type { CatalogCartPreview } from '../../../../lib/catalog-cart-preview.mjs';
+// @ts-ignore JavaScript module
+import { localizeCatalogPreviewItems } from '../../../../lib/localize-catalog-preview.mjs';
 
 const MAX_CART_LINES = 30;
 const allowedBodyKeys = new Set(['items', 'mode', 'zoneId', 'promoCode']);
@@ -52,21 +56,21 @@ export async function POST(request: Request) {
       where: { id: { in: productIds }, active: true },
       select: {
         id: true,
-        nameFr: true,
+        nameFr: true, nameEn: true,
         active: true,
         baseCents: true, removableIngredients: true,
         choiceLabel: true,
         extraSelectionMode: true,
         category: { select: { fulfillmentCategory: true } },
         sizes: { orderBy: [{ priceCents: 'asc' }, { label: 'asc' }], select: { id: true, label: true, priceCents: true, active: true } },
-        extras: { select: { id: true, nameFr: true, priceCents: true, sizePrices: true, active: true } },
+        extras: { select: { id: true, nameFr: true, nameEn: true, priceCents: true, sizePrices: true, active: true } },
       },
     }), prisma.ingredient.findMany({ where: { active: true } })]);
     const products = attachGlobalPizzaIngredients(catalogProducts, ingredients);
     const preview = previewCatalogCart(products, selections, {
       mode: input.mode as 'delivery' | 'pickup',
       zoneId: input.zoneId as string | undefined,
-    });
+    }) as CatalogCartPreview;
     const user = await getCurrentUser();
     const loyaltyStatus = user?.role === 'CUSTOMER' ? await getCustomerLoyaltyStatus(user.id) : null;
     const loyalty = loyaltyStatus ? calculateLoyaltyReward(products, preview.items, loyaltyStatus.paidDishCount, loyaltyStatus.reservedFreeDishCount) : { loyaltyPaidDishCount: 0, loyaltyFreeDishCount: 0, loyaltyDiscountCents: 0, loyaltyFreeByLine: Array(preview.items.length).fill(0) };
@@ -82,7 +86,8 @@ export async function POST(request: Request) {
     const automatic = automaticRaw?.firstOrderOnly && !eligibleForFirstOrder ? null : automaticRaw;
     const codePromotion = codePromotionRaw?.firstOrderOnly && !eligibleForFirstOrder ? null : codePromotionRaw;
     const discount = selectPromotion({ automatic, codePromotion, code: input.promoCode, subtotalCents: preview.subtotalCents - loyalty.loyaltyDiscountCents });
-    return Response.json({ ...preview, ...discount, ...loyalty, items: preview.items.map((item, index) => ({ ...item, loyaltyFreeQuantity: loyalty.loyaltyFreeByLine[index] ?? 0 })) });
+    const locale = await getSiteLocale();
+    return Response.json({ ...preview, ...discount, ...loyalty, items: localizeCatalogPreviewItems(preview.items, products, locale).map((item: CatalogCartPreview['items'][number], index: number) => ({ ...item, loyaltyFreeQuantity: loyalty.loyaltyFreeByLine[index] ?? 0 })) });
   } catch (error) {
     const code = error instanceof Error ? error.message : '';
     if (['INVALID_CART', 'INVALID_REMOVALS', 'INVALID_EXTRAS', 'INVALID_SIZE', 'INVALID_COUNT', 'INVALID_MODE', 'UNKNOWN_ZONE', 'INVALID_PRICE', 'PRICE_OVERFLOW'].includes(code)) {
