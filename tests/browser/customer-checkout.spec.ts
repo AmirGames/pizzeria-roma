@@ -40,10 +40,11 @@ test('a customer registers, confirms a test and finds it again after signing in'
   await page.getByRole('link', { name: /Mon espace client/ }).click();
   await expect(page.getByRole('link', { name: order.publicReference })).toBeVisible();
   await page.getByRole('button', { name: 'Se déconnecter' }).click();
-  await page.getByLabel('Adresse e-mail').fill(email);
-  await page.getByLabel('Mot de passe').fill('Browser-customer-password');
+  const accountAccess = page.getByRole('region', { name: 'Accès client', exact: true });
+  await accountAccess.getByLabel('Adresse e-mail').fill(email);
+  await accountAccess.getByLabel('Mot de passe', { exact: true }).fill('Browser-customer-password');
   const loginResponse = page.waitForResponse(response => response.url().endsWith('/api/customer/auth') && response.request().method() === 'POST');
-  await page.getByRole('button', { name: 'Ouvrir mon espace' }).click();
+  await accountAccess.getByRole('button', { name: 'Ouvrir mon espace' }).click();
   expect((await loginResponse).status()).toBe(200);
   await expect(page.getByRole('heading', { name: 'Bonjour Client navigateur' })).toBeVisible();
   await page.getByRole('region', { name: 'Mes commandes de test' }).getByRole('link', { name: order.publicReference, exact: true }).click();

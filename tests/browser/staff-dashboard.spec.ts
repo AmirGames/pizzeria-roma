@@ -56,7 +56,7 @@ test('a manager follows dashboard counters and sees the Brussels daily summary r
   await expect(queue.getByRole('article')).toHaveCount(2);
   await page.getByRole('link', { name: 'Tableau de bord', exact: true }).click();
   await prisma.testOrder.create({ data: { ...rows[1], id: `dashboard-${suffix}-new`, publicReference: `TEST-DASH-${suffix}-NEW`, requestKey: randomUUID(), fulfillment: 'DELIVERY' } });
-  await page.getByRole('button', { name: 'Actualiser le tableau de bord', exact: true }).click();
+  await page.getByRole('button', { name: 'Actualiser les essais', exact: true }).click();
   await expect(counter('À traiter').locator('p')).toHaveText('7');
   await expect(counter('À accepter').locator('p')).toHaveText('3');
   await expect(daily('Essais enregistrés')).toHaveText('8');
