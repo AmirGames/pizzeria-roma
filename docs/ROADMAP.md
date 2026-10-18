@@ -40,6 +40,7 @@ Les commandes réelles restent désactivées tant que `ENABLE_REAL_ORDERS` n’e
 - Comptes clients de test, adresses privées, export JSON, historique et reprise de sélection, vérification e-mail et récupération de mot de passe locales.
 - Catalogue public mis en cache côté serveur ; les modifications du menu dans l’espace gérant invalident immédiatement le cache.
 - Fidélité des commandes réelles réservée au checkout, comptabilisée après terminaison, et détail de commande/exports présentant le calcul des remises.
+- Espace client avec tableau de bord et raccourcis vers les commandes, la fidélité, les avoirs, les adresses et le profil ; session professionnelle explicitement distinguée du compte client.
 - Connexion, inscription, gestion du profil et des adresses activées quand les commandes réelles sont actives ; suppression du compte protégée par mot de passe, avec conservation prudente des commandes terminées et blocage en cas de commande ou d’avoir en cours.
 - Checkout réel connecté au carnet d’adresses client ; l’adresse enregistrée est revalidée contre les zones de livraison au checkout.
 - Tableau de bord gérant avec compteurs des commandes payées et chiffre du jour, plus suivi séparé des essais ; file gérant/cuisine actualisée automatiquement toutes les 20 secondes quand elle est visible, zones et créneaux.

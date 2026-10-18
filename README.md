@@ -21,6 +21,7 @@ Le site est installable comme PWA et propose une page de secours si la connexion
 - Promotions gérant : remises automatiques et codes promo en pourcentage ou montant fixe, avec période, jours, heures de validité, minimum de panier et plafond d’utilisations. Une remise automatique peut être réservée à la première commande d’un client connecté. Les montants sont recalculés avant le checkout Stripe.
 - Carte de fidélité client : une pizza ou des pâtes terminées ajoutent un crédit ; après 10 plats payés, le plat éligible le moins cher est offert. Les annulations et refus ne donnent aucun crédit.
 - En mode test : inscription/connexion client, profil nom/téléphone, changement de mot de passe, confirmation, historique privé et annulation des essais en attente.
+- Espace client : tableau de bord avec résumé des commandes visibles, fidélité, solde d’avoir, carnet d’adresses, profil et raccourcis de navigation ; le checkout conserve l’option de commander sans compte.
 - Carnet privé de dix adresses en mode test : ajout, modification, suppression, adresse par défaut et sélection au checkout.
 - Export JSON des données du compte connecté : profil, adresses et historiques de commandes associés, sans identifiants ni secrets.
 

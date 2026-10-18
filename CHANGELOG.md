@@ -2,6 +2,7 @@
 
 ## 2026-10-18
 
+- Réorganisation de l’espace client : tableau de bord avec raccourcis vers les commandes, la fidélité, les avoirs, les adresses et le profil ; les commandes invité restent accessibles depuis le checkout. Une session professionnelle ouverte indique clairement comment passer au compte client.
 - Ajout du rapport financier gérant : périodes rapides ou personnalisées, ventes brutes, remboursements, net, avoirs, remises, répartition retrait/livraison, détail journalier et export CSV compatible avec Excel. Les paiements Stripe de test sont exclus du chiffre réel.
 - En cas d’indisponibilité d’un service serveur, une page de secours accessible propose de réessayer sans exposer les détails internes de l’erreur.
 - Le message d’accueil précise qu’aucune commande ni paiement en ligne n’est possible tant que le checkout n’est pas ouvert.
