@@ -43,6 +43,8 @@ Les commandes réelles restent désactivées tant que `ENABLE_REAL_ORDERS` n’e
 - Connexion, inscription, gestion du profil et des adresses activées quand les commandes réelles sont actives ; suppression du compte protégée par mot de passe, avec conservation prudente des commandes terminées et blocage en cas de commande ou d’avoir en cours.
 - Checkout réel connecté au carnet d’adresses client ; l’adresse enregistrée est revalidée contre les zones de livraison au checkout.
 - Tableau de bord gérant avec compteurs des commandes payées et chiffre du jour, plus suivi séparé des essais ; file gérant/cuisine actualisée automatiquement toutes les 20 secondes quand elle est visible, zones et créneaux.
+- Rapport financier gérant par période, avec ventes brutes/nettes, remboursements, avoirs, remises, répartition retrait/livraison, détail journalier et export CSV compatible avec Excel ; paiements Stripe de test exclus des ventes réelles.
+- Page de secours accessible lorsque les services serveur requis sont indisponibles, avec action de nouvelle tentative sans divulgation des détails internes.
 - Corrections de production, CI et affichage mobile jusqu’à la PR #33.
 
 Les règles de livraison et de retrait documentées dans le README restent les règles de référence. Ne pas modifier les règles concernant les desserts sans confirmation du restaurant.

@@ -2,6 +2,8 @@
 
 ## 2026-10-18
 
+- Ajout du rapport financier gérant : périodes rapides ou personnalisées, ventes brutes, remboursements, net, avoirs, remises, répartition retrait/livraison, détail journalier et export CSV compatible avec Excel. Les paiements Stripe de test sont exclus du chiffre réel.
+- En cas d’indisponibilité d’un service serveur, une page de secours accessible propose de réessayer sans exposer les détails internes de l’erreur.
 - Le message d’accueil précise qu’aucune commande ni paiement en ligne n’est possible tant que le checkout n’est pas ouvert.
 - La migration d’index tolère les index absents dans une base vierge, afin que le déploiement des migrations CI ne s’arrête pas avant la validation du schéma.
 - Le détail client d’une commande réelle suit automatiquement les changements d’état pendant cinq minutes, puis propose un bouton d’actualisation manuelle.

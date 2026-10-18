@@ -9,12 +9,13 @@ const links = [
   { href: '/gerant/promotions', label: 'Promotions' },
   { href: '/gerant/livraison', label: 'Livraison' },
   { href: '/gerant/commandes', label: 'Commandes réelles' },
+  { href: '/gerant/rapport-financier', label: 'Rapport financier' },
   { href: '/gerant/commandes-test', label: 'Essais' },
 ];
 
 export default function ManagerNavigation({ showRealOrders, showTestOrders }: { showRealOrders: boolean; showTestOrders: boolean }) {
   const pathname = usePathname();
-  const visibleLinks = links.filter(link => link.href !== '/gerant/commandes' || showRealOrders).filter(link => link.href !== '/gerant/commandes-test' || showTestOrders);
+  const visibleLinks = links.filter(link => (link.href !== '/gerant/commandes' && link.href !== '/gerant/rapport-financier') || showRealOrders).filter(link => link.href !== '/gerant/commandes-test' || showTestOrders);
   return <header className="manager-header">
     <Link className="manager-brand" href="/gerant"><span>PIZZERIA</span><strong>ROMA</strong><small>ESPACE GÉRANT</small></Link>
     <nav className="manager-nav" aria-label="Navigation gérant">

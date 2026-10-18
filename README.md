@@ -27,6 +27,7 @@ Le site est installable comme PWA et propose une page de secours si la connexion
 - Historique client paginé : recherche par référence, filtre par statut et accès aux anciens essais au-delà des 50 derniers.
 - Reprise d’une ancienne sélection depuis l’historique, avec prix actuels et ajout confirmé au panier existant.
 - Tableau de bord gérant : compteurs des essais actifs, liens vers les files et résumé du jour en heure de Bruxelles.
+- Rapport financier gérant : filtre rapide ou période personnalisée, ventes brutes/nettes, remboursements, avoirs, remises, retrait/livraison, récapitulatif par jour et export CSV compatible avec Excel. Les paiements Stripe de test sont exclus des ventes réelles.
 - File gérant/cuisine paginée : essais à traiter par ancienneté, recherche par référence, filtres par statut et livraison/retrait, transitions de statut et contrôle des permissions.
 - Aperçu des zones et minima de livraison, du retrait et des horaires dans le fuseau `Europe/Brussels`.
 - En mode test : vérification des adresses avec ICAR (Géoportail de Wallonie), zone déduite des frontières dessinées par le gérant et conservation de l’adresse complète pour le livreur.
@@ -74,7 +75,7 @@ npx prisma migrate deploy
 
 Mailpit capture les e-mails de vérification et de récupération sur [http://localhost:8025](http://localhost:8025). Aucun serveur SMTP externe n’est utilisé.
 
-Le conteneur PostgreSQL conserve les données dans un volume Docker et expose son port uniquement sur `127.0.0.1:5432`. Attendre que la base soit prête si la première migration rencontre une erreur de connexion.
+Le conteneur PostgreSQL conserve les données dans un volume Docker et expose son port uniquement sur `127.0.0.1`, selon `POSTGRES_PORT` (5432 par défaut). Si le site indique que `localhost:5432` ou `localhost:5433` est inaccessible, ouvrir Docker Desktop, attendre le démarrage du moteur puis lancer `docker compose up -d db` et vérifier `docker compose ps`. Le port de `DATABASE_URL` doit correspondre à `POSTGRES_PORT` ; le service PostgreSQL Windows sur un autre port est une base distincte.
 
 ### 4. Charger la carte initiale, une seule fois si nécessaire
 
