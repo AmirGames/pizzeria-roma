@@ -38,7 +38,11 @@ test('the manager dashboard exposes test aggregates only to authorized active ma
     assert.ok(html.includes(window.date));
     for (const privateText of [prefix, 'Coordonnée confidentielle test', 'Commentaire privé du test', '081 00 00 00']) assert.ok(!html.includes(privateText));
     assert.equal(await prisma.testOrder.count({ where: { userId: owner.id } }), 3);
-    assert.equal((await fetch('http://localhost:3240/gerant', { headers: { cookie: manager.cookie } })).status, 404);
+    const disabledTestsResponse = await fetch('http://localhost:3240/gerant', { headers: { cookie: manager.cookie } });
+    assert.equal(disabledTestsResponse.status, 200);
+    const disabledTestsHtml = await disabledTestsResponse.text();
+    assert.match(disabledTestsHtml, /Préparation du site/);
+    assert.doesNotMatch(disabledTestsHtml, /Résumé des essais du jour|File des commandes de test|statut=PENDING/);
     await prisma.user.update({ where: { id: manager.id }, data: { disabledAt: new Date() } });
     assert.match(await (await get(manager.cookie)).text(), /Accès gérant requis/);
     await prisma.user.update({ where: { id: manager.id }, data: { disabledAt: null, role: 'CUSTOMER' } });
