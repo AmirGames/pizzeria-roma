@@ -2,11 +2,9 @@ import CatalogProducts from './catalog-products';
 import { loadPublicCatalog } from '../../lib/public-catalog-data';
 import type { PublicCatalogCategory } from '../../lib/public-catalog-data';
 import { realOrdersEnabled, stripeReady } from '../../lib/real-orders';
+import { publicPageMetadata } from '../../lib/site-seo';
 
-export const metadata = {
-  title: 'Notre carte | Pizzeria Roma',
-  description: 'Découvrez la carte publiée de Pizzeria Roma à Namur.',
-};
+export const metadata = publicPageMetadata('Carte de pizzas et pâtes à Namur', 'Parcourez la carte de Pizzeria Roma : pizzas, pâtes, entrées, salades, desserts et boissons à Namur.', '/menu');
 
 export default async function MenuPage() {
   const orderingEnabled = realOrdersEnabled() && stripeReady();

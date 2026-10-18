@@ -9,7 +9,7 @@ import styles from './site-header.module.css';
 export default function SiteHeader({ showTestLinks = false }: { showTestLinks?: boolean }) {
   const [count, setCount] = useState(0);
   const pathname = usePathname();
-  const isStorefrontPage = pathname === '/' || pathname.startsWith('/menu') || pathname === '/commande' || pathname === '/contact';
+  const isStorefrontPage = pathname === '/' || pathname.startsWith('/menu') || pathname === '/commande' || pathname === '/contact' || pathname === '/a-propos';
   useEffect(() => {
     const refresh = () => setCount(readCatalogCart(window.localStorage.getItem(CATALOG_CART_STORAGE_KEY)).reduce((total, item) => total + item.quantity, 0));
     refresh();
@@ -20,7 +20,7 @@ export default function SiteHeader({ showTestLinks = false }: { showTestLinks?: 
   return <header className={`${styles.header} ${isStorefrontPage ? styles.homeHeader : ''}`}>
     <Link href="/" className={styles.logo} aria-label="Pizzeria Roma, accueil"><span>PIZZERIA</span><strong>ROMA</strong><small>NAMUR</small></Link>
     <nav className={styles.nav} aria-label="Navigation principale">
-      <Link href="/" aria-current={pathname === '/' ? 'page' : undefined}>Accueil</Link><Link href="/menu" aria-current={pathname.startsWith('/menu') ? 'page' : undefined}>Notre carte</Link><Link href="/commande" aria-current={pathname.startsWith('/commande') ? 'page' : undefined}>Livraison</Link><Link href="/#apropos">À propos</Link><Link href="/contact" aria-current={pathname === '/contact' ? 'page' : undefined}>Contact</Link>
+      <Link href="/" aria-current={pathname === '/' ? 'page' : undefined}>Accueil</Link><Link href="/menu" aria-current={pathname.startsWith('/menu') ? 'page' : undefined}>Notre carte</Link><Link href="/commande" aria-current={pathname.startsWith('/commande') ? 'page' : undefined}>Livraison</Link><Link href="/a-propos" aria-current={pathname === '/a-propos' ? 'page' : undefined}>À propos</Link><Link href="/contact" aria-current={pathname === '/contact' ? 'page' : undefined}>Contact</Link>
     </nav>
     <div className={styles.utilities}>
       <div className={styles.languages} aria-label="Langue du site"><span className={styles.languageCurrent} aria-current="true">FR</span><span className={styles.languageSoon} title="La version anglaise n’est pas encore disponible">EN bientôt</span></div>

@@ -20,10 +20,7 @@ export async function POST(request: Request) {
     if (input.action === 'register') {
       const passwordHash = await hashCustomerPassword(input.password);
       token = await prisma.$transaction(async tx => {
-        const referrer = input.referralCode ? await tx.user.findUnique({ where: { referralCode: input.referralCode }, select: { id: true, role: true, disabledAt: true } }) : null;
-        if (input.referralCode && (!referrer || referrer.role !== 'CUSTOMER' || referrer.disabledAt)) throw new Error('INVALID_REFERRAL');
         const user = await tx.user.create({ data: { email: input.email, name: input.name, role: 'CUSTOMER', customerCredential: { create: { passwordHash } } } });
-        if (referrer && referrer.id !== user.id) await tx.referral.create({ data: { referrerId: referrer.id, referredId: user.id } });
         return issueCustomerSession(tx, user.id);
       });
     } else {
@@ -39,7 +36,6 @@ export async function POST(request: Request) {
     }
     return Response.json({ ok: true }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
-    if (error instanceof Error && error.message === 'INVALID_REFERRAL') return Response.json({ error: 'INVALID_REFERRAL' }, { status: 400 });
     if (error instanceof Error && error.message === 'INVALID_AUTH') return Response.json({ error: 'INVALID_AUTH' }, { status: 401 });
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') return Response.json({ error: 'INVALID_AUTH' }, { status: 400 });
     return Response.json({ error: 'SERVICE_UNAVAILABLE' }, { status: 503 });

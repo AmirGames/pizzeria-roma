@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { isWithinRestaurantService } from '../lib/fulfillment.mjs';
 import { realOrdersEnabled, stripeReady } from '../lib/real-orders';
+import { publicPageMetadata } from '../lib/site-seo';
 import styles from './home.module.css';
 
 const categories = [
@@ -12,10 +13,7 @@ const categories = [
   { name: 'Boissons', slug: 'boissons', image: 'drinks' },
 ];
 
-export const metadata = {
-  title: 'Pizzeria Roma | Pizza à Namur',
-  description: 'Découvrez la carte de Pizzeria Roma à Namur et préparez votre commande.',
-};
+export const metadata = publicPageMetadata('Pizza et pâtes italiennes à Namur', 'Découvrez les pizzas, pâtes et spécialités de Pizzeria Roma à Namur. À emporter ou en livraison.', '/');
 
 export default function HomePage() {
   const openNow = isWithinRestaurantService(new Date());
@@ -41,12 +39,9 @@ export default function HomePage() {
       <div className={styles.aboutCopy}>
         <p className={styles.aboutKicker}>PIZZERIA ROMA · NAMUR</p>
         <h2 id="about-title">Une histoire de famille, de passion et de tradition</h2>
-        <p>La <strong>Pizzeria Roma</strong> est présente dans le Namurois depuis plus de vingt ans, au cœur d’un quartier entièrement rénové. Notre histoire commence au début de l’année 2003, née de la passion et de la tradition.</p>
-        <p>Dans une ambiance familiale, la pizzeria s’est construite autour d’une envie : transmettre les traditions culinaires italiennes et partager des plats qui ont toute leur place à nos tables, comme la pizza et les pâtes.</p>
-        <p>Nous avons commencé par la livraison et les plats à emporter. Au fil des années, à la demande de nos clients, nous avons aussi proposé de déguster nos plats sur place. Ce service a été interrompu pendant la crise du Covid.</p>
-        <p>Vingt ans plus tard, nous sommes toujours présents. Nous remercions chaleureusement nos fidèles clients de faire vivre cette histoire avec nous.</p>
-        <blockquote>« Le succès de la <strong>Pizzeria Roma</strong> tient au juste équilibre entre des plats préparés avec professionnalisme et un prix compétitif. »</blockquote>
-        <Link className={styles.aboutLink} href="/menu">Découvrir notre carte <span aria-hidden="true">→</span></Link>
+        <p>Présente dans le Namurois depuis 2003, la <strong>Pizzeria Roma</strong> cultive une ambiance familiale et le goût des traditions culinaires italiennes.</p>
+        <p>Livraison, plats à emporter et recettes préparées avec soin : découvrez l’histoire qui nous lie à nos clients depuis plus de vingt ans.</p>
+        <Link className={styles.aboutLink} href="/a-propos">Découvrir notre histoire <span aria-hidden="true">→</span></Link>
       </div>
       <div className={styles.aboutImage} role="img" aria-label="La Pizzeria Roma, ses pizzas et ses traditions italiennes" />
     </section>

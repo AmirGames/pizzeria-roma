@@ -6,12 +6,11 @@ const prefix = 'scrypt$32768$8$3';
 const dummy = `${prefix}$00000000000000000000000000000000$${'0'.repeat(128)}`;
 export function validateCustomerAuth(input) {
   const fail = () => { throw new Error('INVALID_AUTH'); };
-  if (!input || typeof input !== 'object' || Array.isArray(input) || Object.keys(input).some(key => !['action', 'email', 'password', 'name', 'referralCode'].includes(key)) || !['login', 'register'].includes(input.action)) fail();
+  if (!input || typeof input !== 'object' || Array.isArray(input) || Object.keys(input).some(key => !['action', 'email', 'password', 'name'].includes(key)) || !['login', 'register'].includes(input.action)) fail();
   if (typeof input.email !== 'string' || input.email.length > 320 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.email.trim())) fail();
   if (typeof input.password !== 'string' || input.password.length < 12 || Buffer.byteLength(input.password, 'utf8') > 256) fail();
   if (input.action === 'register' && (typeof input.name !== 'string' || !input.name.trim() || input.name.trim().length > 128)) fail();
-  if (input.referralCode !== undefined && input.referralCode !== '' && (input.action !== 'register' || typeof input.referralCode !== 'string' || input.referralCode.length > 32 || !/^[a-z0-9]{6,32}$/i.test(input.referralCode.trim()))) fail();
-  return { action: input.action, email: input.email.trim().toLowerCase(), password: input.password, name: input.action === 'register' ? input.name.trim() : undefined, referralCode: input.action === 'register' && typeof input.referralCode === 'string' && input.referralCode.trim() ? input.referralCode.trim().toLowerCase() : undefined };
+  return { action: input.action, email: input.email.trim().toLowerCase(), password: input.password, name: input.action === 'register' ? input.name.trim() : undefined };
 }
 export async function hashCustomerPassword(password) {
   const salt = randomBytes(16).toString('hex');

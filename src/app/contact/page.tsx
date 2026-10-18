@@ -1,11 +1,9 @@
 import Link from 'next/link';
 import styles from './contact.module.css';
 import ContactForm from './contact-form';
+import { publicPageMetadata } from '../../lib/site-seo';
 
-export const metadata = {
-  title: 'Contact | Pizzeria Roma · Namur',
-  description: 'Retrouvez les horaires de Pizzeria Roma à Namur et écrivez-nous via le formulaire de contact.',
-};
+export const metadata = publicPageMetadata('Adresse, horaires et contact à Namur', 'Retrouvez l’adresse, les horaires et le formulaire de contact de Pizzeria Roma, Rue Général Michel 23 à Namur.', '/contact');
 
 export default function ContactPage() {
   return (

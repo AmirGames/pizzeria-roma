@@ -2,7 +2,7 @@ import { getStoreCredit } from '../../lib/store-credit';
 
 type StoreCredit = Awaited<ReturnType<typeof getStoreCredit>>;
 const money = (cents: number) => new Intl.NumberFormat('fr-BE', { style: 'currency', currency: 'EUR' }).format(cents / 100);
-const labels: Record<string, string> = { MANAGER_GRANT: 'Avoir accordé par le restaurant', ORDER_REDEMPTION: 'Avoir utilisé sur une commande', ORDER_REFUND: 'Avoir restitué après remboursement', REFERRAL_REWARD: 'Récompense de parrainage' };
+const labels: Record<string, string> = { MANAGER_GRANT: 'Avoir accordé par le restaurant', ORDER_REDEMPTION: 'Avoir utilisé sur une commande', ORDER_REFUND: 'Avoir restitué après remboursement' };
 
 export default function StoreCreditCard({ credit }: { credit: StoreCredit }) {
   return <section className="customer-loyalty" aria-labelledby="store-credit-title">

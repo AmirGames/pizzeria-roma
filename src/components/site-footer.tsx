@@ -19,6 +19,8 @@ export default function SiteFooter() {
       <nav className="site-footer-links" aria-label="Liens de pied de page">
         <h2>En un clic</h2>
         <Link href="/menu">Notre carte</Link>
+        <Link href="/a-propos">À propos de Pizzeria Roma</Link>
+        <Link href="/contact">Adresse et horaires</Link>
         <Link href="/commande">Livraison & retrait</Link>
         <Link href="/panier">Mon panier</Link>
       </nav>

@@ -62,7 +62,6 @@ enum PromotionDiscountType {
 model User {
   id            String    @id @default(cuid())
   email         String    @unique @db.VarChar(320)
-  referralCode  String    @unique @default(cuid()) @db.VarChar(32)
   name          String?   @db.VarChar(160)
   phone         String?   @db.VarChar(40)
   emailVerified DateTime?
@@ -79,8 +78,6 @@ model User {
   customerAddresses CustomerAddress[]
   storeCreditEntries StoreCreditEntry[]
   storeCreditReservations StoreCreditReservation[]
-  referralsSent Referral[] @relation("ReferralReferrer")
-  referralReceived Referral? @relation("ReferralReferred")
 }
 
 model Session {
@@ -177,25 +174,6 @@ enum StoreCreditEntryKind {
   MANAGER_GRANT
   ORDER_REDEMPTION
   ORDER_REFUND
-  REFERRAL_REWARD
-}
-
-enum ReferralStatus {
-  PENDING
-  REWARDED
-}
-
-model Referral {
-  id String @id @default(cuid())
-  referrerId String
-  referredId String @unique
-  status ReferralStatus @default(PENDING)
-  rewardedOrderId String? @unique
-  createdAt DateTime @default(now())
-  rewardedAt DateTime?
-  referrer User @relation("ReferralReferrer", fields: [referrerId], references: [id], onDelete: Cascade)
-  referred User @relation("ReferralReferred", fields: [referredId], references: [id], onDelete: Cascade)
-  @@index([referrerId, status])
 }
 
 enum StoreCreditReservationStatus {
